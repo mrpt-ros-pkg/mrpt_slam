@@ -1,0 +1,29 @@
+<package>
+  <name>mrpt_ro_slam</name>
+  <version>1.0.0</version>
+  <description>mrpt_ro_slam</description>
+  <maintainer email="">Jose Luis</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/mrpt_ro_slam</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <author>Jose Luis</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>mrpt_libs</build_depend>
+  <build_depend>mrpt_msgs</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>mrpt_libs</run_depend>
+  <run_depend>mrpt_msgs</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+  <!-- <test_depend>mrpt_libs</test_depend> -->
+  <!-- <test_depend>mrpt_msgs</test_depend> -->
+
+</package>

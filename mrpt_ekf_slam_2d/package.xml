@@ -1,0 +1,29 @@
+<package>
+  <name>mrpt_ekf_slam_2d</name>
+  <version>1.0.0</version>
+  <description>mrpt_ekf_slam_2d</description>
+  <maintainer email="">Jose Luis</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/mrpt_ekf_slam_2d</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <author>Jose Luis</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <build_depend>mrpt_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>mrpt_msgs</run_depend>
+  <run_depend>roscpp</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+  <!-- <test_depend>mrpt_msgs</test_depend> -->
+  <!-- <test_depend>roscpp</test_depend> -->
+
+</package>
