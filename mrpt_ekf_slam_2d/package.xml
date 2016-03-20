@@ -2,7 +2,7 @@
   <name>mrpt_ekf_slam_2d</name>
   <version>1.0.0</version>
   <description>mrpt_ekf_slam_2d</description>
-  <maintainer email="">Jose Luis</maintainer>
+  <maintainer email="jlblanco@ual.es">Jose Luis</maintainer>
 
   <license>BSD</license>
 
