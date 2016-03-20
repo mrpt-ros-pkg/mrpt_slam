@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mrpt-ros-pkg/mrpt_slam.svg?branch=master)](https://travis-ci.org/mrpt-ros-pkg/mrpt_slam)
+
 MRPT-based SLAM packages 
 -------------------------
 

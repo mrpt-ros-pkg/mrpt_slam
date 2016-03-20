@@ -2,7 +2,7 @@
   <name>mrpt_slam</name>
   <version>1.0.0</version>
   <description>mrpt_slam</description>
-  <maintainer email="">Maintained by Jose Luis</maintainer>
+  <maintainer email="jlblanco@ual.es">Maintained by Jose Luis</maintainer>
 
   <license>BSD</license>
 
