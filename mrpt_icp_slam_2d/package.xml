@@ -10,6 +10,7 @@
   <!-- <url type="bugtracker"></url> -->
 
   <author>Jose Luis Blanco Claraco</author>
+  <author>Vladislav Tananaev</author>
 
   <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
