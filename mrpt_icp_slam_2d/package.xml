@@ -17,7 +17,6 @@
 
   <!-- Dependencies needed to compile this package. -->
   <build_depend>mrpt</build_depend> <!-- Depend on mrpt system pkgs -->
-  <!--   <build_depend>mrpt_libs</build_depend> -->
   <build_depend>mrpt_bridge</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
@@ -25,7 +24,6 @@
   <build_depend>roscpp</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
-  <!-- <run_depend>mrpt_libs</run_depend> -->
   <run_depend>mrpt</run_depend> <!-- Depend on mrpt system pkgs -->
   <run_depend>mrpt_bridge</run_depend>
   <run_depend>geometry_msgs</run_depend>
