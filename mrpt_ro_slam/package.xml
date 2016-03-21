@@ -10,17 +10,16 @@
   <!-- <url type="bugtracker"></url> -->
 
   <author>Jose Luis</author>
+  <author>Vladislav Tananaev</author>
 
   <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
 
   <!-- Dependencies needed to compile this package. -->
-  <!-- <build_depend>mrpt_libs</build_depend> -->
   <build_depend>mrpt_msgs</build_depend>
   <build_depend>mrpt</build_depend> <!-- Depend on mrpt system pkgs -->
 
   <!-- Dependencies needed after this package is compiled. -->
-  <!-- <run_depend>mrpt_libs</run_depend> -->
   <run_depend>mrpt_msgs</run_depend>
   <run_depend>mrpt</run_depend> <!-- Depend on mrpt system pkgs -->
 
