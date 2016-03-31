@@ -62,8 +62,6 @@ using namespace mrpt::random;
 #if MRPT_VERSION>=0x130
 using namespace mrpt::maps;
 using namespace mrpt::obs;
-#else
-using namespace mrpt::slam;
 #endif
 
 
