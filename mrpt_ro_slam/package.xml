@@ -1,30 +1,41 @@
+<?xml version="1.0"?>
 <package>
   <name>mrpt_ro_slam</name>
-  <version>1.0.0</version>
-  <description>mrpt_ro_slam</description>
-  <maintainer email="jlblanco@ual.es">Jose Luis</maintainer>
+  <version>0.0.0</version>
+  <description>This package uses rbpf to perform range-only SLAM. 
+  It is similar to range-only localization within mrpt_localization, 
+  except the beacon particles also get mapped.</description>
+
+  <url type="website">http://www.mrpt.org/</url>
+  <maintainer email="markus.bader@tuwien.ac.at">Markus Bader</maintainer>
+  <author>Markus Bader</author>
+  <author email="raffi.z@gmail.com">Raphael Zack</author>
+  <license>BSD</license>  
+
 
   <license>BSD</license>
-
-  <url type="website">http://ros.org/wiki/mrpt_ro_slam</url>
-  <!-- <url type="bugtracker"></url> -->
-
-  <author>Jose Luis</author>
-  <author>Vladislav Tananaev</author>
-
-  <!-- Dependencies which this package needs to build itself. -->
+  <!--<url>http://wiki.ros.org/mrpt_localization</url>-->
+  
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
-  <build_depend>mrpt_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>mrpt_bridge</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend> 
   <build_depend>mrpt</build_depend> <!-- Depend on mrpt system pkgs -->
-
-  <!-- Dependencies needed after this package is compiled. -->
-  <run_depend>mrpt_msgs</run_depend>
+    
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>mrpt_bridge</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend> 
   <run_depend>mrpt</run_depend> <!-- Depend on mrpt system pkgs -->
-
-  <!-- Dependencies needed only for running tests. -->
-  <!-- <test_depend>mrpt_libs</test_depend> -->
-  <!-- <test_depend>mrpt_msgs</test_depend> -->
-
+  
 </package>
