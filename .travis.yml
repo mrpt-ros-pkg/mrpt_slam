@@ -58,6 +58,7 @@ install:
 before_script:
   # source dependencies: install using wstool.
   - cd ~/catkin_ws/src
+  - git clone https://github.com/mrpt-ros-pkg/mrpt_navigation.git
   - wstool init
   - if [[ -f $ROSINSTALL_FILE ]] ; then wstool merge $ROSINSTALL_FILE ; fi
   - wstool up
