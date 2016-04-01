@@ -67,10 +67,12 @@ using namespace mrpt::obs;
 
 RBPFSlam::~RBPFSlam()
 {
+	delete mapBuilderRBPF;
 }
 
 RBPFSlam::RBPFSlam(Parameters *param)
     : RBPFSlamCore(), param_(param) {
+	
 }
 
 void RBPFSlam::init() {
@@ -106,8 +108,7 @@ void RBPFSlam::init() {
 	rbpfMappingOptions.loadFromConfigFile(iniFile,"MappingApplication");
 	rbpfMappingOptions.dumpToConsole();
 
-	mrpt::slam::CMetricMapBuilderRBPF mapBuilderInit(rbpfMappingOptions); 
-	mapBuilderRBPF = mapBuilderInit;
+	mapBuilderRBPF = new mrpt::slam::CMetricMapBuilderRBPF(rbpfMappingOptions);
     configureMapBuilder(iniFile);
 
     if(param_->gui_mrpt) init3DDebug();
@@ -115,9 +116,9 @@ void RBPFSlam::init() {
 }
 
 void RBPFSlam::configureMapBuilder(const mrpt::utils::CConfigFile &_configFile) {
-	mapBuilderRBPF.options.verbose					= true;
-	mapBuilderRBPF.options.enableMapUpdating		= true;
-    mapBuilderRBPF.options.debugForceInsertion		= false;
+	mapBuilderRBPF->options.verbose					= true;
+	mapBuilderRBPF->options.enableMapUpdating		= true;
+    mapBuilderRBPF->options.debugForceInsertion		= false;
 
 	randomGenerator.randomize();
 
@@ -155,7 +156,7 @@ void RBPFSlam::show3DDebug(CSensoryFramePtr _observations) {
        	
 		COpenGLScenePtr & ptrScene = win3D_->get3DSceneAndLock();
 		ptrScene = scene_;
-		curPDFptr = mapBuilderRBPF.getCurrentPoseEstimation();
+		curPDFptr = mapBuilderRBPF->getCurrentPoseEstimation();
 		
 		if ( IS_CLASS( curPDFptr, CPose3DPDFParticles ) )
 		{
@@ -176,7 +177,7 @@ void RBPFSlam::show3DDebug(CSensoryFramePtr _observations) {
 		
 		if(objs)	scene_->insert( objs ); // adds the beacon particles
 		
-		size_t		M = mapBuilderRBPF.mapPDF.particlesCount(); // number of robot particles, set by ini file
+		size_t		M = mapBuilderRBPF->mapPDF.particlesCount(); // number of robot particles, set by ini file
 		
 		mrpt::opengl::CSetOfLinesPtr objLines = mrpt::opengl::CSetOfLines::Create();
 		objLines->setColor(0,1,1);
@@ -184,7 +185,7 @@ void RBPFSlam::show3DDebug(CSensoryFramePtr _observations) {
 		for (size_t i=0;i<M;i++)
 		{
 			std::deque<TPose3D>		path;
-			mapBuilderRBPF.mapPDF.getPath(i,path);
+			mapBuilderRBPF->mapPDF.getPath(i,path);
 
 			float	x0=0,y0=0,z0=0;
 			for (size_t k=0;k<path.size();k++)
@@ -201,12 +202,12 @@ void RBPFSlam::show3DDebug(CSensoryFramePtr _observations) {
 		CPose3D			lastMeanPose;
 		float			minDistBtwPoses=-1;
 		std::deque<TPose3D>		dummyPath;
-		mapBuilderRBPF.mapPDF.getPath(0,dummyPath);
+		mapBuilderRBPF->mapPDF.getPath(0,dummyPath);
 		
 		for (int k=(int)dummyPath.size()-1;k>=0;k--)
 		{
 			CPose3DPDFParticles	poseParts;
-			mapBuilderRBPF.mapPDF.getEstimatedPosePDFAtTime(k,poseParts);
+			mapBuilderRBPF->mapPDF.getEstimatedPosePDFAtTime(k,poseParts);
 
 			CPose3D		meanPose;
 			CMatrixDouble66 COV;

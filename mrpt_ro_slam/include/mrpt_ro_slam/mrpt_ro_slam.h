@@ -76,7 +76,7 @@ protected:
     mrpt::gui::CDisplayWindow3DPtr win3D_;
     mrpt::opengl::COpenGLScenePtr scene_;
 	mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions;
-	mrpt::slam::CMetricMapBuilderRBPF mapBuilderRBPF;
+	mrpt::slam::CMetricMapBuilderRBPF * mapBuilderRBPF;
 	mrpt::opengl::CSetOfObjectsPtr objs;
 
     int         SCENE3D_FREQ_;
