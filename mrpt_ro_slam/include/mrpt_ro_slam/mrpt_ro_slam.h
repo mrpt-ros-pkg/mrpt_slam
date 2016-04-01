@@ -35,10 +35,19 @@
 #include <mrpt/utils/CConfigFile.h>
 #include <mrpt/gui/CDisplayWindow3D.h>
 #include <mrpt/slam/CMetricMapBuilderRBPF.h>
-#include <mrpt/obs/CActionRobotMovement2D.h>
-#include <mrpt/obs/CActionRobotMovement3D.h>
 #include <mrpt/opengl/CEllipsoid.h>
 
+#include <mrpt/version.h>
+#if MRPT_VERSION>=0x130
+#	include <mrpt/obs/CActionRobotMovement2D.h>
+#	include <mrpt/obs/CActionRobotMovement3D.h>
+	using namespace mrpt::maps;
+	using namespace mrpt::obs;
+#else
+#	include <mrpt/slam/CActionRobotMovement2D.h>
+#	include <mrpt/slam/CActionRobotMovement3D.h>
+	using namespace mrpt::slam;
+#endif
 
 
 class RBPFSlam : public RBPFSlamCore {
@@ -67,7 +76,7 @@ protected:
     mrpt::gui::CDisplayWindow3DPtr win3D_;
     mrpt::opengl::COpenGLScenePtr scene_;
 	mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions;
-	mrpt::slam::CMetricMapBuilderRBPF mapBuilderRBPF;
+	mrpt::slam::CMetricMapBuilderRBPF * mapBuilderRBPF;
 	mrpt::opengl::CSetOfObjectsPtr objs;
 
     int         SCENE3D_FREQ_;

@@ -155,7 +155,7 @@ void RBPFSlamNode::callbackLaser (const sensor_msgs::LaserScan &_msg) {
 		CObservationPtr obs = CObservationPtr(laser);
     	sf->insert(obs);
     	observation(sf, odometry);
-		mapBuilderRBPF.processActionObservation( *action, *sf );
+		mapBuilderRBPF->processActionObservation( *action, *sf );
     	if(param()->gui_mrpt) show3DDebug(sf);
 		action.clear_unique();
 		sf.clear_unique();
@@ -187,7 +187,7 @@ void RBPFSlamNode::callbackBeacon (const mrpt_msgs::ObservationRangeBeacon &_msg
 		CObservationPtr obs = CObservationPtr(beacon);
     	sf->insert(obs);
     	observation(sf, odometry);
-		mapBuilderRBPF.processActionObservation( *action, *sf );
+		mapBuilderRBPF->processActionObservation( *action, *sf );
     	if(param()->gui_mrpt) show3DDebug(sf);
 		action.clear_unique();
 		sf.clear_unique();
@@ -265,7 +265,7 @@ void RBPFSlamNode::publishMap () {
 
 void RBPFSlamNode::publishParticles ()
 {
-	metric_map_ = mapBuilderRBPF.mapPDF.getCurrentMostLikelyMetricMap();
+	metric_map_ = mapBuilderRBPF->mapPDF.getCurrentMostLikelyMetricMap();
 	objs = mrpt::opengl::CSetOfObjects::Create();
 	metric_map_->getAs3DObject( objs );
 	
@@ -299,9 +299,9 @@ void RBPFSlamNode::publishParticles ()
 		poseArrayRobot.header.stamp = ros::Time::now();
 		poseArrayRobot.header.seq = loop_count_;
 		
-		size_t particle_count = mapBuilderRBPF.mapPDF.particlesCount();
+		size_t particle_count = mapBuilderRBPF->mapPDF.particlesCount();
 		poseArrayRobot.poses.resize(particle_count);
-		mapBuilderRBPF.mapPDF.getEstimatedPosePDF(robotPoseEstimation);
+		mapBuilderRBPF->mapPDF.getEstimatedPosePDF(robotPoseEstimation);
 
 		for (size_t i = 0; i < particle_count; i++) {
 			mrpt_bridge::convert(robotPoseEstimation.getParticlePose(i), poseArrayRobot.poses[i]);
@@ -314,7 +314,7 @@ void RBPFSlamNode::publishTF() {
 	// Most of this code was copy and pase from ros::amcl
     // sorry it is realy ugly
 	mrpt::poses::CPose3D		robotPose;
-	mapBuilderRBPF.mapPDF.getEstimatedPosePDF(robotPoseEstimation);
+	mapBuilderRBPF->mapPDF.getEstimatedPosePDF(robotPoseEstimation);
 	robotPoseEstimation.getMean(robotPose);
     std::string base_frame_id = tf::resolve(param()->tf_prefix, param()->base_frame_id);
     std::string global_frame_id = tf::resolve(param()->tf_prefix, param()->global_frame_id);
