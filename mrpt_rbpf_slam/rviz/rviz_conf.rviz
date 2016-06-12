@@ -7,7 +7,9 @@ Panels:
         - /Global Options1
         - /Status1
         - /PoseArray1
-        - /PoseArray1/Status1
+        - /PoseArray2
+        - /TF1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 330
   - Class: rviz/Selection
@@ -65,6 +67,27 @@ Visualization Manager:
       Name: PoseArray
       Topic: /particlecloud
       Value: true
+    - Arrow Length: 0.3
+      Class: rviz/PoseArray
+      Color: 0; 255; 0
+      Enabled: true
+      Name: PoseArray
+      Topic: /particlecloud_beacons
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -89,7 +112,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.47645
+      Distance: 20.7261
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1

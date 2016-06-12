@@ -32,9 +32,9 @@ include_directories(
 
 
 add_executable(mrpt_rbpf_slam
-    src/mrpt_slam.cpp
-    src/mrpt_slam_wrapper.cpp
-    src/mrpt_slam_app.cpp
+    src/mrpt_rbpf_slam.cpp
+    src/mrpt_rbpf_slam_wrapper.cpp
+    src/mrpt_rbpf_slam_app.cpp
 )
 
 TARGET_LINK_LIBRARIES(mrpt_rbpf_slam ${MRPT_LIB}
