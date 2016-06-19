@@ -32,17 +32,17 @@ void PFslamWrapper::get_param(){
 
 
 void PFslamWrapper::init(){
-     //get parameters from ini file
-      PFslam::read_iniFile(ini_filename);
-   
-      //publish map
-      pub_map_ = n_.advertise<nav_msgs::OccupancyGrid>("map", 1, true);
-      pub_metadata_= n_.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
+    //get parameters from ini file
+    PFslam::read_iniFile(ini_filename);
+
+    //publish map
+    pub_map_ = n_.advertise<nav_msgs::OccupancyGrid>("map", 1, true);
+    pub_metadata_= n_.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
 
     pub_Particles_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud", 1, true);
 
-        //read rawlog file
-   PFslam::read_rawlog(data,rawlog_filename);
+    //read rawlog file
+    PFslam::read_rawlog(data,rawlog_filename);
 
 }
 
@@ -50,34 +50,34 @@ void PFslamWrapper::init(){
 
 void PFslamWrapper::publishMap() {
     CMetricMapBuilderRBPF mapBuilder1( rbpfMappingOptions );
-      PFslam::mapBuilder=mapBuilder1;
-       COccupancyGridMap2D  map;
-       CPose3DPDFParticles   curPDF;
+    PFslam::mapBuilder=mapBuilder1;
+    COccupancyGridMap2D  map;
+    CPose3DPDFParticles   curPDF;
 
-      for (int i=0; i<data.size(); i++){
+    for (int i=0; i<data.size(); i++){
 
 
 
       nav_msgs::OccupancyGrid  _msg;
       bool success;
 
-    PFslam::run_slam(data[i].first,data[i].second, curPDF, map);
-     success= mrpt_bridge::convert(map, _msg );
+      PFslam::run_slam(data[i].first,data[i].second, curPDF, map);
+      success= mrpt_bridge::convert(map, _msg );
 
 
-         pub_map_.publish(_msg);
+      pub_map_.publish(_msg);
 
 
-        //publish pose
-        geometry_msgs::PoseArray poseArray;
-		poseArray.header.frame_id =  global_frame_id;
-		poseArray.header.stamp = ros::Time::now();
-		poseArray.poses.resize(curPDF.particlesCount());
-		for(size_t i = 0; i < curPDF.particlesCount(); i++) {
-			mrpt::poses::CPose3D p = curPDF.getParticlePose(i);
-			mrpt_bridge::convert(p, poseArray.poses[i]);
-		}
+      //publish pose
+      geometry_msgs::PoseArray poseArray;
+      poseArray.header.frame_id =  global_frame_id;
+      poseArray.header.stamp = ros::Time::now();
+      poseArray.poses.resize(curPDF.particlesCount());
+      for(size_t i = 0; i < curPDF.particlesCount(); i++) {
+        mrpt::poses::CPose3D p = curPDF.getParticlePose(i);
+        mrpt_bridge::convert(p, poseArray.poses[i]);
+      }
 
-		pub_Particles_.publish(poseArray);
+      pub_Particles_.publish(poseArray);
    }
 }

@@ -12,9 +12,6 @@
 
 #include "mrpt_rbpf_slam/mrpt_rbpf_slam.h"
 
-
-
-
 //add ros libraries
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -40,70 +37,142 @@
 #include <mrpt_bridge/beacon.h>
 #include <mrpt_bridge/time.h>
 
+
+/**
+ * @brief The PFslamWrapper class provides the ROS wrapper for Rao-Blackwellized Particle filter SLAM from MRPT libraries.
+ *
+ */
 class PFslamWrapper:PFslam{
 public:
-    int counter;
-    int counter2;
+   /**
+   * @brief constructor
+   */
     PFslamWrapper();
+    /**
+   * @brief destructor
+   */
     ~PFslamWrapper();
-    //the function read parameters from launch file
+    /**
+   * @brief read the parameters from launch file
+   */
     void get_param();
+   /**
+   * @brief initialize publishers subscribers and RBPF slam
+   */
     void init();
-    void rawlogPlay();
+   /**
+   * @brief play rawlog file
+   *
+   * @return true if rawlog file exists and played
+   */
+    bool rawlogPlay();
+   /**
+   * @brief publish beacon or grid map and robot pose
+   *
+   */
     void publishMapPose();
 
-    void loop();
-
+   /**
+   * @brief check the existance of the file
+   *
+   * @return true if file exists
+   */
     bool is_file_exists(const std::string& name);
 
-    //callback function
-void callbackBeacon (const mrpt_msgs::ObservationRangeBeacon &_msg) ;
+   /**
+   * @brief callback function for the beacons
+   *
+   * Given the range only observation wait for odometry,
+   * create the pair of action and observation,
+   * execute one SLAM update,
+   * publish map and pose.
+   *
+   * @param _msg  the beacon message
+   */
+    void callbackBeacon (const mrpt_msgs::ObservationRangeBeacon &_msg) ;
+
+   /**
+   * @brief callback function for the laser scans
+   *
+   * Given the laser scans wait for odometry,
+   * create the pair of action and observation,
+   * execute one SLAM update,
+   * publish map and pose.
+   *
+   * @param _msg  the laser scan message
+   */
     void laserCallback(const sensor_msgs::LaserScan & _msg);
-    void callbackInitialpose (const geometry_msgs::PoseWithCovarianceStamped& _msg);
-    
-    bool waitForTransform(mrpt::poses::CPose3D &des, const std::string& target_frame, const std::string& source_frame, const ros::Time& time, const ros::Duration& timeout, const ros::Duration& polling_sleep_duration = ros::Duration(0.01));
+
+  /**
+   * @brief wait for transform between odometry frame and the robot frame
+   *
+   * @param des position of the robot with respect to the odometry frame
+   * @param target_frame the odometry tf frame
+   * @param source_frame the robot tf frame
+   * @param time timestamp of the observation for which we want to retrieve the position of the robot
+   * @param timeout timeout for odometry waiting
+   * @param polling_sleep_duration timeout for transform wait
+   *
+   * @return true if there is transform from odometry to the robot
+   */
+   bool waitForTransform(mrpt::poses::CPose3D &des, const std::string& target_frame, const std::string& source_frame, const ros::Time& time, const ros::Duration& timeout, const ros::Duration& polling_sleep_duration = ros::Duration(0.01));
+
+   /**
+   * @brief  get the odometry for the received observation
+   *
+   * @param _odometry odometry for the received observation
+   * @param _msg_header timestamp of the observation
+   */
    void odometryForCallback (CObservationOdometryPtr  &_odometry, const std_msgs::Header &_msg_header);
-    //update the laser poses with respect to the map 
+
+   /**
+   * @brief  update the pose of the sensor with respect to the robot
+   *
+   *@param frame_id the frame of the sensors
+   */
     void updateSensorPose (std::string frame_id);
-    void publishTF(); 
+
+   /**
+   * @brief  publis tf tree
+   *
+   */
+    void publishTF();
+
 private:
-    ros::NodeHandle n_;
-    double rawlog_play_delay;
-    bool rawlog_play_;
-    //get_param() parameters
-    std::string rawlog_filename;
-    std::string ini_filename;
-    std::string global_frame_id;// /map
-    std::string odom_frame_id; // /odom
-    std::string base_frame_id; //base_frame
+    ros::NodeHandle n_;///< Node Handle
+    double rawlog_play_delay;///< delay of replay from rawlog file
+    bool rawlog_play_;///< true if rawlog file exists
+
+    std::string rawlog_filename;///< name of rawlog file
+    std::string ini_filename;///< name of ini file
+    std::string global_frame_id;///< /map frame
+    std::string odom_frame_id; ///< /odom frame
+    std::string base_frame_id; ///< robot frame
 
     //Sensor source
-    std::string sensor_source;//2D laser scans
- 
-    std::map<std::string, mrpt::poses::CPose3D> laser_poses_;//laser scan poses with respect to the map
-    std::map<std::string, mrpt::poses::CPose3D> beacon_poses_;
- 
-    //Subscribers
-    std::vector<ros::Subscriber> sensorSub_;
+    std::string sensor_source;///< 2D laser scans
 
-    ros::Subscriber subInitPose_;
- 
- mrpt::poses::CPosePDFGaussian initialPose_;  /// initilial posed used in initializeFilter()
+    std::map<std::string, mrpt::poses::CPose3D> laser_poses_;///< laser scan poses with respect to the map
+    std::map<std::string, mrpt::poses::CPose3D> beacon_poses_;///< beacon poses with respect to the map
+
+    //Subscribers
+    std::vector<ros::Subscriber> sensorSub_;///< list of sensors topics
 
     //read rawlog file
-    std::vector<std::pair<CActionCollection,CSensoryFrame>> data;
+    std::vector<std::pair<CActionCollection,CSensoryFrame>> data;///< vector of pairs of actions and obsrvations from rawlog file
 
-     //receive map after iteration of SLAM to metric map
-     CMultiMetricMap *metric_map_;
-    //received pose of robo
-     CPose3DPDFParticles   curPDF;//current robot pose
-     mrpt::poses::CPose3DPDFParticles  robotPoseEstimation;
-    //publishers for map and pose particles
-    ros::Publisher pub_map_, pub_metadata_,  pub_Particles_,pub_Particles_Beacons_;
-    
-    tf::TransformListener listenerTF_;
-     tf::TransformBroadcaster tf_broadcaster_;
 
+     CMultiMetricMap *metric_map_; ///<receive map after an iteration of SLAM to metric map
+     CPose3DPDFParticles   curPDF;///<current robot pose
+
+    ros::Publisher pub_map_, pub_metadata_, pub_Particles_,pub_Particles_Beacons_;///<publishers for map and pose particles
+
+    tf::TransformListener listenerTF_;///<transform listener
+     tf::TransformBroadcaster tf_broadcaster_;///<transform broadcaster
+
+
+    CTicTac	tictac;///<timer for SLAM performance evaluation
+	  float	t_exec;///<the time which takes for one SLAM update execution
 };
 
 

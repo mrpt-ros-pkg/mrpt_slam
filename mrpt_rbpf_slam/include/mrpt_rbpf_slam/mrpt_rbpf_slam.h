@@ -1,14 +1,14 @@
-/* 
+/*
  *  File: mrpt_slam.h
  *  Author: Vladislav Tananaev
- * 
  *
- */ 
+ *
+ */
+
 #ifndef MPRT_RBPF_SLAM_H
 #define MRPT_RBPF_SLAM_H
 #include <mrpt/obs/CObservationOdometry.h>
 #include <mrpt/obs/CObservationBeaconRanges.h>
-//#include <mrpt/slam/CObservationOdometry.h>
 #include <mrpt/slam/CMetricMapBuilderRBPF.h>
 #include <mrpt/obs/CActionRobotMovement2D.h>
 #include <mrpt/obs/CActionRobotMovement3D.h>
@@ -42,48 +42,63 @@ using namespace mrpt::system;
 using namespace mrpt::random;
 using namespace mrpt::poses;
 
-
+/**
+ * @brief The PFslam class provides Rao-Blackwellized Particle filter SLAM from MRPT libraries.
+ *
+ */
 class PFslam{
 public:
-     PFslam();
+   /**
+   * @brief constructor
+   */
+    PFslam();
+   /**
+   * @brief destructor
+   */
     ~PFslam();
 
-    //the function read parameters from ini file    
+  /**
+   * @brief read ini file
+   *
+   * @param ini_filename the name of the ini file to read
+   */
     void read_iniFile(std::string ini_filename);
+
+  /**
+   * @brief initialize the SLAM
+   */
     void init_slam();
 
+   /**
+   * @brief read pairs of actions and observations from rawlog file
+   *
+   * @param data a vector of pairs of actions and observations
+   * @param rawlog_filename the name of a rawlog file to read
+   */
     void read_rawlog(std::vector<std::pair<CActionCollection,CSensoryFrame>>& data,std::string rawlog_filename);
 
-     void run_slam(CActionCollection action,CSensoryFrame observations);
-
-
+   /**
+   * @brief calculate the actions from odometry model for the current observation
+   *
+   * @param _sf  current observation
+   * @param _odometry raw odometry
+   */
     void observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry);
-
 protected:
 
-    std::string ini_filename_;
-    CMetricMapBuilderRBPF* mapBuilder;
-    
-    CActionCollectionPtr action;
-	CSensoryFramePtr sf;
-     mrpt::poses::CPose2D odomLastObservation_;  
+    CMetricMapBuilderRBPF* mapBuilder;///< map builder
+    CActionCollectionPtr action;///< actions
+	  CSensoryFramePtr sf;///< observations
 
- bool use_motion_model_default_options_; /// used default odom_params
-	CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_; /// used if there are is not odom
-	CActionRobotMovement2D::TMotionModelOptions motion_model_options_;         /// used with odom value motion noise
-/*****************************************************
-			Config params
- *****************************************************/
-std::string  RAWLOG_FILE;
-std::string         METRIC_MAP_CONTINUATION_GRIDMAP_FILE; // .gridmap file
-mrpt::math::TPose2D METRIC_MAP_CONTINUATION_START_POSE;
-     // ---------------------------------
-	//		MapPDF opts
-	// ---------------------------------
-CMetricMapBuilderRBPF::TConstructionOptions		rbpfMappingOptions;
+    mrpt::poses::CPose2D odomLastObservation_;  ///< last observation of odometry
+    bool use_motion_model_default_options_; ///< used default odom_params
+	  CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_; ///< used if there is no odom
+	  CActionRobotMovement2D::TMotionModelOptions motion_model_options_;         ///< used with odom value motion noise
 
 
- mrpt::system::TTimeStamp timeLastUpdate_;
+
+    CMetricMapBuilderRBPF::TConstructionOptions		rbpfMappingOptions;///< options for SLAM from ini file
+    mrpt::system::TTimeStamp timeLastUpdate_;///< last update of the pose and map
 
 };
 

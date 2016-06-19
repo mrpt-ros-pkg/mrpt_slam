@@ -3,10 +3,7 @@
 
 PFslamWrapper::PFslamWrapper(){
     rawlog_play_=false;
-    counter=0;
-    counter2=0;
-    //timeLastUpdate_=ros::Time(0);
-      mrpt_bridge::convert(ros::Time(0), timeLastUpdate_);
+    mrpt_bridge::convert(ros::Time(0), timeLastUpdate_);
 }
 
 PFslamWrapper::~PFslamWrapper(){
@@ -40,79 +37,64 @@ void PFslamWrapper::get_param(){
     n_.param<std::string>("sensor_source", sensor_source, "scan");
     ROS_INFO("sensor_source: %s", sensor_source.c_str());
 
-    
+
 }
 
 
 void PFslamWrapper::init(){
-     //get parameters from ini file
-     if(!is_file_exists(ini_filename)){
-        ROS_ERROR_STREAM("CAN'T READ INI FILE");
-        return;
-     }
-      PFslam::read_iniFile(ini_filename);
 
-      //read rawlog file if it  exists
+    //get parameters from ini file
+    if(!is_file_exists(ini_filename)){
+       ROS_ERROR_STREAM("CAN'T READ INI FILE");
+       return;
+    }
+    PFslam::read_iniFile(ini_filename);
+    //read rawlog file if it  exists
     if(is_file_exists(rawlog_filename)){
-        ROS_WARN_STREAM("PLAY FROM RAWLOG FILE: "<<rawlog_filename.c_str());
-        PFslam::read_rawlog(data,rawlog_filename);
-        rawlog_play_=true;
-     }
+       ROS_WARN_STREAM("PLAY FROM RAWLOG FILE: "<<rawlog_filename.c_str());
+       PFslam::read_rawlog(data,rawlog_filename);
+       rawlog_play_=true;
+    }
+
 
     ///Create publishers///
-        
-      //publish grid map
-      pub_map_ = n_.advertise<nav_msgs::OccupancyGrid>("map", 1, true);
-      pub_metadata_= n_.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
-      //robot pose
-      pub_Particles_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud", 1, true);
-      //ro particles poses
-      pub_Particles_Beacons_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud_beacons", 1, true);
+    //publish grid map
+    pub_map_ = n_.advertise<nav_msgs::OccupancyGrid>("map", 1, true);
+    pub_metadata_= n_.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
+    //robot pose
+    pub_Particles_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud", 1, true);
+    //ro particles poses
+    pub_Particles_Beacons_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud_beacons", 1, true);
 
-    
-    ///Create subscribers///	
 
-          //initial pose 
-        subInitPose_ = n_.subscribe("initialpose", 1, &PFslamWrapper::callbackInitialpose, this);
+
+
     //read sensor topics
     std::vector<std::string> lstSources;
 	mrpt::system::tokenize(sensor_source," ,\t\n",lstSources);
 	ROS_ASSERT_MSG(!lstSources.empty(), "*Fatal*: At least one sensor source must be provided in ~sensor_sources (e.g. \"scan\" or \"beacon\")");
-	
-    //create subscribers
+
+
+    ///Create subscribers///
 	sensorSub_.resize(lstSources.size());
 	for (size_t i=0;i<lstSources.size();i++) {
 		if(lstSources[i].find("scan") != std::string::npos) {
-           // std::cout<<"laser scan"<<"\n";
 			sensorSub_[i]  = n_.subscribe(lstSources[i],  1, &PFslamWrapper::laserCallback, this);
 		}
 		else {
-        std::cout<<"beacon"<<"\n";
             sensorSub_[i]  = n_.subscribe(lstSources[i],  1, &PFslamWrapper::callbackBeacon, this);
 		}
 	}
 
-      //  odom_sub=n_.subscribe(odom_frame_id,  1, &PFslamWrapper::callbackOdom, this)
-    //init map builder    
-    //CMetricMapBuilderRBPF mapBuilder_temp( rbpfMappingOptions );
-    //mapBuilder=mapBuilder_temp;
+    //init slam
     mapBuilder = new mrpt::slam::CMetricMapBuilderRBPF(rbpfMappingOptions);
     init_slam();
 
 }
 
-
-void PFslamWrapper::callbackInitialpose (const geometry_msgs::PoseWithCovarianceStamped& _msg) {
-    const geometry_msgs::PoseWithCovariance &pose = _msg.pose;
-    std::cout<<"I get initial pose"<<"\n";
-   // mrpt_bridge::convert(pose, curPDF);
-  
-}   
 void PFslamWrapper::odometryForCallback (CObservationOdometryPtr  &_odometry, const std_msgs::Header &_msg_header) {
-    //std::string base_frame_id = tf::resolve(param()->tf_prefix, param()->base_frame_id);
-    //std::string odom_frame_id = tf::resolve(param()->tf_prefix, param()->odom_frame_id);
+
     mrpt::poses::CPose3D poseOdom;
-   //if(this->waitForTransform(poseOdom, odom_frame_id, base_frame_id, _msg_header.stamp, ros::Duration(1))){
      if(this->waitForTransform(poseOdom, odom_frame_id, base_frame_id, _msg_header.stamp, ros::Duration(1))){
 		_odometry = CObservationOdometry::Create();
         _odometry->sensorLabel = odom_frame_id;
@@ -121,8 +103,6 @@ void PFslamWrapper::odometryForCallback (CObservationOdometryPtr  &_odometry, co
         _odometry->odometry.x() = poseOdom.x();
         _odometry->odometry.y() = poseOdom.y();
         _odometry->odometry.phi() = poseOdom.yaw();
-    counter+=1;
-    std::cout<<"get odom "<<counter<<"\n";
     }
 }
 
@@ -143,31 +123,18 @@ bool PFslamWrapper::waitForTransform(mrpt::poses::CPose3D &des, const std::strin
 }
 
 void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg) {
-  counter2+=1;
-    std::cout<<"Laser callback "<<counter2<<"\n";
 #if MRPT_VERSION>=0x130
 	using namespace mrpt::maps;
 	using namespace mrpt::obs;
 #else
 	using namespace mrpt::slam;
 #endif
-
-  //  ros::Duration(10).sleep();
-    //ROS_INFO("callbackLaser");
 	CObservation2DRangeScanPtr laser = CObservation2DRangeScan::Create();
 
-    //printf("callbackLaser %s\n", _msg.header.frame_id.c_str());
-
     if(laser_poses_.find(_msg.header.frame_id) == laser_poses_.end()) {
-        std::cout<<"message header "<<_msg.header.frame_id<<"\n";       
-
         updateSensorPose (_msg.header.frame_id);
-
-       
     } else {
-        
         mrpt::poses::CPose3D pose = laser_poses_[_msg.header.frame_id];
-        ROS_INFO("LASER POSE %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f",  pose.x(), pose.y(), pose.z(), pose.roll(), pose.pitch(), pose.yaw());
         mrpt_bridge::convert(_msg, laser_poses_[_msg.header.frame_id],  *laser);
 
 	sf = CSensoryFrame::Create();
@@ -178,14 +145,12 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg) {
         sf->insert(obs);
         observation(sf, odometry);
         timeLastUpdate_ = sf->getObservationByIndex(0)->timestamp;
-         mapBuilder->processActionObservation( * action,*sf);
-       // publishMapPose();
-       
-      // run_slam(* action,*sf);
-       action.clear();
-		//sf.clear_unique();
-    
-    
+
+        tictac.Tic();
+        mapBuilder->processActionObservation( *action,*sf);
+        t_exec = tictac.Tac();
+      	printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
+        publishMapPose();
 
     }
 }
@@ -198,100 +163,87 @@ void PFslamWrapper::callbackBeacon (const mrpt_msgs::ObservationRangeBeacon &_ms
 	using namespace mrpt::slam;
 #endif
 
-    //ROS_INFO("callbackBeacon");
+
 	CObservationBeaconRangesPtr beacon = CObservationBeaconRanges::Create();
-    //printf("callbackBeacon %s\n", _msg.header.frame_id.c_str());
     if(beacon_poses_.find(_msg.header.frame_id) == beacon_poses_.end()) {
 		updateSensorPose (_msg.header.frame_id);
     } else {
-        //mrpt::poses::CPose3D pose = beacon_poses_[_msg.header.frame_id];
-        //ROS_INFO("BEACON POSE %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f",  pose.x(), pose.y(), pose.z(), pose.roll(), pose.pitch(), pose.yaw());
+
         mrpt_bridge::convert(_msg, beacon_poses_[_msg.header.frame_id],  *beacon);
 
 		sf = CSensoryFrame::Create();
 	CObservationOdometryPtr odometry;
 	odometryForCallback(odometry, _msg.header);
-	
+
 	CObservationPtr obs = CObservationPtr(beacon);
         sf->insert(obs);
         observation(sf, odometry);
        timeLastUpdate_ = sf->getObservationByIndex(0)->timestamp;
-    run_slam(* action,*sf);
-  //  mapBuilder->processActionObservation( * action,*sf);
-//publishMapPose();
-    action.clear_unique();
-		sf.clear_unique();
+
+        tictac.Tic();
+        mapBuilder->processActionObservation( * action,*sf);
+        t_exec = tictac.Tac();
+        printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
+
+        publishMapPose();
     }
 }
 
-void PFslamWrapper::loop(){
-   //run_slam(* action,*sf);
-    if(metric_map_ ){
-        publishMapPose();
-}
-       // publishTF();
-  //  action.clear_unique();
-	//sf.clear_unique();
-}
 
 void PFslamWrapper::publishMapPose(){
 
- //ros::Duration(rawlog_play_delay).sleep(); 
-        //if I received new grid maps from 2D laser scan sensors
+    //if I received new grid maps from 2D laser scan sensors
+    metric_map_ = mapBuilder->mapPDF.getCurrentMostLikelyMetricMap();
+    mapBuilder->mapPDF.getEstimatedPosePDF(curPDF);
+    if (metric_map_->m_gridMaps.size()){
 
-      metric_map_ = mapBuilder->mapPDF.getCurrentMostLikelyMetricMap();
-       mapBuilder->mapPDF.getEstimatedPosePDF(curPDF);
-        if (metric_map_->m_gridMaps.size()){         
-              
-        std::cout<<"I have grid map"<<"\n";
-                nav_msgs::OccupancyGrid  _msg;  
-   
-                //if we have new map for current sensor update it
-               mrpt_bridge::convert(*metric_map_->m_gridMaps[0], _msg );
-                    pub_map_.publish(_msg);
-                            
-           
+        //publish map
+        nav_msgs::OccupancyGrid  _msg;
+        mrpt_bridge::convert(*metric_map_->m_gridMaps[0], _msg );
+        pub_map_.publish(_msg);
+        pub_metadata_.publish(_msg.info);
+
+    }
+
+    //if I received new beacon (range only) map
+    if (metric_map_->m_beaconMap){
+
+
+        mrpt::opengl::CSetOfObjectsPtr objs;
+        objs = mrpt::opengl::CSetOfObjects::Create();
+        metric_map_->m_beaconMap->getAs3DObject( objs );
+
+        geometry_msgs::PoseArray poseArrayBeacons;
+        poseArrayBeacons.header.frame_id = global_frame_id;
+        poseArrayBeacons.header.stamp = ros::Time::now();
+
+
+        int objs_counter = 0;
+        while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter )) {
+            objs_counter++;
         }
-   
-    //if I received new beacon (range only) map 
-        if (metric_map_->m_beaconMap){     
-            std::cout<<"PUBLISH BEACONS"<<"\n";    
+        poseArrayBeacons.poses.resize(objs_counter);
+        mrpt::opengl::CEllipsoidPtr beacon_particle;
 
-         	mrpt::opengl::CSetOfObjectsPtr objs;
-            objs = mrpt::opengl::CSetOfObjects::Create();
-            metric_map_->m_beaconMap->getAs3DObject( objs );
-
-            geometry_msgs::PoseArray poseArrayBeacons;
-		    poseArrayBeacons.header.frame_id = global_frame_id;
-		    poseArrayBeacons.header.stamp = ros::Time::now();
-	
-		   
-	        int objs_counter = 0;
-		    while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter )) { 
-			    objs_counter++;
-		    }	
-		    poseArrayBeacons.poses.resize(objs_counter);
-		    mrpt::opengl::CEllipsoidPtr beacon_particle;
-
-		    for (size_t i = 0; i < objs_counter; i++) {
-			    beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);	
-			    mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);		
-		    }
-		    pub_Particles_Beacons_.publish(poseArrayBeacons);  
+        for (size_t i = 0; i < objs_counter; i++) {
+            beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);
+            mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);
         }
+        pub_Particles_Beacons_.publish(poseArrayBeacons);
+    }
 
-        //publish pose
-        geometry_msgs::PoseArray poseArray;
-		poseArray.header.frame_id =  global_frame_id;
-		poseArray.header.stamp = ros::Time::now();
-		poseArray.poses.resize(curPDF.particlesCount());
-		for(size_t i = 0; i < curPDF.particlesCount(); i++) {
-			mrpt::poses::CPose3D p = curPDF.getParticlePose(i);
-			mrpt_bridge::convert(p, poseArray.poses[i]);
-		}
-   
-		pub_Particles_.publish(poseArray);
- 
+    //publish pose
+    geometry_msgs::PoseArray poseArray;
+    poseArray.header.frame_id =  global_frame_id;
+    poseArray.header.stamp = ros::Time::now();
+    poseArray.poses.resize(curPDF.particlesCount());
+    for(size_t i = 0; i < curPDF.particlesCount(); i++) {
+        mrpt::poses::CPose3D p = curPDF.getParticlePose(i);
+        mrpt_bridge::convert(p, poseArray.poses[i]);
+    }
+
+    pub_Particles_.publish(poseArray);
+
 
 
 }
@@ -301,7 +253,6 @@ void PFslamWrapper::updateSensorPose (std::string _frame_id) {
     tf::StampedTransform transform;
     try {
 
-       // std::string base_frame_id =base_frame_id;
         listenerTF_.lookupTransform(base_frame_id, _frame_id, ros::Time(0), transform);
 
         tf::Vector3 translation = transform.getOrigin();
@@ -326,101 +277,99 @@ void PFslamWrapper::updateSensorPose (std::string _frame_id) {
 
 }
 
-void PFslamWrapper::rawlogPlay() {
+bool PFslamWrapper::rawlogPlay() {
     if ( rawlog_play_==false){
-        return;    
-    }
+        return false;
+    }else{
 
-   
-    
-  //  CPose3DPDFParticles   curPDF;//current robot pose
+
 
     for (int i=0; i<data.size(); i++){
       if(ros::ok()){
-        
-      
-        PFslam::run_slam(data[i].first,data[i].second);
-        ros::Duration(rawlog_play_delay).sleep(); 
-    
+
+        tictac.Tic();
+        mapBuilder->processActionObservation( data[i].first,data[i].second);
+        t_exec = tictac.Tac();
+      	printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
+
+        ros::Duration(rawlog_play_delay).sleep();
+
          metric_map_ = mapBuilder->mapPDF.getCurrentMostLikelyMetricMap();
          mapBuilder->mapPDF.getEstimatedPosePDF(curPDF);
         //if I received new grid maps from 2D laser scan sensors
-        if (metric_map_->m_gridMaps.size()){         
-              
-                nav_msgs::OccupancyGrid  _msg;  
-   
+        if (metric_map_->m_gridMaps.size()){
+
+                nav_msgs::OccupancyGrid  _msg;
+
                 //if we have new map for current sensor update it
                mrpt_bridge::convert(*metric_map_->m_gridMaps[0], _msg );
                     pub_map_.publish(_msg);
-                            
-           
+                    pub_metadata_.publish(_msg.info);
+
         }
-   
-    //if I received new beacon (range only) map 
-        if (metric_map_->m_beaconMap){         
 
-         	mrpt::opengl::CSetOfObjectsPtr objs;
-            objs = mrpt::opengl::CSetOfObjects::Create();
-            metric_map_->m_beaconMap->getAs3DObject( objs );
+    //if I received new beacon (range only) map
+    if (metric_map_->m_beaconMap){
 
-            geometry_msgs::PoseArray poseArrayBeacons;
-		    poseArrayBeacons.header.frame_id = global_frame_id;
-		    poseArrayBeacons.header.stamp = ros::Time::now();
-	
-		   
-	        int objs_counter = 0;
-		    while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter )) { 
-			    objs_counter++;
-		    }	
-		    poseArrayBeacons.poses.resize(objs_counter);
-		    mrpt::opengl::CEllipsoidPtr beacon_particle;
+        mrpt::opengl::CSetOfObjectsPtr objs;
+        objs = mrpt::opengl::CSetOfObjects::Create();
+        metric_map_->m_beaconMap->getAs3DObject( objs );
 
-		    for (size_t i = 0; i < objs_counter; i++) {
-			    beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);	
-			    mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);		
-		    }
-		    pub_Particles_Beacons_.publish(poseArrayBeacons);  
+        geometry_msgs::PoseArray poseArrayBeacons;
+        poseArrayBeacons.header.frame_id = global_frame_id;
+        poseArrayBeacons.header.stamp = ros::Time::now();
+
+
+        int objs_counter = 0;
+        while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter )) {
+            objs_counter++;
         }
+        poseArrayBeacons.poses.resize(objs_counter);
+        mrpt::opengl::CEllipsoidPtr beacon_particle;
+
+        for (size_t i = 0; i < objs_counter; i++) {
+            beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);
+            mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);
+        }
+        pub_Particles_Beacons_.publish(poseArrayBeacons);
+    }
 
         //publish pose
         geometry_msgs::PoseArray poseArray;
-		poseArray.header.frame_id =  global_frame_id;
-		poseArray.header.stamp = ros::Time::now();
-		poseArray.poses.resize(curPDF.particlesCount());
-		for(size_t i = 0; i < curPDF.particlesCount(); i++) {
-			mrpt::poses::CPose3D p = curPDF.getParticlePose(i);
-			mrpt_bridge::convert(p, poseArray.poses[i]);
-		}
-    robotPoseEstimation=curPDF;
-		pub_Particles_.publish(poseArray);
+        poseArray.header.frame_id =  global_frame_id;
+        poseArray.header.stamp = ros::Time::now();
+        poseArray.poses.resize(curPDF.particlesCount());
+        for(size_t i = 0; i < curPDF.particlesCount(); i++) {
+            mrpt::poses::CPose3D p = curPDF.getParticlePose(i);
+            mrpt_bridge::convert(p, poseArray.poses[i]);
+        }
+
+        pub_Particles_.publish(poseArray);
       }
     ros::spinOnce();
 
     }
 
+ }
+    return true;
 }
-
-
 
 void PFslamWrapper::publishTF() {
 	// Most of this code was copy and pase from ros::amcl
-    // sorry it is realy ugly
 	mrpt::poses::CPose3D		robotPose;
 	mapBuilder->mapPDF.getEstimatedPosePDF(curPDF);
-  
+
 	curPDF.getMean(robotPose);
- 
+
     tf::Stamped<tf::Pose> odom_to_map;
     tf::Transform tmp_tf;
     ros::Time stamp;
    mrpt_bridge::convert(timeLastUpdate_, stamp);
     mrpt_bridge::convert(robotPose, tmp_tf);
- 
+
     try
     {
         tf::Stamped<tf::Pose> tmp_tf_stamped (tmp_tf.inverse(), stamp,  base_frame_id);
-
-		ROS_INFO("subtract global_frame (%s) from odom_frame (%s)", global_frame_id.c_str(), odom_frame_id.c_str());
         listenerTF_.transformPose(odom_frame_id, tmp_tf_stamped, odom_to_map);
 
     }
@@ -442,5 +391,5 @@ void PFslamWrapper::publishTF() {
                                         transform_expiration,
                                         global_frame_id, odom_frame_id);
     tf_broadcaster_.sendTransform(tmp_tf_stamped);
-    ROS_INFO("%s, %s\n", global_frame_id.c_str(),  odom_frame_id.c_str());
+
 }

@@ -33,7 +33,7 @@ class PFslamWrapper:PFslam{
 public:
     PFslamWrapper();
     ~PFslamWrapper();
-    //the function read parameters from launch file
+    //reads parameters from launch file
     void get_param();
     void init();
     void publishMap();
@@ -47,17 +47,17 @@ private:
     std::string global_frame_id;// /map
     std::string odom_frame_id; // /odom
     std::string base_frame_id; //base_frame
-    std::string sensor_source; 
+    std::string sensor_source;
 
     //read rawlog file
     std::vector<std::pair<CActionCollection,CSensoryFrame>> data;
 
-     //receive map after iteration of SLAM to metric map
-     CMultiMetricMap *metric_map_;
-      
+    //receive map after iteration of SLAM to metric map
+    CMultiMetricMap *metric_map_;
+
     //publishers for map and pose particles
     ros::Publisher pub_map_, pub_metadata_,  pub_Particles_;
-    
+
 
 };
 

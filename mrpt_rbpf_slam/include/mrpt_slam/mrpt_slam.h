@@ -1,9 +1,9 @@
-/* 
+/*
  *  File: mrpt_slam.h
  *  Author: Vladislav Tananaev
- * 
  *
- */ 
+ *
+ */
 #ifndef MPRT_SLAM_H
 #define MRPT_SLAM_H
 
@@ -45,7 +45,7 @@ public:
      PFslam();
     ~PFslam();
 
-    //the function read parameters from ini file
+    //reads parameters from ini file
     void read_iniFile(std::string ini_filename);
 
     void read_rawlog(std::vector<std::pair<CActionCollection,CSensoryFrame>>& data,std::string rawlog_filename);
@@ -55,20 +55,18 @@ public:
 
 protected:
     std::string ini_filename_;
- CMetricMapBuilderRBPF mapBuilder;
+    CMetricMapBuilderRBPF mapBuilder;
 
-/*****************************************************
-			Config params
- *****************************************************/
-std::string  RAWLOG_FILE;
-std::string         METRIC_MAP_CONTINUATION_GRIDMAP_FILE; // .gridmap file
-mrpt::math::TPose2D METRIC_MAP_CONTINUATION_START_POSE;
-     // ---------------------------------
-	//		MapPDF opts
-	// ---------------------------------
-CMetricMapBuilderRBPF::TConstructionOptions		rbpfMappingOptions;
-
-
+    /*****************************************************
+    			Config params
+    *****************************************************/
+    std::string  RAWLOG_FILE;
+    std::string         METRIC_MAP_CONTINUATION_GRIDMAP_FILE; // .gridmap file
+    mrpt::math::TPose2D METRIC_MAP_CONTINUATION_START_POSE;
+    // ---------------------------------
+    //		MapPDF opts
+    // ---------------------------------
+    CMetricMapBuilderRBPF::TConstructionOptions		rbpfMappingOptions;
 
 
 };
