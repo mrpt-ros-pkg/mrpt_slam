@@ -1,9 +1,9 @@
-/*
+/* 
  *  File: mrpt_slam.h
  *  Author: Vladislav Tananaev
+ * 
  *
- *
- */
+ */ 
 
 #ifndef MPRT_RBPF_SLAM_H
 #define MRPT_RBPF_SLAM_H
@@ -43,8 +43,8 @@ using namespace mrpt::random;
 using namespace mrpt::poses;
 
 /**
- * @brief The PFslam class provides Rao-Blackwellized Particle filter SLAM from MRPT libraries.
- *
+ * @brief The PFslam class provides Rao-Blackwellized Particle filter SLAM from MRPT libraries. 
+ *   
  */
 class PFslam{
 public:
@@ -65,37 +65,37 @@ public:
     void read_iniFile(std::string ini_filename);
 
   /**
-   * @brief initialize the SLAM
+   * @brief initialize the SLAM 
    */
     void init_slam();
 
    /**
-   * @brief read pairs of actions and observations from rawlog file
+   * @brief read pairs of actions and observations from rawlog file 
    *
-   * @param data a vector of pairs of actions and observations
-   * @param rawlog_filename the name of a rawlog file to read
+   * @param data vector of pairs of actions and observations
+   * @param rawlog_filename the name of rawlog file to read
    */
     void read_rawlog(std::vector<std::pair<CActionCollection,CSensoryFrame>>& data,std::string rawlog_filename);
 
    /**
-   * @brief calculate the actions from odometry model for the current observation
+   * @brief calculate the actions from odometry model for current observation
    *
    * @param _sf  current observation
    * @param _odometry raw odometry
-   */
+   */    
     void observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry);
 protected:
 
-    CMetricMapBuilderRBPF* mapBuilder;///< map builder
+    CMetricMapBuilderRBPF* mapBuilder;///< map builder  
     CActionCollectionPtr action;///< actions
-	  CSensoryFramePtr sf;///< observations
+	CSensoryFramePtr sf;///< observations
 
     mrpt::poses::CPose2D odomLastObservation_;  ///< last observation of odometry
     bool use_motion_model_default_options_; ///< used default odom_params
-	  CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_; ///< used if there is no odom
-	  CActionRobotMovement2D::TMotionModelOptions motion_model_options_;         ///< used with odom value motion noise
+	CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_; ///< used if there are is not odom
+	CActionRobotMovement2D::TMotionModelOptions motion_model_options_;         ///< used with odom value motion noise
 
-
+	
 
     CMetricMapBuilderRBPF::TConstructionOptions		rbpfMappingOptions;///< options for SLAM from ini file
     mrpt::system::TTimeStamp timeLastUpdate_;///< last update of the pose and map

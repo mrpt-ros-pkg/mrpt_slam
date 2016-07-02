@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     slam.init();
 
 
-    if(!slam.rawlogPlay()){//if not playing from rawlog file
+    if(!slam.rawlogPlay()){//if not play from rawlog file
 
      while (ros::ok()) {
             slam.publishTF();
@@ -20,5 +20,5 @@ int main(int argc, char **argv) {
         }
     }
 
-}
+}   
 
