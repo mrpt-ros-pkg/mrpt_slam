@@ -12,31 +12,28 @@
   <author>Jose Luis Blanco Claraco</author>
   <author>Vladislav Tananaev</author>
 
-  <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
-  <build_depend>mrpt</build_depend> <!-- Depend on mrpt system pkgs -->
-  <build_depend>mrpt_bridge</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>std_msgs</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>roslib</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>mrpt_bridge</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>mrpt</build_depend> <!-- Depend on mrpt system pkgs -->
 
-  <!-- Dependencies needed after this package is compiled. -->
-  <run_depend>mrpt</run_depend> <!-- Depend on mrpt system pkgs -->
-  <run_depend>mrpt_bridge</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>std_msgs</run_depend>
   <run_depend>roscpp</run_depend>
-
-  <!-- Dependencies needed only for running tests. -->
-  <!-- <test_depend>mrpt_libs</test_depend> -->
-  <!-- <test_depend>mrpt_bridge</test_depend> -->
-  <!-- <test_depend>geometry_msgs</test_depend> -->
-  <!-- <test_depend>sensor_msgs</test_depend> -->
-  <!-- <test_depend>std_msgs</test_depend> -->
-  <!-- <test_depend>roscpp</test_depend> -->
+  <run_depend>roslib</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>mrpt_bridge</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>mrpt</run_depend> <!-- Depend on mrpt system pkgs -->
 
 </package>

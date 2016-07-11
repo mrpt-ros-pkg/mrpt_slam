@@ -56,7 +56,9 @@ void EKFslamWrapper::init(){
         rawlog_play_=true;
      }
 
-         state_viz_pub_=n_.advertise<visualization_msgs::MarkerArray>("/state_viz", 1);
+         state_viz_pub_=n_.advertise<visualization_msgs::MarkerArray>("/state_viz", 1);//map
+
+
 
 
 }
@@ -84,13 +86,11 @@ bool EKFslamWrapper::rawlogPlay(){
              printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
              ros::Duration(rawlog_play_delay).sleep();
              mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
-             ros::spinOnce();
+            // ros::spinOnce();
              viz_state(); 
 		}
       
      }
- 
- 
     return true;
  }
 
@@ -153,7 +153,6 @@ void EKFslamWrapper::viz_state(){
         marker.color.r = 1.0;
         marker.color.g = 1.0;
         marker.color.b = 1.0;
-        //marker.scale.z = 1;
         ma.markers.push_back(marker);
        
 
