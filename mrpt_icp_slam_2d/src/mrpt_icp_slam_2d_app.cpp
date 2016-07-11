@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
     if(!slam.rawlogPlay()){//if not play from rawlog file
 
      while (ros::ok()) {
-          //  slam.publishTF();
+            slam.publishTF();
           
             ros::spinOnce();
             r.sleep();

@@ -35,7 +35,6 @@ include_directories(
 
 
 add_executable(mrpt_icp_slam_2d
-    src/mrpt_icp_slam_2d.cpp
     src/mrpt_icp_slam_2d_wrapper.cpp
     src/mrpt_icp_slam_2d_app.cpp
 )
