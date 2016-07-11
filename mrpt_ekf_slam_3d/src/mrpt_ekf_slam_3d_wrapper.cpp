@@ -56,7 +56,7 @@ void EKFslamWrapper::init(){
         rawlog_play_=true;
      }
 
-         pub_Particles_Beacons_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud_beacons", 1, true);
+         state_viz_pub_=n_.advertise<visualization_msgs::MarkerArray>("/state_viz", 1);
 
 
 }
@@ -83,32 +83,9 @@ bool EKFslamWrapper::rawlogPlay(){
              t_exec = tictac.Tac();
              printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
              ros::Duration(rawlog_play_delay).sleep();
-            // mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
+             mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
              ros::spinOnce();
-
-
-            opengl::CSetOfObjectsPtr  objs = opengl::CSetOfObjects::Create();
-		    mapping.getAs3DObject(objs);
-
-
-
-              geometry_msgs::PoseArray poseArrayBeacons;
-		    poseArrayBeacons.header.frame_id = global_frame_id;
-		    poseArrayBeacons.header.stamp = ros::Time::now();
-	
-		   //Count the number of beacons
-	        int objs_counter = 0;
-		    while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter )) { 
-			    objs_counter++;
-		    }	
-		    poseArrayBeacons.poses.resize(objs_counter);
-		    mrpt::opengl::CEllipsoidPtr beacon_particle;
-      
-		    for (size_t i = 0; i < objs_counter; i++) {
-			    beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);	
-			    mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);
-		    }
-		    pub_Particles_Beacons_.publish(poseArrayBeacons);  
+             viz_state(); 
 		}
       
      }
@@ -116,5 +93,74 @@ bool EKFslamWrapper::rawlogPlay(){
  
     return true;
  }
+
+}
+
+void EKFslamWrapper::viz_state(){
+
+    visualization_msgs::MarkerArray ma;
+    visualization_msgs::Marker marker;
+
+    marker.header.frame_id = "/map";
+
+    //robot pose
+    CPose3D robotPoseMean3D = CPose3D(robotPose_.mean);
+    tf::Quaternion quat;
+    quat=tf::createQuaternionFromRPY(robotPoseMean3D.roll(),robotPoseMean3D.pitch(), robotPoseMean3D.yaw());
+    marker.id = 0;
+    marker.type = visualization_msgs::Marker::SPHERE;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = ros::Duration(0);
+    marker.pose.position.x = robotPoseMean3D.x();
+    marker.pose.position.y = robotPoseMean3D.y();
+    marker.pose.position.z = robotPoseMean3D.z();
+    marker.pose.orientation.x = quat.x();
+    marker.pose.orientation.y = quat.y();
+    marker.pose.orientation.z = quat.z();
+    marker.pose.orientation.w = quat.w();
+    marker.scale.x = 0.12;
+    marker.scale.y = 0.12;
+    marker.scale.z = 0.12;
+    marker.color.a = 1.0;
+    marker.color.r = 1.0;
+    marker.color.g = 0.0;
+    ma.markers.push_back(marker);
+
+    //landmarks
+    for (int i=0; i<LMs_.size(); i++) {
+        marker.id++;
+        marker.color.a = 1.0;
+        marker.color.r = 0.0;   
+        marker.color.g = 1.0;
+        marker.color.b = 1.0;
+        marker.type = visualization_msgs::Marker::SPHERE;
+        marker.pose.position.x = LMs_[i].x;
+        marker.pose.position.y = LMs_[i].y;
+        marker.pose.position.z = LMs_[i].z;
+            
+
+        ma.markers.push_back(marker);
+       
+
+ 
+        marker.id++;
+        marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+        marker.text = std::to_string(LM_IDs_[i]);
+
+        marker.pose.position.x = LMs_[i].x;
+        marker.pose.position.y = LMs_[i].y;
+        marker.pose.position.z = LMs_[i].z+0.1;
+        marker.color.r = 1.0;
+        marker.color.g = 1.0;
+        marker.color.b = 1.0;
+        //marker.scale.z = 1;
+        ma.markers.push_back(marker);
+       
+
+}
+
+
+    state_viz_pub_.publish(ma);
+
 
 }

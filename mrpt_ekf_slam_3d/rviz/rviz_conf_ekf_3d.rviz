@@ -10,6 +10,8 @@ Panels:
         - /PoseArray2
         - /TF1
         - /TF1/Frames1
+        - /MarkerArray1
+        - /MarkerArray2
       Splitter Ratio: 0.5
     Tree Height: 330
   - Class: rviz/Selection
@@ -79,25 +81,13 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base_link:
-          Value: true
-        beacon_link:
-          Value: true
-        map:
-          Value: true
-        odom:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        map:
-          odom:
-            base_link:
-              beacon_link:
-                {}
+        {}
       Update Interval: 0
       Value: true
     - Class: rviz/MarkerArray
@@ -106,6 +96,14 @@ Visualization Manager:
       Name: MarkerArray
       Namespaces:
         {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /state_viz
+      Name: MarkerArray
+      Namespaces:
+        "": true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -132,7 +130,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 35.884
+      Distance: 18.9371
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1

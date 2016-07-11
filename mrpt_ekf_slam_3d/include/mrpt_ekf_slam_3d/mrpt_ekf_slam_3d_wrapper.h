@@ -15,45 +15,27 @@
 #include <ros/package.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
-
-
-////////////////////////
-//add ros libraries
-#include <ros/ros.h>
-#include <ros/package.h>
-#include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
 //add ros msgs
-#include <nav_msgs/OccupancyGrid.h>
-#include "nav_msgs/MapMetaData.h"
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
-#include <nav_msgs/GetMap.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <sensor_msgs/LaserScan.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <visualization_msgs/Marker.h>
-//mrpt msgs
-#include "mrpt_msgs/ObservationRangeBeacon.h"
 //mrpt bridge libs
 #include <mrpt_bridge/pose.h>
 #include <mrpt_bridge/map.h>
 #include <mrpt_bridge/mrpt_log_macros.h>
 #include <mrpt_bridge/laser_scan.h>
-#include <mrpt_bridge/beacon.h>
 #include <mrpt_bridge/time.h>
-////////////////////////////
 #include <mrpt/obs/CObservationOdometry.h>
-#include <mrpt/obs/CObservationBeaconRanges.h>
-#include <mrpt/slam/CMetricMapBuilderRBPF.h>
 #include <mrpt/obs/CActionRobotMovement2D.h>
 #include <mrpt/obs/CActionRobotMovement3D.h>
 #include <mrpt/obs/CRawlog.h>
 #include <mrpt/utils/CFileGZInputStream.h>
 #include <mrpt/utils/CFileGZOutputStream.h>
 #include <mrpt/utils/CConfigFile.h>
-#include <mrpt/gui/CDisplayWindow3D.h>
 #include <mrpt/random.h>
 #include <mrpt/system/threads.h>
 #include <mrpt/system/filesystem.h>
@@ -65,7 +47,6 @@
 #include <mrpt/opengl/CEllipsoid.h>
 #include <mrpt/opengl/stock_objects.h>
 
-//////////////
 class EKFslamWrapper : EKFslam{
 
 public:
@@ -76,6 +57,7 @@ public:
     void init();
     bool rawlogPlay();
     bool is_file_exists(const std::string& name);
+    void viz_state();
 private:
     ros::NodeHandle n_;
     double rawlog_play_delay;///< delay of replay from rawlog file
@@ -93,15 +75,13 @@ private:
 
     CTicTac	tictac;///<timer for SLAM performance evaluation
 	float	t_exec;///<the time which take one SLAM update execution 
+    
 	CPose3DQuatPDFGaussian	  robotPose_;
-	//CPose3D                   robotPose_;
-	//CPoint3D                  lm_;
-    //std::vector<typename IMPL::landmark_point_t>	 LMs_;
-   std::vector<CPoint3D>	 LMs_;
+    std::vector<mrpt::math::TPoint3D> 	 LMs_;
 	std::map<unsigned int,CLandmark::TLandmarkID>    LM_IDs_;
 	CMatrixDouble  fullCov_;
 	CVectorDouble  fullState_;
-    ros:: Publisher  pub_Particles_Beacons_;
+    ros:: Publisher  pub_Particles_Beacons_, state_viz_pub_;
 };
 
 
