@@ -40,7 +40,6 @@ public:
     EKFslam();
     ~EKFslam();
     void read_iniFile(std::string ini_filename);
-    void read_rawlog(std::vector<std::pair<CActionCollection,CSensoryFrame>>& data, std::string rawlog_filename);
     CRangeBearingKFSLAM mapping;
 private:
  
