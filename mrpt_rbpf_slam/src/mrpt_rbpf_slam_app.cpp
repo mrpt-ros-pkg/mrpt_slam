@@ -9,12 +9,13 @@ int main(int argc, char **argv) {
     PFslamWrapper slam;
     slam.get_param();
     slam.init();
-
+    ros::Duration(3).sleep();
 
     if(!slam.rawlogPlay()){//if not play from rawlog file
 
      while (ros::ok()) {
             slam.publishTF();
+          
             ros::spinOnce();
             r.sleep();
         }

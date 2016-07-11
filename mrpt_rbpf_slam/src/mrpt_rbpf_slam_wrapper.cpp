@@ -65,7 +65,7 @@ void PFslamWrapper::init(){
       pub_Particles_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud", 1, true);
       //ro particles poses
       pub_Particles_Beacons_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud_beacons", 1, true);
-
+        beacon_viz_pub_=n_.advertise<visualization_msgs::MarkerArray>("/beacons_viz", 1);
     
     
         
@@ -210,26 +210,31 @@ void PFslamWrapper::publishMapPose(){
           
 
          	mrpt::opengl::CSetOfObjectsPtr objs;
+
             objs = mrpt::opengl::CSetOfObjects::Create();
+            //Get th map as the set of 3D objects
             metric_map_->m_beaconMap->getAs3DObject( objs );
 
             geometry_msgs::PoseArray poseArrayBeacons;
 		    poseArrayBeacons.header.frame_id = global_frame_id;
 		    poseArrayBeacons.header.stamp = ros::Time::now();
 	
-		   
+		   //Count the number of beacons
 	        int objs_counter = 0;
 		    while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter )) { 
 			    objs_counter++;
 		    }	
 		    poseArrayBeacons.poses.resize(objs_counter);
 		    mrpt::opengl::CEllipsoidPtr beacon_particle;
-
+      
 		    for (size_t i = 0; i < objs_counter; i++) {
 			    beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);	
-			    mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);		
+			    mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);
+                viz_beacons.push_back(beacon_particle);		
 		    }
 		    pub_Particles_Beacons_.publish(poseArrayBeacons);  
+            vizBeacons();
+            viz_beacons.clear();
         }
 
         //publish pose
@@ -246,6 +251,66 @@ void PFslamWrapper::publishMapPose(){
  
 
 
+}
+
+void PFslamWrapper::vizBeacons() {
+    if(viz_beacons.size()==0){
+        return;
+    }
+    visualization_msgs::MarkerArray ma;
+    visualization_msgs::Marker marker;
+
+    marker.header.frame_id = "/map";
+
+    marker.id = 0;
+    marker.type = visualization_msgs::Marker::SPHERE;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.lifetime = ros::Duration(1);
+    marker.pose.position.x = 0;
+    marker.pose.position.y = 0;
+    marker.pose.position.z = 0;
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
+    marker.scale.x = 0.12;
+    marker.scale.y = 0.12;
+    marker.scale.z = 0.12;
+    marker.color.a = 1.0;
+    marker.color.r = 1.0;
+    marker.color.g = 0.0;
+
+    for (int i=0; i< viz_beacons.size(); i++) {
+         CPose3D meanPose(viz_beacons[i]->getPose());
+       marker.type = visualization_msgs::Marker::SPHERE;
+
+        marker.pose.position.x = meanPose.x();
+        marker.pose.position.y = meanPose.y();
+        marker.pose.position.z = meanPose.z();
+         marker.color.r = 1.0;
+        marker.color.g = 0.0;
+    marker.color.b = 0.0;
+
+        ma.markers.push_back(marker);
+        marker.id++;
+
+        marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+        marker.text = std::to_string(i);
+
+        marker.pose.position.x = meanPose.x();
+        marker.pose.position.y = meanPose.y();
+        marker.pose.position.z = meanPose.z()+0.12;
+        marker.color.r = 1.0;
+        marker.color.g = 1.0;
+        marker.color.b = 1.0;
+        //marker.scale.z = 1;
+        ma.markers.push_back(marker);
+        marker.id++;
+}
+
+
+    beacon_viz_pub_.publish(ma);
+     
 }
 
 void PFslamWrapper::updateSensorPose (std::string _frame_id) {
@@ -327,11 +392,14 @@ bool PFslamWrapper::rawlogPlay() {
 		    poseArrayBeacons.poses.resize(objs_counter);
 		    mrpt::opengl::CEllipsoidPtr beacon_particle;
 
-		    for (size_t i = 0; i < objs_counter; i++) {
+		     for (size_t i = 0; i < objs_counter; i++) {
 			    beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);	
-			    mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);		
+			    mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);
+                viz_beacons.push_back(beacon_particle);		
 		    }
 		    pub_Particles_Beacons_.publish(poseArrayBeacons);  
+            vizBeacons();
+            viz_beacons.clear();
         }
 
         //publish pose

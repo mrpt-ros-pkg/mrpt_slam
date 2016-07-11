@@ -9,7 +9,7 @@
 
 #include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
-
+#include <string>
 #include "mrpt_rbpf_slam/mrpt_rbpf_slam.h"
 
 //add ros libraries
@@ -26,7 +26,8 @@
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <sensor_msgs/LaserScan.h>
-
+#include <visualization_msgs/MarkerArray.h>
+#include <visualization_msgs/Marker.h>
 //mrpt msgs
 #include "mrpt_msgs/ObservationRangeBeacon.h"
 //mrpt bridge libs
@@ -138,6 +139,7 @@ public:
    */   
     void publishTF(); 
 
+    void vizBeacons();
 private:
     ros::NodeHandle n_;///< Node Handle
     double rawlog_play_delay;///< delay of replay from rawlog file
@@ -163,9 +165,11 @@ private:
 
     
      CMultiMetricMap *metric_map_; ///<receive map after iteration of SLAM to metric map
-     CPose3DPDFParticles   curPDF;///<current robot pose
+     std::vector< mrpt::opengl::CEllipsoidPtr> viz_beacons;
  
-    ros::Publisher pub_map_, pub_metadata_, pub_Particles_,pub_Particles_Beacons_;///<publishers for map and pose particles
+     CPose3DPDFParticles   curPDF;///<current robot pose
+
+    ros::Publisher pub_map_, pub_metadata_, pub_Particles_,pub_Particles_Beacons_,beacon_viz_pub_;///<publishers for map and pose particles
     
     tf::TransformListener listenerTF_;///<transform listener
      tf::TransformBroadcaster tf_broadcaster_;///<transform broadcaster
