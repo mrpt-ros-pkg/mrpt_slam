@@ -9,6 +9,7 @@
 
 EKFslamWrapper::EKFslamWrapper(){
      rawlog_play_=false;
+     mrpt_bridge::convert(ros::Time(0), timeLastUpdate_);
 }
 EKFslamWrapper::~EKFslamWrapper(){
 }
@@ -59,9 +60,122 @@ void EKFslamWrapper::init(){
          state_viz_pub_=n_.advertise<visualization_msgs::MarkerArray>("/state_viz", 1);//map
 
 
+     //read sensor topics
+    std::vector<std::string> lstSources;
+	mrpt::system::tokenize(sensor_source," ,\t\n",lstSources);
+	ROS_ASSERT_MSG(!lstSources.empty(), "*Fatal*: At least one sensor source must be provided in ~sensor_sources (e.g. \"scan\" or \"beacon\")");
+	
+
+    ///Create subscribers///	
+	sensorSub_.resize(lstSources.size());
+	for (size_t i=0;i<lstSources.size();i++) {
+		if(lstSources[i].find("landmark") != std::string::npos) {
+			sensorSub_[i]  = n_.subscribe(lstSources[i],  1, &EKFslamWrapper::landmarkCallback, this);
+		}
+		else {
+           ROS_ERROR("Can't find the sensor topics. The sensor topics should contain the word \"scan\" in the name");
+		}
+	}
+
+
 
 
 }
+
+void EKFslamWrapper::odometryForCallback (CObservationOdometryPtr  &_odometry, const std_msgs::Header &_msg_header) {
+   
+    mrpt::poses::CPose3D poseOdom;
+     if(this->waitForTransform(poseOdom, odom_frame_id, base_frame_id, _msg_header.stamp, ros::Duration(1))){
+		_odometry = CObservationOdometry::Create();
+        _odometry->sensorLabel = odom_frame_id;
+        _odometry->hasEncodersInfo = false;
+        _odometry->hasVelocities = false;
+        _odometry->odometry.x() = poseOdom.x();
+        _odometry->odometry.y() = poseOdom.y();
+        _odometry->odometry.phi() = poseOdom.yaw();
+    }
+}
+
+void EKFslamWrapper::updateSensorPose (std::string _frame_id) {
+    CPose3D pose;
+    tf::StampedTransform transform;
+    try {
+
+        listenerTF_.lookupTransform(base_frame_id, _frame_id, ros::Time(0), transform);
+
+        tf::Vector3 translation = transform.getOrigin();
+        tf::Quaternion quat = transform.getRotation();
+        pose.x() = translation.x();
+        pose.y() = translation.y();
+        pose.z() = translation.z();
+        double roll, pitch, yaw;
+        tf::Matrix3x3 Rsrc(quat);
+        CMatrixDouble33 Rdes;
+        for(int c = 0; c < 3; c++)
+            for(int r = 0; r < 3; r++)
+                Rdes(r,c) = Rsrc.getRow(r)[c];
+        pose.setRotationMatrix(Rdes);
+        landmark_poses_[_frame_id] = pose;
+    }
+    catch (tf::TransformException ex) {
+        ROS_ERROR("%s",ex.what());
+        ros::Duration(1.0).sleep();
+    }
+
+}
+
+
+bool EKFslamWrapper::waitForTransform(mrpt::poses::CPose3D &des, const std::string& target_frame, const std::string& source_frame, const ros::Time& time, const ros::Duration& timeout, const ros::Duration& polling_sleep_duration){
+    tf::StampedTransform transform;
+    try
+    {
+        listenerTF_.waitForTransform(target_frame, source_frame,  time, polling_sleep_duration);
+        listenerTF_.lookupTransform(target_frame, source_frame,  time, transform);
+    }
+    catch(tf::TransformException)
+    {
+        ROS_INFO("Failed to get transform target_frame (%s) to source_frame (%s)", target_frame.c_str(), source_frame.c_str());
+        return false;
+    }
+    mrpt_bridge::convert(transform, des);
+    return true;
+}
+
+void EKFslamWrapper::landmarkCallback(const mrpt_msgs::ObservationRangeBearing &_msg) {
+#if MRPT_VERSION>=0x130
+	using namespace mrpt::maps;
+	using namespace mrpt::obs;
+#else
+	using namespace mrpt::slam;
+#endif
+	CObservationBearingRangePtr landmark = CObservationBearingRange::Create();
+
+    if(landmark_poses_.find(_msg.header.frame_id) == landmark_poses_.end()) { 
+        updateSensorPose (_msg.header.frame_id);    
+    } else {        
+        mrpt::poses::CPose3D pose = landmark_poses_[_msg.header.frame_id];
+        mrpt_bridge::convert(_msg, landmark_poses_[_msg.header.frame_id],  *landmark);
+
+	sf = CSensoryFrame::Create();
+	CObservationOdometryPtr odometry;
+	odometryForCallback(odometry, _msg.header);
+
+	CObservationPtr obs = CObservationPtr(landmark);
+        sf->insert(obs);
+        observation(sf, odometry);
+        timeLastUpdate_ = sf->getObservationByIndex(0)->timestamp;
+
+                 tictac.Tic();
+             mapping.processActionObservation( action,sf);
+             t_exec = tictac.Tac();
+             printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
+             ros::Duration(rawlog_play_delay).sleep();
+             mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
+             viz_state(); 
+
+    }
+}
+
 
 bool EKFslamWrapper::rawlogPlay(){
     if ( rawlog_play_==false){
@@ -161,5 +275,49 @@ void EKFslamWrapper::viz_state(){
 
     state_viz_pub_.publish(ma);
 
+
+}
+
+
+void EKFslamWrapper::publishTF() {
+     mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
+	// Most of this code was copy and pase from ros::amcl
+	mrpt::poses::CPose3D		robotPose;
+
+    robotPose = CPose3D(robotPose_.mean);
+	//mapBuilder->mapPDF.getEstimatedPosePDF(curPDF);
+  
+	//curPDF.getMean(robotPose);
+ 
+    tf::Stamped<tf::Pose> odom_to_map;
+    tf::Transform tmp_tf;
+    ros::Time stamp;
+   mrpt_bridge::convert(timeLastUpdate_, stamp);
+    mrpt_bridge::convert(robotPose, tmp_tf);
+ 
+    try
+    {
+        tf::Stamped<tf::Pose> tmp_tf_stamped (tmp_tf.inverse(), stamp,  base_frame_id);
+        listenerTF_.transformPose(odom_frame_id, tmp_tf_stamped, odom_to_map);
+
+    }
+    catch(tf::TransformException)
+    {
+		ROS_INFO("Failed to subtract global_frame (%s) from odom_frame (%s)", global_frame_id.c_str(), odom_frame_id.c_str());
+        return;
+    }
+
+    tf::Transform latest_tf_ = tf::Transform(tf::Quaternion(odom_to_map.getRotation()),
+                               tf::Point(odom_to_map.getOrigin()));
+
+    // We want to send a transform that is good up until a
+    // tolerance time so that odom can be used
+
+    ros::Duration transform_tolerance_(0.5);
+    ros::Time transform_expiration = (stamp + transform_tolerance_);
+    tf::StampedTransform tmp_tf_stamped(latest_tf_.inverse(),
+                                        transform_expiration,
+                                        global_frame_id, odom_frame_id);
+    tf_broadcaster_.sendTransform(tmp_tf_stamped);
 
 }

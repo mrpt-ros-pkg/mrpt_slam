@@ -20,14 +20,12 @@
 #include <std_msgs/Int32.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <sensor_msgs/LaserScan.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <visualization_msgs/Marker.h>
 //mrpt bridge libs
 #include <mrpt_bridge/pose.h>
-#include <mrpt_bridge/map.h>
+#include <mrpt_bridge/landmark.h>
 #include <mrpt_bridge/mrpt_log_macros.h>
-#include <mrpt_bridge/laser_scan.h>
 #include <mrpt_bridge/time.h>
 #include <mrpt/obs/CObservationOdometry.h>
 #include <mrpt/obs/CActionRobotMovement2D.h>
@@ -46,7 +44,7 @@
 #include <mrpt/opengl/CGridPlaneXY.h>
 #include <mrpt/opengl/CEllipsoid.h>
 #include <mrpt/opengl/stock_objects.h>
-
+#include <mrpt_msgs/ObservationRangeBearing.h>
 class EKFslamWrapper : EKFslam{
 
 public:
@@ -58,20 +56,33 @@ public:
     bool rawlogPlay();
     bool is_file_exists(const std::string& name);
     void viz_state();
+    void odometryForCallback (CObservationOdometryPtr  &_odometry, const std_msgs::Header &_msg_header);
+    void landmarkCallback(const mrpt_msgs::ObservationRangeBearing &_msg);
+    void updateSensorPose (std::string _frame_id);
+    bool waitForTransform(mrpt::poses::CPose3D &des, const std::string& target_frame, const std::string& source_frame, const ros::Time& time, const ros::Duration& timeout, const ros::Duration& polling_sleep_duration = ros::Duration(0.01));
+
+ void publishTF(); 
+
+
 private:
     ros::NodeHandle n_;
     double rawlog_play_delay;///< delay of replay from rawlog file
     bool rawlog_play_;///< true if rawlog file exists
-
+    //Subscribers
+    std::vector<ros::Subscriber> sensorSub_;///< list of sensors topics
     std::string rawlog_filename;///< name of rawlog file
     std::string ini_filename;///< name of ini file
     std::string global_frame_id;///< /map frame
     std::string odom_frame_id; ///< /odom frame
     std::string base_frame_id; ///< robot frame
-    //read rawlog file
-    std::vector<std::pair<CActionCollection,CSensoryFrame>> data;///< vector of pairs of actions and obsrvations from rawlog file
+
     //Sensor source
     std::string sensor_source;///< 2D laser scans
+ 
+    std::map<std::string, mrpt::poses::CPose3D> landmark_poses_;///< landmark poses with respect to the map
+
+   
+
 
     CTicTac	tictac;///<timer for SLAM performance evaluation
 	float	t_exec;///<the time which take one SLAM update execution 
@@ -82,6 +93,10 @@ private:
 	CMatrixDouble  fullCov_;
 	CVectorDouble  fullState_;
     ros:: Publisher  pub_Particles_Beacons_, state_viz_pub_;
+    tf::TransformListener listenerTF_;///<transform listener
+    tf::TransformBroadcaster tf_broadcaster_;///<transform broadcaster
+
+
 };
 
 

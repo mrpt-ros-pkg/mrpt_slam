@@ -6,12 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /PoseArray1
-        - /PoseArray2
         - /TF1
         - /TF1/Frames1
         - /MarkerArray1
-        - /MarkerArray2
       Splitter Ratio: 0.5
     Tree Height: 330
   - Class: rviz/Selection
@@ -62,48 +59,34 @@ Visualization Manager:
       Name: Map
       Topic: /map
       Value: true
-    - Arrow Length: 0.3
-      Class: rviz/PoseArray
-      Color: 255; 25; 0
-      Enabled: true
-      Name: PoseArray
-      Topic: /particlecloud
-      Value: true
-    - Arrow Length: 0.3
-      Class: rviz/PoseArray
-      Color: 0; 255; 0
-      Enabled: true
-      Name: PoseArray
-      Topic: /particlecloud_beacons
-      Value: true
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        base_link:
+          Value: true
+        map:
+          Value: true
+        odom:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        map:
+          odom:
+            {}
       Update Interval: 0
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /beacons_viz
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /state_viz
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
