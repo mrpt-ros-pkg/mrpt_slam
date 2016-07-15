@@ -37,12 +37,14 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include "nav_msgs/MapMetaData.h"
 #include <std_msgs/String.h>
+#include <std_msgs/Header.h>
 #include <std_msgs/Int32.h>
 #include <nav_msgs/GetMap.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/PointCloud.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <visualization_msgs/Marker.h>
 
@@ -52,6 +54,7 @@
 #include <mrpt_bridge/mrpt_log_macros.h>
 #include <mrpt_bridge/laser_scan.h>
 #include <mrpt_bridge/time.h>
+#include <mrpt_bridge/point_cloud.h>
 
 using namespace mrpt;
 using namespace mrpt::slam;
@@ -102,7 +105,7 @@ private:
 
      CMultiMetricMap *metric_map_; ///<receive map after iteration of SLAM to metric map
      CPose3DPDFPtr curPDF;///<current robot pose
-     ros::Publisher pub_map_, pub_metadata_, pub_pose_;///<publishers for map and pose particles
+     ros::Publisher pub_map_, pub_metadata_, pub_pose_,pub_point_cloud_;///<publishers for map and pose particles
 
     tf::TransformListener listenerTF_;///<transform listener
      tf::TransformBroadcaster tf_broadcaster_;///<transform broadcaster

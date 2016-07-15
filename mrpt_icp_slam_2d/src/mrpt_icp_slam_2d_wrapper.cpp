@@ -79,6 +79,9 @@ void ICPslamWrapper::init(){
       //publish grid map
       pub_map_ = n_.advertise<nav_msgs::OccupancyGrid>("map", 1, true);
       pub_metadata_= n_.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
+      //publish point map
+      pub_point_cloud_ = n_.advertise<sensor_msgs::PointCloud>("PointCloudMap", 1, true);
+
       //robot pose
       pub_pose_ = n_.advertise<geometry_msgs::PoseStamped>("robot_pose", 1);
  
@@ -137,13 +140,23 @@ void   ICPslamWrapper::publishMapPose(){
                     pub_metadata_.publish(_msg.info);          
            
          }
+           if (metric_map_->m_pointsMaps.size()){         
+              
+                sensor_msgs::PointCloud  _msg;  
+                 std_msgs::Header header;
+                 header.stamp=ros::Time(0);
+                header.frame_id=global_frame_id;
+                //if we have new map for current sensor update it
+              mrpt_bridge::point_cloud::mrpt2ros(*metric_map_->m_pointsMaps[0],header, _msg );
+              pub_point_cloud_ .publish(_msg);
+         }
 
             CPose3D robotPose;
 		    mapBuilder.getCurrentPoseEstimation()->getMean(robotPose);
 
          //publish pose
     geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = "/map";
+    pose.header.frame_id = global_frame_id;
    
     //the pose
     pose.pose.position.x = robotPose.x();
@@ -228,12 +241,24 @@ bool ICPslamWrapper::rawlogPlay() {
 
          }
    
+           if (metric_map_->m_pointsMaps.size()){         
+              
+                sensor_msgs::PointCloud  _msg;  
+                std_msgs::Header header;
+                 header.stamp=ros::Time(0);
+                header.frame_id=global_frame_id;
+                //if we have new map for current sensor update it
+               mrpt_bridge::point_cloud::mrpt2ros(*metric_map_->m_pointsMaps[0],header, _msg );
+                   pub_point_cloud_ .publish(_msg);
+                    //pub_metadata_.publish(_msg.info)      
+           
 
+         }
  
 
     //publish pose
     geometry_msgs::PoseStamped pose;
-    pose.header.frame_id = "/map";
+    pose.header.frame_id = global_frame_id;
    
     //the pose
     pose.pose.position.x = robotPose.x();
@@ -257,12 +282,13 @@ bool ICPslamWrapper::rawlogPlay() {
 
 void ICPslamWrapper::publishTF() {
 	// Most of this code was copy and pase from ros::amcl
-	mrpt::poses::CPose3D		robotPose;
-	mapBuilder.getCurrentPoseEstimation()->getMean(robotPose);
- 
+	mrpt::poses::CPose3D		robotPoseTF;
+	mapBuilder.getCurrentPoseEstimation()->getMean(robotPoseTF);
+
+    stamp=ros::Time(0);
     tf::Stamped<tf::Pose> odom_to_map;
     tf::Transform tmp_tf;
-    mrpt_bridge::convert(robotPose, tmp_tf);
+    mrpt_bridge::convert(robotPoseTF, tmp_tf);
  
     try
     {
@@ -276,10 +302,11 @@ void ICPslamWrapper::publishTF() {
         return;
     }
 
+
     tf::Transform latest_tf_ = tf::Transform(tf::Quaternion(odom_to_map.getRotation()),
                                tf::Point(odom_to_map.getOrigin()));
 
-   
+ 
 
    tf::StampedTransform tmp_tf_stamped(latest_tf_.inverse(),
                                         stamp,

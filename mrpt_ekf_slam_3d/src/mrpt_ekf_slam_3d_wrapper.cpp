@@ -73,7 +73,7 @@ void EKFslamWrapper::init(){
 			sensorSub_[i]  = n_.subscribe(lstSources[i],  1, &EKFslamWrapper::landmarkCallback, this);
 		}
 		else {
-           ROS_ERROR("Can't find the sensor topics. The sensor topics should contain the word \"scan\" in the name");
+           ROS_ERROR("Can't find the sensor topics. The sensor topics should contain the word \"landmark\" in the name");
 		}
 	}
 
@@ -313,7 +313,7 @@ void EKFslamWrapper::publishTF() {
     // We want to send a transform that is good up until a
     // tolerance time so that odom can be used
 
-    ros::Duration transform_tolerance_(0.5);
+    ros::Duration transform_tolerance_(0.1);
     ros::Time transform_expiration = (stamp + transform_tolerance_);
     tf::StampedTransform tmp_tf_stamped(latest_tf_.inverse(),
                                         transform_expiration,
