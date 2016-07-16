@@ -210,6 +210,62 @@ bool EKFslamWrapper::rawlogPlay(){
 
 }
 
+// Local function to force the axis to be right handed for 3D. Taken from ecl_statistics
+void EKFslamWrapper::makeRightHanded( Eigen::Matrix3d& eigenvectors, Eigen::Vector3d& eigenvalues){
+  // Note that sorting of eigenvalues may end up with left-hand coordinate system.
+  // So here we correctly sort it so that it does end up being righ-handed and normalised.
+  Eigen::Vector3d c0 = eigenvectors.block<3,1>(0,0);  c0.normalize();
+  Eigen::Vector3d c1 = eigenvectors.block<3,1>(0,1);  c1.normalize();
+  Eigen::Vector3d c2 = eigenvectors.block<3,1>(0,2);  c2.normalize();
+  Eigen::Vector3d cc = c0.cross(c1);
+  if (cc.dot(c2) < 0) {
+    eigenvectors << c1, c0, c2;
+    double e = eigenvalues[0];  eigenvalues[0] = eigenvalues[1];  eigenvalues[1] = e;
+  } else {
+    eigenvectors << c0, c1, c2;
+  }
+}
+
+void EKFslamWrapper::computeEllipseOrientationScale( tf::Quaternion& orientation,Eigen::Vector3d&  scale, const mrpt::math::CMatrixDouble covariance){
+
+
+        //initialize variables and empty matrices for eigen vectors and eigen values
+        tf::Matrix3x3 tf3d;
+        Eigen::Vector3d eigenvalues(Eigen::Vector3d::Identity());
+        Eigen::Matrix3d eigenvectors(Eigen::Matrix3d::Zero());
+
+        //compute eigen vectors and eigen values from covariance matrix
+	    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(covariance);
+        // Compute eigenvectors and eigenvalues
+        if (eigensolver.info () == Eigen::Success){
+             eigenvalues = eigensolver.eigenvalues();
+             eigenvectors = eigensolver.eigenvectors();
+        }else{
+             ROS_ERROR_STREAM("failed to compute eigen vectors/values for position. Is the covariance matrix correct?");
+            eigenvalues = Eigen::Vector3d::Zero();      // Setting the scale to zero will hide it on the screen
+            eigenvectors = Eigen::Matrix3d::Identity();
+       }
+
+        // Be sure we have a right-handed orientation system
+        makeRightHanded(eigenvectors, eigenvalues);
+
+        //Rotation matrix
+         tf3d.setValue(eigenvectors(0,0), eigenvectors(0,1), eigenvectors(0,2),
+                       eigenvectors(1,0), eigenvectors(1,1), eigenvectors(1,2),
+                       eigenvectors(2,0), eigenvectors(2,1), eigenvectors(2,2));
+
+
+
+  //get orientation from rotation matrix
+  tf3d.getRotation(orientation);
+  //get scale
+    scale[0]=eigenvalues[0];
+    scale[1]=eigenvalues[1];
+    scale[2]=eigenvalues[2];
+
+}
+
+
 void EKFslamWrapper::viz_state(){
 
 visualization_msgs::MarkerArray ma;
@@ -220,41 +276,38 @@ visualization_msgs::MarkerArray ma;
     marker.action = visualization_msgs::Marker::ADD;
     marker.lifetime = ros::Duration(0);
   
-    //get the covariance matrix 3x3 for each ellipsoid including robot pose
 
+    //get the covariance matrix 3x3 for each ellipsoid including robot pose
      mrpt::opengl::CSetOfObjectsPtr objs;
      objs = mrpt::opengl::CSetOfObjects::Create();
-    //Get the map as the set of 3D objects
      mapping.getAs3DObject(objs);
-    //Count the number of landmarks
+
+
+    //Count the number of landmarks + robot
 	int objs_counter = 0;
     while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter )) { 
 	objs_counter++;
     }	
+
     mrpt::opengl::CEllipsoidPtr landmark;
+
     for (size_t i = 0; i < objs_counter; i++) {
+
 	    landmark = objs->getByClass<mrpt::opengl::CEllipsoid>(i);	
-        CPose3D pose=landmark->getPose();
+
+        float quantiles = landmark->getQuantiles() ; //the scale of ellipse covariance visualization (usually 3  sigma)
         mrpt::math::CMatrixDouble covariance = landmark->getCovMatrix();
-        float quantiles = landmark->getQuantiles() ;
-        math::CMatrixD		m_eigVal,m_eigVec;
-        covariance.eigenVectors(m_eigVec,m_eigVal);
 
-//Eigen::Matrix3d  mat(m_eigVec);
-tf::Matrix3x3 tf3d;
-   //tf::matrixEigenToTF(mat,tf3d);
 
-  tf3d.setValue(m_eigVec(0,0),m_eigVec(0,1),m_eigVec(0,2), 
-                m_eigVec(1,0),m_eigVec(1,1),m_eigVec(1,2), 
-                m_eigVec(2,0),m_eigVec(2,1),m_eigVec(2,2));
 
- 
-  tf3d= tf3d.absolute();
-  tf::Quaternion tfqt;
-  tf3d.getRotation(tfqt);
+        //the landmark (or robot) mean position
+        CPose3D pose=landmark->getPose(); 
+        //For visualization of the covariance ellipses we need the size of the axis and orientation
 
-   // tf::quaternionEigenToTF(m_eigVec,tfqt);
-   tfqt.normalize();
+        Eigen::Vector3d scale;//size of axis of the ellipse
+        tf::Quaternion orientation;
+        computeEllipseOrientationScale( orientation,scale,covariance );
+
 
         marker.id++;
         marker.color.a = 1.0;
@@ -268,16 +321,16 @@ tf::Matrix3x3 tf3d;
             marker.color.b = 1.0;
         }
         marker.type = visualization_msgs::Marker::SPHERE;
-        marker.pose.position.x =pose.x();
+        marker.pose.position.x = pose.x();
         marker.pose.position.y = pose.y();
         marker.pose.position.z = pose.z();
-        marker.pose.orientation.x = tfqt.x();
-        marker.pose.orientation.y = tfqt.y();
-        marker.pose.orientation.z = tfqt.z();
-        marker.pose.orientation.w = tfqt.w();
-        marker.scale.x =100*quantiles*m_eigVal(0,0);
-        marker.scale.y =100*quantiles*m_eigVal(1,1);
-        marker.scale.z = 100*quantiles*m_eigVal(2,2);      
+        marker.pose.orientation.x = orientation.x();
+        marker.pose.orientation.y = orientation.y();
+        marker.pose.orientation.z = orientation.z();
+        marker.pose.orientation.w = orientation.w();
+        marker.scale.x = quantiles*std::sqrt (scale[0]);
+        marker.scale.y = quantiles*std::sqrt (scale[1]);
+        marker.scale.z = quantiles*std::sqrt (scale[2]);      
         ma.markers.push_back(marker);
        
 

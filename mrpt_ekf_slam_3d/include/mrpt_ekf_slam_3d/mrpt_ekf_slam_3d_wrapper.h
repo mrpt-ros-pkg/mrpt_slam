@@ -55,6 +55,8 @@ public:
     ~EKFslamWrapper();
 
     void get_param();
+    void makeRightHanded( Eigen::Matrix3d& eigenvectors, Eigen::Vector3d& eigenvalues);
+    void computeEllipseOrientationScale( tf::Quaternion& orientation,Eigen::Vector3d&  scale, const mrpt::math::CMatrixDouble covariance );
     void init();
     bool rawlogPlay();
     bool is_file_exists(const std::string& name);
