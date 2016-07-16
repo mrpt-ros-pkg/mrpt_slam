@@ -62,7 +62,7 @@ void EKFslamWrapper::init(){
      }
 
          state_viz_pub_=n_.advertise<visualization_msgs::MarkerArray>("/state_viz", 1);//map
-
+         data_association_viz_pub_=n_.advertise<visualization_msgs::MarkerArray>("/data_association_viz", 1);// data_association
 
      //read sensor topics
     std::vector<std::string> lstSources;
@@ -176,7 +176,7 @@ void EKFslamWrapper::landmarkCallback(const mrpt_msgs::ObservationRangeBearing &
              ros::Duration(rawlog_play_delay).sleep();
              mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
              viz_state(); 
-
+             viz_dataAssociation();
     }
 }
 
@@ -206,6 +206,7 @@ bool EKFslamWrapper::rawlogPlay(){
              mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
           
              viz_state(); 
+             viz_dataAssociation();
 		}
       
      }
@@ -272,7 +273,75 @@ void EKFslamWrapper::computeEllipseOrientationScale2D(tf::Quaternion& orientatio
 
 }
 
+void EKFslamWrapper::viz_dataAssociation(){
 
+
+    //robot pose
+    mrpt::poses::CPose3D	  robotPose;
+    robotPose = CPose3D(robotPose_.mean);
+    geometry_msgs::Point pointRobotPose;
+    pointRobotPose.z = 0;
+    pointRobotPose.x = robotPose.x();
+    pointRobotPose.y = robotPose.y();
+    
+
+    //visualization of the data association
+    visualization_msgs::MarkerArray ma;
+    visualization_msgs::Marker line_strip;
+
+    line_strip.header.frame_id = "/map";
+    line_strip.header.stamp=ros::Time::now();
+    
+    line_strip.id = 0;
+    line_strip.type = visualization_msgs::Marker::LINE_STRIP;
+    line_strip.action=visualization_msgs::Marker::ADD;
+
+    line_strip.lifetime = ros::Duration(0.1);
+    line_strip.pose.position.x = 0;
+    line_strip.pose.position.y = 0;
+    line_strip.pose.position.z = 0;
+    line_strip.pose.orientation.x = 0.0;
+    line_strip.pose.orientation.y = 0.0;
+    line_strip.pose.orientation.z = 0.0;
+    line_strip.pose.orientation.w = 1.0;
+    line_strip.scale.x = 0.02;//line uses only x component
+    line_strip.scale.y = 0.0;
+    line_strip.scale.z = 0.0;
+    line_strip.color.a = 1.0;
+    line_strip.color.r = 1.0;
+    line_strip.color.g = 1.0;
+    line_strip.color.b = 1.0;
+   
+
+
+    // Draw latest data association:
+	const CRangeBearingKFSLAM2D::TDataAssocInfo & da = mapping.getLastDataAssociation();
+				
+	for (auto it=da.results.associations.begin();it!=da.results.associations.end();++it){
+			 const prediction_index_t idxPred = it->second;
+			 // This index must match the internal list of features in the map:
+			 CRangeBearingKFSLAM2D::KFArray_FEAT featMean;
+			 mapping.getLandmarkMean(idxPred, featMean);
+
+
+
+				  line_strip.points.clear();
+                  line_strip.points.push_back(pointRobotPose);
+                  geometry_msgs::Point pointLm;
+                  pointLm.z = 0.0;
+                  pointLm.x =featMean[0];
+                  pointLm.y = featMean[1];
+                  line_strip.points.push_back(pointLm);
+                  ma.markers.push_back(line_strip);
+                  line_strip.id++;
+				
+	}
+
+        data_association_viz_pub_.publish(ma);
+
+		
+
+}
 void EKFslamWrapper::viz_state(){
 
 
@@ -362,10 +431,12 @@ void EKFslamWrapper::viz_state(){
 
     }
 
+	
+
 
     state_viz_pub_.publish(ma);
 
-
+    
 }
 
 

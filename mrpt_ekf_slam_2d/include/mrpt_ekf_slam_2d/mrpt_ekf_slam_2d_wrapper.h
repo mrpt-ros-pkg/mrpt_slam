@@ -60,6 +60,7 @@ public:
     bool rawlogPlay();
     bool is_file_exists(const std::string& name);
     void viz_state();
+    void viz_dataAssociation();
     void odometryForCallback (CObservationOdometryPtr  &_odometry, const std_msgs::Header &_msg_header);
     void landmarkCallback(const mrpt_msgs::ObservationRangeBearing &_msg);
     void updateSensorPose (std::string _frame_id);
@@ -97,7 +98,7 @@ private:
 	std::map<unsigned int,CLandmark::TLandmarkID>    LM_IDs_;
 	CMatrixDouble  fullCov_;
 	CVectorDouble  fullState_;
-    ros:: Publisher  pub_Particles_Beacons_, state_viz_pub_;
+    ros:: Publisher  data_association_viz_pub_, state_viz_pub_;
     tf::TransformListener listenerTF_;///<transform listener
     tf::TransformBroadcaster tf_broadcaster_;///<transform broadcaster
 

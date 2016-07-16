@@ -9,6 +9,7 @@ Panels:
         - /TF1
         - /TF1/Frames1
         - /MarkerArray1
+        - /MarkerArray2
       Splitter Ratio: 0.5
     Tree Height: 358
   - Class: rviz/Selection
@@ -85,6 +86,14 @@ Visualization Manager:
         "": true
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /data_association_viz
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -109,7 +118,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 28.7247
+      Distance: 15.8006
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -121,10 +130,10 @@ Visualization Manager:
         Z: 2.56103
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.515398
+      Pitch: 0.315398
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.60541
+      Yaw: 0.0772279
     Saved: ~
 Window Geometry:
   Displays:

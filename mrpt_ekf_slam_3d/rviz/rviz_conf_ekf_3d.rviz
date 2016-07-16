@@ -85,6 +85,14 @@ Visualization Manager:
         "": true
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /data_association_viz
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -109,7 +117,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 28.7247
+      Distance: 18.7924
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -121,10 +129,10 @@ Visualization Manager:
         Z: 2.56103
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.515398
+      Pitch: 0.425398
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.60541
+      Yaw: 5.71541
     Saved: ~
 Window Geometry:
   Displays:
