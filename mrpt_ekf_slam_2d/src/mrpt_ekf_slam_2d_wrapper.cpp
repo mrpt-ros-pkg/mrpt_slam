@@ -200,7 +200,7 @@ bool EKFslamWrapper::rawlogPlay(){
              printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
              ros::Duration(rawlog_play_delay).sleep();
              mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
-            // ros::spinOnce();
+          
              viz_state(); 
 		}
       
@@ -212,65 +212,91 @@ bool EKFslamWrapper::rawlogPlay(){
 
 void EKFslamWrapper::viz_state(){
 
+
     visualization_msgs::MarkerArray ma;
     visualization_msgs::Marker marker;
-
     marker.header.frame_id = "/map";
-
-    //robot pose
-    CPose3D robotPoseMean3D = CPose3D(robotPose_.mean);
-    tf::Quaternion quat;
-    quat=tf::createQuaternionFromRPY(robotPoseMean3D.roll(),robotPoseMean3D.pitch(), robotPoseMean3D.yaw());
     marker.id = 0;
     marker.type = visualization_msgs::Marker::SPHERE;
     marker.action = visualization_msgs::Marker::ADD;
     marker.lifetime = ros::Duration(0);
-    marker.pose.position.x = robotPoseMean3D.x();
-    marker.pose.position.y = robotPoseMean3D.y();
-    marker.pose.position.z = robotPoseMean3D.z();
-    marker.pose.orientation.x = quat.x();
-    marker.pose.orientation.y = quat.y();
-    marker.pose.orientation.z = quat.z();
-    marker.pose.orientation.w = quat.w();
-    marker.scale.x = 0.12;
-    marker.scale.y = 0.12;
-    marker.scale.z = 0.12;
-    marker.color.a = 1.0;
-    marker.color.r = 1.0;
-    marker.color.g = 0.0;
-    ma.markers.push_back(marker);
+  
+    //get the covariance matrix 2x2 for each ellipsoid including robot pose
 
-    //landmarks
-    for (int i=0; i<LMs_.size(); i++) {
+     mrpt::opengl::CSetOfObjectsPtr objs;
+     objs = mrpt::opengl::CSetOfObjects::Create();
+    //Get the map as the set of 3D objects
+     mapping.getAs3DObject(objs);
+    //Count the number of landmarks
+	int objs_counter = 0;
+    while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter )) { 
+	objs_counter++;
+    }	
+    mrpt::opengl::CEllipsoidPtr landmark;
+    for (size_t i = 0; i < objs_counter; i++) {
+	    landmark = objs->getByClass<mrpt::opengl::CEllipsoid>(i);	
+        CPose3D pose=landmark->getPose();
+        mrpt::math::CMatrixDouble covariance = landmark->getCovMatrix();
+        float quantiles = landmark->getQuantiles() ;
+        math::CMatrixD		m_eigVal,m_eigVec;
+        covariance.eigenVectors(m_eigVec,m_eigVal);
+
+  //rotation matrix from eigen vectors      
+  tf::Matrix3x3 tf3d;
+  tf3d.setValue(
+     m_eigVec(0,0),m_eigVec(0,1),0, 
+      m_eigVec(1,0),m_eigVec(1,1),0, 
+   0           ,           0      ,0);
+ tf3d= tf3d.absolute();
+  tf::Quaternion tfqt;
+  tf3d.getRotation(tfqt);
+    tfqt.normalize();
+
         marker.id++;
         marker.color.a = 1.0;
-        marker.color.r = 0.0;   
-        marker.color.g = 1.0;
-        marker.color.b = 1.0;
+        if(i==0){ //robot position
+           marker.color.r = 1.0;
+           marker.color.g = 0.0; 
+           marker.color.b = 0.0;
+        } else{
+            marker.color.r = 0.0;
+            marker.color.g = 0.0; 
+            marker.color.b = 1.0;
+        }
         marker.type = visualization_msgs::Marker::SPHERE;
-        marker.pose.position.x = LMs_[i].x;
-        marker.pose.position.y = LMs_[i].y;
+        marker.pose.position.x =pose.x();
+        marker.pose.position.y = pose.y();
         marker.pose.position.z =0;
-            
-
+        marker.pose.orientation.x = tfqt.x();
+        marker.pose.orientation.y = tfqt.y();
+        marker.pose.orientation.z = tfqt.z();
+        marker.pose.orientation.w = tfqt.w();
+        marker.scale.x =500*quantiles*m_eigVal(0,0);
+        marker.scale.y =500*quantiles*m_eigVal(1,1);
+        marker.scale.z = 0.00001;      
         ma.markers.push_back(marker);
        
 
  
         marker.id++;
         marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-        marker.text = std::to_string(LM_IDs_[i]);
-
-        marker.pose.position.x = LMs_[i].x;
-        marker.pose.position.y = LMs_[i].y;
+        if(i==0){
+            marker.text = "robot";
+        }else{
+            marker.text = std::to_string(LM_IDs_[i]);
+        }
+        marker.pose.position.x = pose.x();
+        marker.pose.position.y = pose.y();
         marker.pose.position.z = 0.1;
         marker.color.r = 1.0;
         marker.color.g = 1.0;
         marker.color.b = 1.0;
+        marker.scale.x =0.3;
+        marker.scale.y =0.3;
+        marker.scale.z =0.3;      
         ma.markers.push_back(marker);
-       
 
-}
+    }
 
 
     state_viz_pub_.publish(ma);

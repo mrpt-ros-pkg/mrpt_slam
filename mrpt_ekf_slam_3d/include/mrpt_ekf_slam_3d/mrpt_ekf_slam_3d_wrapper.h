@@ -15,6 +15,9 @@
 #include <ros/package.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
+#include <tf_conversions/tf_eigen.h>
+#include "Eigen/Core"
+#include "Eigen/Geometry"
 //add ros msgs
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
