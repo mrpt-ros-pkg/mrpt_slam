@@ -21,6 +21,10 @@ bool EKFslamWrapper::is_file_exists(const std::string& name) {
 void EKFslamWrapper::get_param(){
 
     ROS_INFO("READ PARAM FROM LAUNCH FILE");
+   n_.param<double>("ellipse_scale", ellipse_scale_, 1);
+    ROS_INFO("ellipse_scale: %f", ellipse_scale_);
+
+
     n_.param<double>("rawlog_play_delay", rawlog_play_delay, 0.1);
     ROS_INFO("rawlog_play_delay: %f", rawlog_play_delay);
 
@@ -210,6 +214,65 @@ bool EKFslamWrapper::rawlogPlay(){
 
 }
 
+
+
+// Local function to force the axis to be right handed for 2D. Based on the one from ecl_statistics
+void EKFslamWrapper::makeRightHanded( Eigen::Matrix2d& eigenvectors, Eigen::Vector2d& eigenvalues){
+  // Note that sorting of eigenvalues may end up with left-hand coordinate system.
+  // So here we correctly sort it so that it does end up being righ-handed and normalised.
+  Eigen::Vector3d c0;  c0.setZero();  c0.head<2>() = eigenvectors.col(0);  c0.normalize();
+  Eigen::Vector3d c1;  c1.setZero();  c1.head<2>() = eigenvectors.col(1);  c1.normalize();
+  Eigen::Vector3d cc = c0.cross(c1);
+  if (cc[2] < 0) {
+    eigenvectors << c1.head<2>(), c0.head<2>();
+    double e = eigenvalues[0];  eigenvalues[0] = eigenvalues[1];  eigenvalues[1] = e;
+  } else {
+    eigenvectors << c0.head<2>(), c1.head<2>();
+  }
+}
+
+
+void EKFslamWrapper::computeEllipseOrientationScale2D(tf::Quaternion& orientation, Eigen::Vector2d&  scale, const mrpt::math::CMatrixDouble covariance){
+
+  tf::Matrix3x3 tf3d;
+  Eigen::Vector2d eigenvalues(Eigen::Vector2d::Identity());
+  Eigen::Matrix2d eigenvectors(Eigen::Matrix2d::Zero());
+
+  // NOTE: The SelfAdjointEigenSolver only references the lower triangular part of the covariance matrix
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> eigensolver(covariance);
+  // Compute eigenvectors and eigenvalues
+  if (eigensolver.info () == Eigen::Success)
+  {
+    eigenvalues = eigensolver.eigenvalues();
+    eigenvectors = eigensolver.eigenvectors();
+  }
+  else
+  {
+   ROS_ERROR_STREAM("failed to compute eigen vectors/values for position. Is the covariance matrix correct?");
+    eigenvalues = Eigen::Vector2d::Zero();      // Setting the scale to zero will hide it on the screen
+    eigenvectors = Eigen::Matrix2d::Identity();
+  }
+
+  // Be sure we have a right-handed orientation system
+  makeRightHanded(eigenvectors, eigenvalues);
+
+
+ //Rotation matrix around  z axis
+         tf3d.setValue(eigenvectors(0,0), eigenvectors(0,1),    0,
+                       eigenvectors(1,0), eigenvectors(1,1),    0,
+                       0,                                 0,    1);
+
+
+
+  //get orientation from rotation matrix
+  tf3d.getRotation(orientation);
+  //get scale
+    scale[0]=eigenvalues[0];
+    scale[1]=eigenvalues[1];
+
+}
+
+
 void EKFslamWrapper::viz_state(){
 
 
@@ -222,35 +285,36 @@ void EKFslamWrapper::viz_state(){
     marker.lifetime = ros::Duration(0);
   
     //get the covariance matrix 2x2 for each ellipsoid including robot pose
-
      mrpt::opengl::CSetOfObjectsPtr objs;
      objs = mrpt::opengl::CSetOfObjects::Create();
-    //Get the map as the set of 3D objects
      mapping.getAs3DObject(objs);
+
+
     //Count the number of landmarks
 	int objs_counter = 0;
     while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter )) { 
 	objs_counter++;
     }	
+
+
+
     mrpt::opengl::CEllipsoidPtr landmark;
     for (size_t i = 0; i < objs_counter; i++) {
+
 	    landmark = objs->getByClass<mrpt::opengl::CEllipsoid>(i);	
-        CPose3D pose=landmark->getPose();
+
         mrpt::math::CMatrixDouble covariance = landmark->getCovMatrix();
         float quantiles = landmark->getQuantiles() ;
-        math::CMatrixD		m_eigVal,m_eigVec;
-        covariance.eigenVectors(m_eigVec,m_eigVal);
 
-  //rotation matrix from eigen vectors      
-  tf::Matrix3x3 tf3d;
-  tf3d.setValue(
-     m_eigVec(0,0),m_eigVec(0,1),0, 
-      m_eigVec(1,0),m_eigVec(1,1),0, 
-   0           ,           0      ,0);
- tf3d= tf3d.absolute();
-  tf::Quaternion tfqt;
-  tf3d.getRotation(tfqt);
-    tfqt.normalize();
+
+        //mean position
+        CPose3D pose=landmark->getPose();//pose of the robot and landmarks (x,y,z=0) 
+
+        //covariance ellipses
+        tf::Quaternion orientation;
+        Eigen::Vector2d scale;
+
+     computeEllipseOrientationScale2D(orientation,scale,covariance);
 
         marker.id++;
         marker.color.a = 1.0;
@@ -267,13 +331,13 @@ void EKFslamWrapper::viz_state(){
         marker.pose.position.x =pose.x();
         marker.pose.position.y = pose.y();
         marker.pose.position.z =0;
-        marker.pose.orientation.x = tfqt.x();
-        marker.pose.orientation.y = tfqt.y();
-        marker.pose.orientation.z = tfqt.z();
-        marker.pose.orientation.w = tfqt.w();
-        marker.scale.x =500*quantiles*m_eigVal(0,0);
-        marker.scale.y =500*quantiles*m_eigVal(1,1);
-        marker.scale.z = 0.00001;      
+        marker.pose.orientation.x = orientation.x();
+        marker.pose.orientation.y = orientation.y();
+        marker.pose.orientation.z = orientation.z();
+        marker.pose.orientation.w = orientation.w();
+        marker.scale.x =ellipse_scale_*quantiles*sqrt(scale[0]);
+        marker.scale.y =ellipse_scale_*quantiles*sqrt(scale[1]);
+        marker.scale.z = 0.00001; //Z can't be 0, limitation of ROS    
         ma.markers.push_back(marker);
        
 

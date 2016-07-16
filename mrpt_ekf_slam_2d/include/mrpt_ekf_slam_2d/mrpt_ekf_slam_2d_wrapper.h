@@ -53,6 +53,9 @@ public:
     ~EKFslamWrapper();
 
     void get_param();
+    void computeEllipseOrientationScale2D(tf::Quaternion& orientation, Eigen::Vector2d&  scale, const mrpt::math::CMatrixDouble covariance);
+
+    void makeRightHanded( Eigen::Matrix2d& eigenvectors, Eigen::Vector2d& eigenvalues);
     void init();
     bool rawlogPlay();
     bool is_file_exists(const std::string& name);
@@ -68,6 +71,7 @@ public:
 private:
     ros::NodeHandle n_;
     double rawlog_play_delay;///< delay of replay from rawlog file
+    double     ellipse_scale_;
     bool rawlog_play_;///< true if rawlog file exists
     //Subscribers
     std::vector<ros::Subscriber> sensorSub_;///< list of sensors topics

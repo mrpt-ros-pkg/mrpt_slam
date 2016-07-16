@@ -72,6 +72,7 @@ public:
 private:
     ros::NodeHandle n_;
     double rawlog_play_delay;///< delay of replay from rawlog file
+    double ellipse_scale_;
     bool rawlog_play_;///< true if rawlog file exists
     //Subscribers
     std::vector<ros::Subscriber> sensorSub_;///< list of sensors topics

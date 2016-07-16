@@ -21,6 +21,9 @@ bool EKFslamWrapper::is_file_exists(const std::string& name) {
 void EKFslamWrapper::get_param(){
 
     ROS_INFO("READ PARAM FROM LAUNCH FILE");
+   n_.param<double>("ellipse_scale", ellipse_scale_, 1);
+    ROS_INFO("ellipse_scale: %f", ellipse_scale_);
+
     n_.param<double>("rawlog_play_delay", rawlog_play_delay, 0.1);
     ROS_INFO("rawlog_play_delay: %f", rawlog_play_delay);
 
@@ -328,9 +331,9 @@ visualization_msgs::MarkerArray ma;
         marker.pose.orientation.y = orientation.y();
         marker.pose.orientation.z = orientation.z();
         marker.pose.orientation.w = orientation.w();
-        marker.scale.x = quantiles*std::sqrt (scale[0]);
-        marker.scale.y = quantiles*std::sqrt (scale[1]);
-        marker.scale.z = quantiles*std::sqrt (scale[2]);      
+        marker.scale.x = ellipse_scale_*quantiles*std::sqrt (scale[0]);
+        marker.scale.y = ellipse_scale_*quantiles*std::sqrt (scale[1]);
+        marker.scale.z = ellipse_scale_*quantiles*std::sqrt (scale[2]);      
         ma.markers.push_back(marker);
        
 

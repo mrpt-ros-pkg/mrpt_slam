@@ -1,6 +1,7 @@
 <launch>
     <!--PARAMETERS-->
     <param name="rawlog_play_delay" value="0.01"/>
+    <param name="ellipse_scale" value="1000"/>
     <param name="ini_filename" value="$(find mrpt_ekf_slam_2d)/tutorial/kf-slam_demo_2d.ini"/>
     <param name="rawlog_filename" value="$(find mrpt_ekf_slam_2d)/tutorial/kf-slam_demo_2d.rawlog"/>
     <param name="odom_frame_id" value="/odom"/>
