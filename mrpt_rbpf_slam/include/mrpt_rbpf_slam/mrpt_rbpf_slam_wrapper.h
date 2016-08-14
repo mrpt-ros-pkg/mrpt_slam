@@ -138,7 +138,10 @@ public:
    *
    */   
     void publishTF(); 
-
+   /**
+   * @brief  correct visualization for ro slam (under development)
+   *
+   */   
     void vizBeacons();
 private:
     ros::NodeHandle n_;///< Node Handle

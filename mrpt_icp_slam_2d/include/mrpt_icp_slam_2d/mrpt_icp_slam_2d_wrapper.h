@@ -24,6 +24,9 @@
 #include <mrpt/poses/CPosePDFGaussian.h>
 #include <mrpt/poses/CPose3DPDF.h>
 
+#include <mrpt/gui/CDisplayWindow3D.h>
+
+#include <stdint.h>
 #include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
 #include <string>
@@ -61,29 +64,89 @@ using namespace mrpt::slam;
 using namespace mrpt::obs;
 using namespace mrpt::maps;
 using namespace mrpt::opengl;
+using namespace mrpt::gui;
 using namespace mrpt::system;
 using namespace mrpt::math;
 using namespace mrpt::utils;
 using namespace mrpt::poses;
+using namespace std;
 
-class ICPslamWrapper{
+/**
+ * @brief The ICPslamWrapper class provides 2d icp based SLAM from MRPT libraries. 
+ *   
+ */    
+class ICPslamWrapper {
 public:
+  /**
+   * @brief constructor
+   */
     ICPslamWrapper();
+
+   /**
+   * @brief destructor
+   */
     ~ICPslamWrapper();
+
+  /**
+   * @brief read ini file
+   *
+   * @param ini_filename the name of the ini file to read
+   */
     void read_iniFile(std::string ini_filename);
-
-
-  
+  /**
+   * @brief init 3D window from mrpt lib (under development)
+   */
+    void init3Dwindow();
+  /**
+   * @brief read the parameters from launch file
+   */
     void get_param();
+  /**
+   * @brief initialize publishers subscribers and icp slam
+   */
     void init();
+  /**
+   * @brief play rawlog file
+   *
+   * @return true if rawlog file exists and played
+   */
     bool rawlogPlay();
+  /**
+   * @brief check the existance of the file  
+   *
+   * @return true if file exists 
+   */
     bool is_file_exists(const std::string& name);
+  /**
+   * @brief callback function for the laser scans  
+   *
+   * Given the laser scans,
+   * implement one SLAM update,
+   * publish map and pose.
+   *
+   * @param _msg  the laser scan message
+   */
     void laserCallback(const sensor_msgs::LaserScan &_msg);
+ /**
+   * @brief  publis tf tree
+   *
+   */   
     void publishTF();
+   /**
+   * @brief publish point and/or grid map and robot pose 
+   *
+   */
     void publishMapPose();
+ /**
+   * @brief  update the pose of the sensor with respect to the robot
+   *
+   *@param frame_id the frame of the sensors
+   */   
     void updateSensorPose (std::string _frame_id);
-private:
-    CMetricMapBuilderICP mapBuilder;
+
+protected:
+
+    CMetricMapBuilderICP mapBuilder;///< icp slam class
     ros::NodeHandle n_;///< Node Handle
     double rawlog_play_delay;///< delay of replay from rawlog file
     bool rawlog_play_;///< true if rawlog file exists
@@ -116,7 +179,13 @@ private:
     CSensoryFramePtr sf;///< observations
     mrpt::system::TTimeStamp timeLastUpdate_;///< last update of the pose and map
 
-    ros::Time stamp;
+    ros::Time stamp;///< timestamp for observations
+
+    mrpt::gui::CDisplayWindow3DPtr	win3D_;///<MRPT window 
+    mrpt::opengl::COpenGLScene scene_; 
+    bool 	SHOW_PROGRESS_3D_REAL_TIME ;
+	int		SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS;
+	bool 	SHOW_LASER_SCANS_3D;
 };
 
 #endif /* MRPT_ICP_SLAM_2D_WRAPPER_H */

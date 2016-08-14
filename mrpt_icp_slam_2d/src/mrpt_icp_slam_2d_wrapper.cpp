@@ -5,9 +5,16 @@
  */
 
 #include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.h"
+
 ICPslamWrapper::ICPslamWrapper(){
       rawlog_play_=false;
       stamp=ros::Time(0);
+    //Default parameters for 3D window
+    SHOW_PROGRESS_3D_REAL_TIME = false;
+    SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS = 0;
+	SHOW_LASER_SCANS_3D = true;
+    
+
 }
 ICPslamWrapper::~ICPslamWrapper(){
 
@@ -31,6 +38,11 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename){
 
 	mapBuilder.ICP_params.dumpToConsole();
 	mapBuilder.ICP_options.dumpToConsole();
+
+    //parameters for mrpt3D window
+	MRPT_LOAD_CONFIG_VAR( SHOW_PROGRESS_3D_REAL_TIME, bool,  iniFile, "MappingApplication");
+	MRPT_LOAD_CONFIG_VAR( SHOW_LASER_SCANS_3D , bool,  iniFile, "MappingApplication");
+	MRPT_LOAD_CONFIG_VAR( SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS, int, iniFile, "MappingApplication");
 
 
 }
@@ -59,7 +71,16 @@ void ICPslamWrapper::get_param(){
     ROS_INFO("sensor_source: %s", sensor_source.c_str());
     
 }
+void ICPslamWrapper::init3Dwindow(){
+   
+   
+	//if (SHOW_PROGRESS_3D_REAL_TIME){
+		//win3D_ = mrpt::gui::CDisplayWindow3D::Create("pf-localization - The MRPT project", 1000, 600);
+      // win3D_->setCameraZoom(20);
+      //  win3D_->setCameraAzimuthDeg(-45);
+	//}
 
+}
 void ICPslamWrapper::init(){
 
      //get parameters from ini file
@@ -103,6 +124,8 @@ void ICPslamWrapper::init(){
            std::cout<<"Sensor topics should be 2d laser scans which inlude in the name the word scan "<<"\n";
 		}
 	}
+
+   // init3Dwindow();
 }
 
 void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg) {

@@ -33,17 +33,38 @@ using namespace mrpt::utils;
 using namespace mrpt::obs;
 using namespace std;
 
-
+/**
+ * @brief The EKFslam class provides EKF SLAM 2d from MRPT libraries. 
+ *   
+ */
 class EKFslam{
 
 public:
+   /**
+   * @brief constructor
+   */
     EKFslam();
+   /**
+   * @brief destructor
+   */
     ~EKFslam();
+  /**
+   * @brief read ini file
+   *
+   * @param ini_filename the name of the ini file to read
+   */
     void read_iniFile(std::string ini_filename);
+   /**
+   * @brief calculate the actions from odometry model for current observation
+   *
+   * @param _sf  current observation
+   * @param _odometry raw odometry
+   */   
     void observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry);
 
 protected:
-    CRangeBearingKFSLAM2D mapping;
+
+    CRangeBearingKFSLAM2D mapping;///<EKF slam 2d class
 
     mrpt::system::TTimeStamp timeLastUpdate_;///< last update of the pose and map
 

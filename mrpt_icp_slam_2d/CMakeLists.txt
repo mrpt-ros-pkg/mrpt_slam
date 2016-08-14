@@ -17,11 +17,10 @@ find_package(MRPT REQUIRED base gui obs slam)
 #Include directories
 INCLUDE_DIRECTORIES(
    ${CMAKE_SOURCE_DIR}/src
-   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 
-catkin_package( CATKIN_DEPENDS )
+catkin_package( CATKIN_DEPENDS)
 
 ###########
 ## Build ##
