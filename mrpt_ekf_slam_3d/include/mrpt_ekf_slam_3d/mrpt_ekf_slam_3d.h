@@ -22,6 +22,7 @@
 #include <mrpt/opengl/CSetOfLines.h>
 #include <mrpt/opengl/stock_objects.h>
 #include <mrpt/obs/CObservationBearingRange.h>
+#include <mrpt/obs/CActionRobotMovement3D.h>
 using namespace mrpt;
 using namespace mrpt::slam;
 using namespace mrpt::maps;
@@ -49,15 +50,9 @@ protected:
 
     CActionCollectionPtr action;///< actions
 	CSensoryFramePtr sf;///< observations
-
-    mrpt::poses::CPose2D odomLastObservation_;  ///< last observation of odometry
-    bool use_motion_model_default_options_; ///< used default odom_params
-	CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_; ///< used if there are is not odom
-	CActionRobotMovement2D::TMotionModelOptions motion_model_options_;         ///< used with odom value motion noise
-
  
-
-
+    mrpt::poses::CPose3D odomLastObservation_; ///< last observation of odometry
+	CActionRobotMovement3D::TMotionModelOptions motion_model_options_;         ///< used with odom value motion noise
 
 };
 
