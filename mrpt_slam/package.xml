@@ -2,14 +2,16 @@
   <name>mrpt_slam</name>
   <version>1.0.0</version>
   <description>mrpt_slam</description>
-  <maintainer email="jlblanco@ual.es">Maintained by Jose Luis</maintainer>
+  <maintainer email="v.d.tananaev@gmail.com">Vladislav Tananaev</maintainer>
+  <maintainer email="jlblanco@ual.es">Jose Luis Blanco Claraco</maintainer>
 
   <license>BSD</license>
 
   <url type="website">http://ros.org/wiki/mrpt_slam</url>
-  <!-- <url type="bugtracker"></url> -->
+  <url type="bugtracker">https://github.com/mrpt-ros-pkg/mrpt_slam/issues</url>
 
-  <author>Maintained by Jose Luis</author>
+  <author email="v.d.tananaev@gmail.com">Vladislav Tananaev</author>
+  <author email="jlblanco@ual.es">Jose Luis Blanco Claraco</author>
 
   <!-- Dependencies which this package needs to build itself. -->
   <buildtool_depend>catkin</buildtool_depend>
@@ -21,14 +23,10 @@
   <run_depend>mrpt_icp_slam_2d</run_depend>
   <run_depend>mrpt_ekf_slam_3d</run_depend>
   <run_depend>mrpt_ekf_slam_2d</run_depend>
-  <run_depend>mrpt_ro_slam</run_depend>
+  <run_depend>mrpt_rbpf_slam</run_depend>
 
-  <!-- Dependencies needed only for running tests. -->
-
-
-
-
-
-
+  <export>
+      <metapackage/>
+  </export>
 
 </package>
