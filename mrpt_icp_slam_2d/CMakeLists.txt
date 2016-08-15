@@ -4,74 +4,51 @@ cmake_minimum_required(VERSION 2.8.3)
 project(mrpt_icp_slam_2d)
 # Load catkin and all dependencies required for this package
 # TODO: remove all from COMPONENTS that are not catkin packages.
-find_package(catkin REQUIRED COMPONENTS mrpt_bridge geometry_msgs sensor_msgs std_msgs roscpp)
+#c++ 11 standart
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+MESSAGE("FALGS: ${CMAKE_CXX_FLAGS}")
 
-find_package(MRPT REQUIRED base obs maps slam)
-# include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
-# CATKIN_MIGRATION: removed during catkin migration
-# cmake_minimum_required(VERSION 2.4.6)
+#find catkin packages
+find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs sensor_msgs mrpt_bridge dynamic_reconfigure)
 
-# CATKIN_MIGRATION: removed during catkin migration
-# include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+#find mrpt packages
+find_package(MRPT REQUIRED base gui obs slam)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
-
-
-# CATKIN_MIGRATION: removed during catkin migration
-# rosbuild_init()
-
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-
-#uncomment if you have defined messages
-#add_message_files(
-#  FILES
-# TODO: List your msg files here
-#)
-#uncomment if you have defined services
-#add_service_files(
-#  FILES
-# TODO: List your msg files here
-#)
-
-#common commands for building c++ executables and libraries
-#add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#
-# CATKIN_MIGRATION: removed during catkin migration
-# rosbuild_add_boost_directories()
-#find_package(Boost REQUIRED COMPONENTS thread)
-include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
-#target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-#add_executable(example examples/example.cpp)
-
-add_executable(
-	mrpt_icp_slam_2d   # Executable name
-	# Sources:
-	src/icp-2d-slam_main.cpp)
-
-target_link_libraries(mrpt_icp_slam_2d 
-  ${catkin_LIBRARIES} 
-  ${MRPT_LIBS} 
-  ${Boost_LIBRARIES})
-## Generate added messages and services with any dependencies listed here
-#generate_messages(
-    #TODO DEPENDENCIES geometry_msgs std_msgs
-#)
-
-# catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
-# TODO: fill in what other packages will need to use this package
-catkin_package(
-    DEPENDS mrpt_libs mrpt_bridge geometry_msgs sensor_msgs std_msgs roscpp
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+#Include directories
+INCLUDE_DIRECTORIES(
+   ${CMAKE_SOURCE_DIR}/src
 )
+
+
+catkin_package( CATKIN_DEPENDS)
+
+###########
+## Build ##
+###########
+
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  include
+)
+
+
+
+add_executable(mrpt_icp_slam_2d
+    src/mrpt_icp_slam_2d_wrapper.cpp
+    src/mrpt_icp_slam_2d_app.cpp
+)
+
+TARGET_LINK_LIBRARIES(mrpt_icp_slam_2d ${MRPT_LIB}
+    ${catkin_LIBRARIES}
+)
+
+#############
+## Install ##
+#############
+
+
+#############
+## Testing ##
+#############
+
+

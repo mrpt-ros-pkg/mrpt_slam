@@ -2,66 +2,45 @@
 # Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
 cmake_minimum_required(VERSION 2.8.3)
 project(mrpt_ekf_slam_3d)
-# Load catkin and all dependencies required for this package
-# TODO: remove all from COMPONENTS that are not catkin packages.
-find_package(catkin REQUIRED COMPONENTS mrpt_msgs roscpp)
+#c++ 11 standart
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+MESSAGE("FALGS: ${CMAKE_CXX_FLAGS}")
 
-# include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
-# CATKIN_MIGRATION: removed during catkin migration
-# cmake_minimum_required(VERSION 2.4.6)
+#find catkin packages
+find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs sensor_msgs mrpt_bridge dynamic_reconfigure)
 
-# CATKIN_MIGRATION: removed during catkin migration
-# include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
-
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+#find mrpt packages
+find_package(MRPT REQUIRED base gui obs slam)
+find_package(Eigen3 REQUIRED )
+#Include directories
+INCLUDE_DIRECTORIES(
+   ${CMAKE_SOURCE_DIR}/src
+   ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 
-# CATKIN_MIGRATION: removed during catkin migration
-# rosbuild_init()
+catkin_package( 
+    CATKIN_DEPENDS   
+    DEPENDS Eigen )
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+###########
+## Build ##
+###########
 
-#uncomment if you have defined messages
-#add_message_files(
-#  FILES
-# TODO: List your msg files here
-#)
-#uncomment if you have defined services
-#add_service_files(
-# FILES
-# TODO: List your msg files here
-#)
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS}
+  include
+)
 
-#common commands for building c++ executables and libraries
-#add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#
-# CATKIN_MIGRATION: removed during catkin migration
-# rosbuild_add_boost_directories()
-#find_package(Boost REQUIRED COMPONENTS thread)
-include_directories(${Boost_INCLUDE_DIRS})
-#target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-#add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
-## Generate added messages and services with any dependencies listed here
-#generate_messages(
-    #TODO DEPENDENCIES geometry_msgs std_msgs
-#)
 
-# catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
-# TODO: fill in what other packages will need to use this package
-catkin_package(
-    DEPENDS mrpt_msgs roscpp
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS # TODO include
-    LIBRARIES # TODO
+
+add_executable(mrpt_ekf_slam_3d
+    src/mrpt_ekf_slam_3d.cpp
+    src/mrpt_ekf_slam_3d_wrapper.cpp
+    src/mrpt_ekf_slam_3d_app.cpp
+)
+
+TARGET_LINK_LIBRARIES(mrpt_ekf_slam_3d ${MRPT_LIB}
+    ${catkin_LIBRARIES}  ${Eigen_LIBRARIES}
 )

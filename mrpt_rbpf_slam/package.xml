@@ -1,17 +1,13 @@
+<?xml version="1.0"?>
 <package>
-  <name>mrpt_ekf_slam_2d</name>
-  <version>1.0.0</version>
-  <description>mrpt_ekf_slam_2d</description>
-  <maintainer email="jlblanco@ual.es">Jose Luis</maintainer>
+  <name>mrpt_rbpf_slam</name>
+  <version>0.1.0</version>
+  <description>This package uses for gridmap SLAM. The interface is similar to gmapping (http://wiki.ros.org/gmapping) but supports different particle-filter algorithms, several grid maps at
+   different heights, range-only SLAM, etc.</description>
 
-  <license>BSD</license>
-
-  <url type="website">http://ros.org/wiki/mrpt_ekf_slam_2d</url>
-  <!-- <url type="bugtracker"></url> -->
-
-  <author>Jose Luis</author>
+  <url type="website">http://www.mrpt.org/</url>
+  <maintainer email="v.d.tananaev@gmail.com">Vladislav Tananaev</maintainer>
   <author>Vladislav Tananaev</author>
-
   <license>BSD</license>
 
 
@@ -41,6 +37,5 @@
   <run_depend>mrpt_bridge</run_depend>
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>mrpt</run_depend> <!-- Depend on mrpt system pkgs -->
-
 
 </package>

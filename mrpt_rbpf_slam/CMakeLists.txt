@@ -1,7 +1,6 @@
-# Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
-# Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
 cmake_minimum_required(VERSION 2.8.3)
-project(mrpt_ekf_slam_2d)
+project(mrpt_rbpf_slam)
+
 #c++ 11 standart
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 MESSAGE("FALGS: ${CMAKE_CXX_FLAGS}")
@@ -32,12 +31,23 @@ include_directories(
 
 
 
-add_executable(mrpt_ekf_slam_2d
-    src/mrpt_ekf_slam_2d.cpp
-    src/mrpt_ekf_slam_2d_wrapper.cpp
-    src/mrpt_ekf_slam_2d_app.cpp
+add_executable(mrpt_rbpf_slam
+    src/mrpt_rbpf_slam.cpp
+    src/mrpt_rbpf_slam_wrapper.cpp
+    src/mrpt_rbpf_slam_app.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_ekf_slam_2d ${MRPT_LIB}
+TARGET_LINK_LIBRARIES(mrpt_rbpf_slam ${MRPT_LIB}
     ${catkin_LIBRARIES}
 )
+
+#############
+## Install ##
+#############
+
+
+#############
+## Testing ##
+#############
+
+
