@@ -73,8 +73,7 @@ void EKFslam::observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometr
 void EKFslam::init3Dwindow(){
 #if MRPT_HAS_WXWIDGETS
 if (SHOW_3D_LIVE){
-    std::cout<<"CREATE 3DDDD"<<"\n";
-		win3d = mrpt::gui::CDisplayWindow3D::Create("KF-SLAM live view",800,500);
+  		win3d = mrpt::gui::CDisplayWindow3D::Create("KF-SLAM live view",800,500);
 	}
 #endif
 }

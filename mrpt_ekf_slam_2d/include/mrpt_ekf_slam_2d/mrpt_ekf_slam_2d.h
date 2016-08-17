@@ -53,7 +53,13 @@ public:
    * @brief init 3D window from mrpt lib
    */
     void init3Dwindow();
+   /**
+   * @brief run 3D window update from mrpt lib
+   */
     void run3Dwindow();  
+   /**
+   * @brief convert landmark to 3d point
+   */
     void landmark_to_3d(const CRangeBearingKFSLAM2D::KFArray_FEAT &lm, TPoint3D &p);
   /**
    * @brief read ini file

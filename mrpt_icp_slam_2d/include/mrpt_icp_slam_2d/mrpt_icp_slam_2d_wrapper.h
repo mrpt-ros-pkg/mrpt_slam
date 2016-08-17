@@ -94,9 +94,12 @@ public:
    */
     void read_iniFile(std::string ini_filename);
   /**
-   * @brief init 3D window from mrpt lib (under development)
+   * @brief init 3D window from mrpt lib
    */
     void init3Dwindow();
+  /**
+   * @brief run 3D window update from mrpt lib
+   */
     void run3Dwindow();
 
   /**

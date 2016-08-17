@@ -175,11 +175,7 @@ private:
     CTicTac	tictac;///<timer for SLAM performance evaluation
 	float	t_exec;///<the time which take one SLAM update execution 
     
-	CPose3DQuatPDFGaussian	  robotPose_;///< current robot pose
-    std::vector<mrpt::math::TPoint3D> 	 LMs_;///< vector of the landmarks
-	std::map<unsigned int,CLandmark::TLandmarkID>    LM_IDs_;///< vector of the landmarks ID
-	CMatrixDouble  fullCov_;///< full covariance matrix
-	CVectorDouble  fullState_;///< full state vector 
+	
     ros:: Publisher   data_association_viz_pub_, state_viz_pub_;
     tf::TransformListener listenerTF_;///<transform listener
     tf::TransformBroadcaster tf_broadcaster_;///<transform broadcaster
