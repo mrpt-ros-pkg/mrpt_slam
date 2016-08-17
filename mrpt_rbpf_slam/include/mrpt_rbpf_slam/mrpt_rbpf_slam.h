@@ -8,7 +8,6 @@
 #ifndef MPRT_RBPF_SLAM_H
 #define MRPT_RBPF_SLAM_H
 
-#include <mrpt/obs/CObservationBeaconRanges.h>
 #include <mrpt/slam/CMetricMapBuilderRBPF.h>
 #include <mrpt/utils/CFileGZInputStream.h>
 #include <mrpt/utils/CFileGZOutputStream.h>
@@ -30,24 +29,25 @@
 #include <mrpt/version.h>
 #if MRPT_VERSION>=0x130
 #	include <mrpt/obs/CActionRobotMovement2D.h>
-# include <mrpt/obs/CActionRobotMovement3D.h>
+#	include <mrpt/obs/CObservationBeaconRanges.h>
+#	include <mrpt/obs/CActionRobotMovement3D.h>
 #	include <mrpt/obs/CActionCollection.h>
 #	include <mrpt/obs/CObservationOdometry.h>
 #	include <mrpt/obs/CSensoryFrame.h>
 #	include <mrpt/maps/CMultiMetricMap.h>
-# include <mrpt/obs/CObservationBearingRange.h>
-# include <mrpt/obs/CRawlog.h>
-  using namespace mrpt::maps;
-  using namespace mrpt::obs;
+#	include <mrpt/obs/CObservationBearingRange.h>
+#	include <mrpt/obs/CRawlog.h>
+	using namespace mrpt::maps;
+	using namespace mrpt::obs;
 #else
 #	include <mrpt/slam/CActionRobotMovement2D.h>
-# include <mrpt/slam/CActionRobotMovement3D.h>
+#	include <mrpt/slam/CActionRobotMovement3D.h>
 #	include <mrpt/slam/CActionCollection.h>
 #	include <mrpt/slam/CObservationOdometry.h>
 #	include <mrpt/slam/CSensoryFrame.h>
 #	include <mrpt/slam/CMultiMetricMap.h>
-# include <mrpt/slam/CObservationBearingRange.h>
-# include <mrpt/slam/CRawlog.h>
+#	include <mrpt/slam/CObservationBearingRange.h>
+#	include <mrpt/slam/CRawlog.h>
 #endif
 
 using namespace mrpt;
