@@ -1,18 +1,15 @@
-/* 
+/*
  *  File: mrpt_slam.h
  *  Author: Vladislav Tananaev
- * 
  *
- */ 
+ *
+ */
 
 #ifndef MPRT_RBPF_SLAM_H
 #define MRPT_RBPF_SLAM_H
-#include <mrpt/obs/CObservationOdometry.h>
+
 #include <mrpt/obs/CObservationBeaconRanges.h>
 #include <mrpt/slam/CMetricMapBuilderRBPF.h>
-#include <mrpt/obs/CActionRobotMovement2D.h>
-#include <mrpt/obs/CActionRobotMovement3D.h>
-#include <mrpt/obs/CRawlog.h>
 #include <mrpt/utils/CFileGZInputStream.h>
 #include <mrpt/utils/CFileGZOutputStream.h>
 #include <mrpt/utils/CConfigFile.h>
@@ -33,22 +30,24 @@
 #include <mrpt/version.h>
 #if MRPT_VERSION>=0x130
 #	include <mrpt/obs/CActionRobotMovement2D.h>
-#   include <mrpt/obs/CActionRobotMovement3D.h>
+# include <mrpt/obs/CActionRobotMovement3D.h>
 #	include <mrpt/obs/CActionCollection.h>
 #	include <mrpt/obs/CObservationOdometry.h>
 #	include <mrpt/obs/CSensoryFrame.h>
 #	include <mrpt/maps/CMultiMetricMap.h>
-#   include <mrpt/obs/CObservationBearingRange.h>
+# include <mrpt/obs/CObservationBearingRange.h>
+# include <mrpt/obs/CRawlog.h>
 	using namespace mrpt::maps;
 	using namespace mrpt::obs;
 #else
 #	include <mrpt/slam/CActionRobotMovement2D.h>
-#   include <mrpt/slam/CActionRobotMovement3D.h>
+# include <mrpt/slam/CActionRobotMovement3D.h>
 #	include <mrpt/slam/CActionCollection.h>
 #	include <mrpt/slam/CObservationOdometry.h>
 #	include <mrpt/slam/CSensoryFrame.h>
 #	include <mrpt/slam/CMultiMetricMap.h>
-#   include <mrpt/slam/CObservationBearingRange.h>
+# include <mrpt/slam/CObservationBearingRange.h>
+# include <mrpt/slam/CRawlog.h>
 	using namespace mrpt::slam;
 #endif
 
@@ -65,8 +64,8 @@ using namespace mrpt::random;
 using namespace mrpt::poses;
 
 /**
- * @brief The PFslam class provides Rao-Blackwellized Particle filter SLAM from MRPT libraries. 
- *   
+ * @brief The PFslam class provides Rao-Blackwellized Particle filter SLAM from MRPT libraries.
+ *
  */
 class PFslam{
 public:
@@ -92,12 +91,12 @@ public:
     void read_iniFile(std::string ini_filename);
 
   /**
-   * @brief initialize the SLAM 
+   * @brief initialize the SLAM
    */
     void init_slam();
 
    /**
-   * @brief read pairs of actions and observations from rawlog file 
+   * @brief read pairs of actions and observations from rawlog file
    *
    * @param data vector of pairs of actions and observations
    * @param rawlog_filename the name of rawlog file to read
@@ -109,11 +108,11 @@ public:
    *
    * @param _sf  current observation
    * @param _odometry raw odometry
-   */    
+   */
     void observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry);
 protected:
 
-    CMetricMapBuilderRBPF* mapBuilder;///< map builder  
+    CMetricMapBuilderRBPF* mapBuilder;///< map builder
     CActionCollectionPtr action;///< actions
 	CSensoryFramePtr sf;///< observations
 
@@ -122,7 +121,7 @@ protected:
 	CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_; ///< used if there are is not odom
 	CActionRobotMovement2D::TMotionModelOptions motion_model_options_;         ///< used with odom value motion noise
 
-	
+
 
     CMetricMapBuilderRBPF::TConstructionOptions		rbpfMappingOptions;///< options for SLAM from ini file
     mrpt::system::TTimeStamp timeLastUpdate_;///< last update of the pose and map
@@ -130,11 +129,11 @@ protected:
     CMultiMetricMap *metric_map_; ///<receive map after iteration of SLAM to metric map
     CPose3DPDFParticles   curPDF;///<current robot pose
 
-    mrpt::gui::CDisplayWindow3DPtr	win3D;///<MRPT window 
+    mrpt::gui::CDisplayWindow3DPtr	win3D;///<MRPT window
     bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
     bool SHOW_PROGRESS_IN_WINDOW;
     int SHOW_PROGRESS_IN_WINDOW_DELAY_MS;
-    int  PROGRESS_WINDOW_WIDTH, PROGRESS_WINDOW_HEIGHT; 
+    int  PROGRESS_WINDOW_WIDTH, PROGRESS_WINDOW_HEIGHT;
 
 };
 

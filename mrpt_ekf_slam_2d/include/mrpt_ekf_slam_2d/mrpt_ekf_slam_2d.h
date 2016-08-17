@@ -15,7 +15,7 @@
 #include <mrpt/system/string_utils.h>
 #include <mrpt/system/filesystem.h>
 #include <mrpt/slam/CRangeBearingKFSLAM2D.h>
-#include <mrpt/obs/CRawlog.h>
+
 #include <mrpt/math/ops_containers.h>
 #include <mrpt/opengl/CGridPlaneXY.h>
 #include <mrpt/opengl/CSetOfLines.h>
@@ -30,7 +30,8 @@
 #	include <mrpt/obs/CObservationOdometry.h>
 #	include <mrpt/obs/CSensoryFrame.h>
 #	include <mrpt/maps/CMultiMetricMap.h>
-#   include <mrpt/obs/CObservationBearingRange.h>
+# include <mrpt/obs/CObservationBearingRange.h>
+# include <mrpt/obs/CRawlog.h>
 	using namespace mrpt::maps;
 	using namespace mrpt::obs;
 #else
@@ -39,7 +40,8 @@
 #	include <mrpt/slam/CObservationOdometry.h>
 #	include <mrpt/slam/CSensoryFrame.h>
 #	include <mrpt/slam/CMultiMetricMap.h>
-#   include <mrpt/slam/CObservationBearingRange.h>
+# include <mrpt/slam/CObservationBearingRange.h>
+# include <mrpt/slam/CRawlog.h>
 	using namespace mrpt::slam;
 #endif
 
@@ -55,8 +57,8 @@ using namespace mrpt::maps;
 using namespace mrpt::obs;
 using namespace mrpt::gui;
 /**
- * @brief The EKFslam class provides EKF SLAM 2d from MRPT libraries. 
- *   
+ * @brief The EKFslam class provides EKF SLAM 2d from MRPT libraries.
+ *
  */
 class EKFslam{
 
@@ -76,7 +78,7 @@ public:
    /**
    * @brief run 3D window update from mrpt lib
    */
-    void run3Dwindow();  
+    void run3Dwindow();
    /**
    * @brief convert landmark to 3d point
    */
@@ -92,7 +94,7 @@ public:
    *
    * @param _sf  current observation
    * @param _odometry raw odometry
-   */   
+   */
     void observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry);
 
 protected:
@@ -113,13 +115,13 @@ protected:
     std::vector<mrpt::math::TPoint2D> 	 LMs_;///< vector of the landmarks
 	std::map<unsigned int,CLandmark::TLandmarkID>    LM_IDs_;///< vector of the landmarks ID
 	CMatrixDouble  fullCov_;///< full covariance matrix
-	CVectorDouble  fullState_;///< full state vector 
+	CVectorDouble  fullState_;///< full state vector
 
-    mrpt::gui::CDisplayWindow3DPtr	win3d;///<MRPT window 
+    mrpt::gui::CDisplayWindow3DPtr	win3d;///<MRPT window
     bool  SHOW_3D_LIVE;
     bool  CAMERA_3DSCENE_FOLLOWS_ROBOT;
     vector<TPose3D>  meanPath;
- 
+
 
 
 

@@ -9,8 +9,6 @@
 
 //MRPT libraries
 #include <mrpt/slam/CMetricMapBuilderICP.h>
-#include <mrpt/obs/CObservationOdometry.h>
-#include <mrpt/obs/CRawlog.h>
 #include <mrpt/opengl/COpenGLScene.h>
 #include <mrpt/opengl/CGridPlaneXY.h>
 #include <mrpt/opengl/stock_objects.h>
@@ -61,20 +59,22 @@
 #include <mrpt/version.h>
 #if MRPT_VERSION>=0x130
 #	include <mrpt/obs/CActionRobotMovement2D.h>
-#   include <mrpt/obs/CActionRobotMovement3D.h>
+# include <mrpt/obs/CActionRobotMovement3D.h>
 #	include <mrpt/obs/CActionCollection.h>
 #	include <mrpt/obs/CObservationOdometry.h>
 #	include <mrpt/obs/CSensoryFrame.h>
 #	include <mrpt/maps/CMultiMetricMap.h>
+# include <mrpt/obs/CRawlog.h>
 	using namespace mrpt::maps;
 	using namespace mrpt::obs;
 #else
 #	include <mrpt/slam/CActionRobotMovement2D.h>
-#   include <mrpt/slam/CActionRobotMovement3D.h>
+# include <mrpt/slam/CActionRobotMovement3D.h>
 #	include <mrpt/slam/CActionCollection.h>
 #	include <mrpt/slam/CObservationOdometry.h>
 #	include <mrpt/slam/CSensoryFrame.h>
 #	include <mrpt/slam/CMultiMetricMap.h>
+# include <mrpt/slam/CRawlog.h>
 	using namespace mrpt::slam;
 #endif
 using namespace mrpt;
@@ -90,9 +90,9 @@ using namespace mrpt::poses;
 using namespace std;
 
 /**
- * @brief The ICPslamWrapper class provides 2d icp based SLAM from MRPT libraries. 
- *   
- */    
+ * @brief The ICPslamWrapper class provides 2d icp based SLAM from MRPT libraries.
+ *
+ */
 class ICPslamWrapper {
 public:
   /**
@@ -135,13 +135,13 @@ public:
    */
     bool rawlogPlay();
   /**
-   * @brief check the existance of the file  
+   * @brief check the existance of the file
    *
-   * @return true if file exists 
+   * @return true if file exists
    */
     bool is_file_exists(const std::string& name);
   /**
-   * @brief callback function for the laser scans  
+   * @brief callback function for the laser scans
    *
    * Given the laser scans,
    * implement one SLAM update,
@@ -153,10 +153,10 @@ public:
  /**
    * @brief  publis tf tree
    *
-   */   
+   */
     void publishTF();
    /**
-   * @brief publish point and/or grid map and robot pose 
+   * @brief publish point and/or grid map and robot pose
    *
    */
     void publishMapPose();
@@ -164,7 +164,7 @@ public:
    * @brief  update the pose of the sensor with respect to the robot
    *
    *@param frame_id the frame of the sensors
-   */   
+   */
     void updateSensorPose (std::string _frame_id);
 
 protected:
@@ -185,7 +185,7 @@ protected:
     std::string sensor_source;///< 2D laser scans
     std::map<std::string, mrpt::poses::CPose3D> laser_poses_;///< laser scan poses with respect to the map
 
- 
+
     //Subscribers
     std::vector<ros::Subscriber> sensorSub_;///< list of sensors topics
 
@@ -198,16 +198,16 @@ protected:
 
 
     CTicTac	tictac;///<timer for SLAM performance evaluation
-	float	t_exec;///<the time which take one SLAM update execution 
+	float	t_exec;///<the time which take one SLAM update execution
   		CSensoryFramePtr		observations;
 		CObservationPtr			observation;
     mrpt::system::TTimeStamp timeLastUpdate_;///< last update of the pose and map
 
     ros::Time stamp;///< timestamp for observations
 
-    mrpt::gui::CDisplayWindow3DPtr	win3D_;///<MRPT window 
+    mrpt::gui::CDisplayWindow3DPtr	win3D_;///<MRPT window
 
-std::vector<mrpt::obs::CObservation2DRangeScanPtr> lst_current_laser_scans; 
+std::vector<mrpt::obs::CObservation2DRangeScanPtr> lst_current_laser_scans;
     bool isObsBasedRawlog;
     bool 	SHOW_PROGRESS_3D_REAL_TIME ;
     int		SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS;
