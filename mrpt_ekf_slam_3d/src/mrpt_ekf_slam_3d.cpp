@@ -65,7 +65,8 @@ void EKFslam::observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometr
             odomLastObservation_ = _odometry->odometry;
         }
 		
-        mrpt::poses::CPose3D incOdoPose = _odometry->odometry - odomLastObservation_;
+        mrpt::poses::CPose3D incOdoPose;
+	incOdoPose.inverseComposeFrom(_odometry->odometry, odomLastObservation_);
         odomLastObservation_ = _odometry->odometry;
 #if MRPT_VERSION>=0x150
 		odom_move.computeFromOdometry(incOdoPose,motion_model_options_);
