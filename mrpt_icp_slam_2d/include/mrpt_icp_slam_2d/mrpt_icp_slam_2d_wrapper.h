@@ -204,7 +204,7 @@ protected:
 
     mrpt::gui::CDisplayWindow3DPtr	win3D_;///<MRPT window
 
-std::vector<mrpt::obs::CObservation2DRangeScanPtr> lst_current_laser_scans;
+std::vector<CObservation2DRangeScanPtr> lst_current_laser_scans;
     bool isObsBasedRawlog;
     bool 	SHOW_PROGRESS_3D_REAL_TIME ;
     int		SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS;
