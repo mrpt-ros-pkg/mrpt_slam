@@ -86,7 +86,7 @@ void ICPslamWrapper::init3Dwindow(){
 void ICPslamWrapper::run3Dwindow(){
 
     // Create 3D window if requested (the code is copied from ../mrpt/apps/icp-slam/icp-slam_main.cpp):
-    if (SHOW_PROGRESS_3D_REAL_TIME && win3D.present()){
+    if (SHOW_PROGRESS_3D_REAL_TIME && win3D_.present()){
 
         //get currently builded map
         metric_map_ =  mapBuilder.getCurrentlyBuiltMetricMap(); 

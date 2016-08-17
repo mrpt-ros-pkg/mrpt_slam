@@ -58,7 +58,25 @@
 #include <mrpt_bridge/laser_scan.h>
 #include <mrpt_bridge/time.h>
 #include <mrpt_bridge/point_cloud.h>
-
+#include <mrpt/version.h>
+#if MRPT_VERSION>=0x130
+#	include <mrpt/obs/CActionRobotMovement2D.h>
+#   include <mrpt/obs/CActionRobotMovement3D.h>
+#	include <mrpt/obs/CActionCollection.h>
+#	include <mrpt/obs/CObservationOdometry.h>
+#	include <mrpt/obs/CSensoryFrame.h>
+#	include <mrpt/maps/CMultiMetricMap.h>
+	using namespace mrpt::maps;
+	using namespace mrpt::obs;
+#else
+#	include <mrpt/slam/CActionRobotMovement2D.h>
+#   include <mrpt/slam/CActionRobotMovement3D.h>
+#	include <mrpt/slam/CActionCollection.h>
+#	include <mrpt/slam/CObservationOdometry.h>
+#	include <mrpt/slam/CSensoryFrame.h>
+#	include <mrpt/slam/CMultiMetricMap.h>
+	using namespace mrpt::slam;
+#endif
 using namespace mrpt;
 using namespace mrpt::slam;
 using namespace mrpt::obs;

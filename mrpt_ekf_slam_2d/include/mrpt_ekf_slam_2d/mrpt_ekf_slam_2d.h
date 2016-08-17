@@ -8,7 +8,6 @@
 #ifndef MRPT_EKF_SLAM_2D_H
 #define MRPT_EKF_SLAM_2D_H
 
-#include <mrpt/obs/CObservationOdometry.h>
 #include <mrpt/utils/CConfigFile.h>
 #include <mrpt/utils/CFileGZInputStream.h>
 #include <mrpt/utils/CFileGZOutputStream.h>
@@ -21,19 +20,40 @@
 #include <mrpt/opengl/CGridPlaneXY.h>
 #include <mrpt/opengl/CSetOfLines.h>
 #include <mrpt/opengl/stock_objects.h>
-#include <mrpt/obs/CObservationBearingRange.h>
+
 #include <mrpt/gui/CDisplayWindow3D.h>
+
+#include <mrpt/version.h>
+#if MRPT_VERSION>=0x130
+#	include <mrpt/obs/CActionRobotMovement2D.h>
+#	include <mrpt/obs/CActionCollection.h>
+#	include <mrpt/obs/CObservationOdometry.h>
+#	include <mrpt/obs/CSensoryFrame.h>
+#	include <mrpt/maps/CMultiMetricMap.h>
+#   include <mrpt/obs/CObservationBearingRange.h>
+	using namespace mrpt::maps;
+	using namespace mrpt::obs;
+#else
+#	include <mrpt/slam/CActionRobotMovement2D.h>
+#	include <mrpt/slam/CActionCollection.h>
+#	include <mrpt/slam/CObservationOdometry.h>
+#	include <mrpt/slam/CSensoryFrame.h>
+#	include <mrpt/slam/CMultiMetricMap.h>
+#   include <mrpt/slam/CObservationBearingRange.h>
+	using namespace mrpt::slam;
+#endif
+
 using namespace mrpt;
 using namespace mrpt::slam;
-using namespace mrpt::maps;
 using namespace mrpt::opengl;
 using namespace mrpt::system;
 using namespace mrpt::math;
 using namespace mrpt::poses;
 using namespace mrpt::utils;
-using namespace mrpt::obs;
 using namespace std;
-
+using namespace mrpt::maps;
+using namespace mrpt::obs;
+using namespace mrpt::gui;
 /**
  * @brief The EKFslam class provides EKF SLAM 2d from MRPT libraries. 
  *   
