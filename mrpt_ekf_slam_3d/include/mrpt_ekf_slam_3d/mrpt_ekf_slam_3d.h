@@ -104,7 +104,9 @@ protected:
 	CSensoryFramePtr sf;///< observations
 
     mrpt::poses::CPose3D odomLastObservation_; ///< last observation of odometry
+#if MRPT_VERSION>=0x150
 	CActionRobotMovement3D::TMotionModelOptions motion_model_options_;         ///< used with odom value motion noise
+#endif
 
     mrpt::gui::CDisplayWindow3DPtr	win3d;///<MRPT window
     bool  SHOW_3D_LIVE;

@@ -5,9 +5,11 @@
  */
 
 #include "mrpt_ekf_slam_3d/mrpt_ekf_slam_3d.h"
+#include <ros/console.h>
 
 EKFslam::EKFslam(){
-        motion_model_options_.modelSelection = CActionRobotMovement3D::mm6DOF;
+#if MRPT_VERSION>=0x150
+		motion_model_options_.modelSelection = CActionRobotMovement3D::mm6DOF;
 
         motion_model_options_.mm6DOFModel.nParticlesCount=100;
         motion_model_options_.mm6DOFModel.a1 = 0.114;
@@ -22,8 +24,7 @@ EKFslam::EKFslam(){
         motion_model_options_.mm6DOFModel.a10 =  0.03;
         motion_model_options_.mm6DOFModel.additional_std_XYZ  = 0.005;
         motion_model_options_.mm6DOFModel.additional_std_angle =  0.0005;
-
-
+#endif
 
     //display values
   SHOW_3D_LIVE=false;
@@ -66,8 +67,12 @@ void EKFslam::observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometr
 		
         mrpt::poses::CPose3D incOdoPose = _odometry->odometry - odomLastObservation_;
         odomLastObservation_ = _odometry->odometry;
-        odom_move.computeFromOdometry(incOdoPose,motion_model_options_);
-        action->insert(odom_move);
+#if MRPT_VERSION>=0x150
+		odom_move.computeFromOdometry(incOdoPose,motion_model_options_);
+#else
+		ROS_WARN("Ignoring odometry. This feature requires MRPT>=1.5.0.");
+#endif
+		action->insert(odom_move);
       
     } 
 
