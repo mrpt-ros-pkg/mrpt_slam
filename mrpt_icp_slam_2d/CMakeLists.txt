@@ -6,7 +6,9 @@ project(mrpt_icp_slam_2d)
 # TODO: remove all from COMPONENTS that are not catkin packages.
 #c++ 11 standart
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-MESSAGE("FALGS: ${CMAKE_CXX_FLAGS}")
+IF($ENV{VERBOSE})
+	MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+endif()
 
 #find catkin packages
 find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs sensor_msgs visualization_msgs mrpt_bridge dynamic_reconfigure)

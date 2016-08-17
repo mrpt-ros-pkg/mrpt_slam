@@ -4,7 +4,9 @@ cmake_minimum_required(VERSION 2.8.3)
 project(mrpt_ekf_slam_3d)
 #c++ 11 standart
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-MESSAGE("FALGS: ${CMAKE_CXX_FLAGS}")
+IF($ENV{VERBOSE})
+	MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+endif()
 
 #find catkin packages
 find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs sensor_msgs visualization_msgs mrpt_bridge dynamic_reconfigure)
