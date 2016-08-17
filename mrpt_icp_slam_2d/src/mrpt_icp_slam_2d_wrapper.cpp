@@ -11,7 +11,7 @@ ICPslamWrapper::ICPslamWrapper(){
       stamp=ros::Time(0);
     //Default parameters for 3D window
     SHOW_PROGRESS_3D_REAL_TIME = false;
-    SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS = 0;
+    SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS = 0;//this parameter is not used 
 	SHOW_LASER_SCANS_3D = true;
     CAMERA_3DSCENE_FOLLOWS_ROBOT = true;
     isObsBasedRawlog=true;
