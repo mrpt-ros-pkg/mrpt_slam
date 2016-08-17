@@ -28,10 +28,6 @@
 #include <mrpt_bridge/landmark.h>
 #include <mrpt_bridge/mrpt_log_macros.h>
 #include <mrpt_bridge/time.h>
-#include <mrpt/obs/CObservationOdometry.h>
-#include <mrpt/obs/CActionRobotMovement2D.h>
-#include <mrpt/obs/CActionRobotMovement3D.h>
-#include <mrpt/obs/CRawlog.h>
 #include <mrpt/utils/CFileGZInputStream.h>
 #include <mrpt/utils/CFileGZOutputStream.h>
 #include <mrpt/utils/CConfigFile.h>
@@ -46,6 +42,21 @@
 #include <mrpt/opengl/CEllipsoid.h>
 #include <mrpt/opengl/stock_objects.h>
 #include <mrpt_msgs/ObservationRangeBearing.h>
+
+#if MRPT_VERSION>=0x130
+# include <mrpt/obs/CObservationOdometry.h>
+# include <mrpt/obs/CActionRobotMovement2D.h>
+# include <mrpt/obs/CActionRobotMovement3D.h>
+# include <mrpt/obs/CRawlog.h>
+  using namespace mrpt::maps;
+  using namespace mrpt::obs;
+#else
+# include <mrpt/slam/CObservationOdometry.h>
+# include <mrpt/slam/CActionRobotMovement2D.h>
+# include <mrpt/slam/CActionRobotMovement3D.h>
+# include <mrpt/slam/CRawlog.h>
+#endif
+
 
 /**
  * @brief The EKFslamWrapper class provides  the ROS wrapper for EKF SLAM 2d from MRPT libraries. 
