@@ -48,7 +48,7 @@ public:
    /**
    * @brief destructor
    */
-    ~EKFslam();
+   virtual ~EKFslam();
    /**
    * @brief init 3D window from mrpt lib
    */

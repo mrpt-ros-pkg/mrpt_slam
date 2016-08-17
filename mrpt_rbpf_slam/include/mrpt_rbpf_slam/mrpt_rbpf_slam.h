@@ -56,7 +56,7 @@ public:
    /**
    * @brief destructor
    */
-    ~PFslam();
+   virtual ~PFslam();
 
    void init3Dwindow();
 
