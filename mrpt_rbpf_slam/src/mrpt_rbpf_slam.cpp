@@ -5,6 +5,7 @@
  *
  */ 
 #include <mrpt_rbpf_slam/mrpt_rbpf_slam.h>
+#include <mrpt/version.h>
 
 PFslam::PFslam(){
     use_motion_model_default_options_=false;
@@ -98,14 +99,17 @@ void PFslam::observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry
 }
 
 void PFslam::init_slam(){
-
+#if MRPT_VERSION<0x150
 	mapBuilder->options.verbose					= true;
+#else
+	mapBuilder->setVerbosityLevel(mrpt::utils::LVL_DEBUG);
+#endif
+
 	mapBuilder->options.enableMapUpdating		= true;
-    mapBuilder->options.debugForceInsertion		= false;
+	mapBuilder->options.debugForceInsertion		= false;
 
 	randomGenerator.randomize();
-}    
-
+}
 
 void PFslam::init3Dwindow(){
 #if MRPT_HAS_WXWIDGETS

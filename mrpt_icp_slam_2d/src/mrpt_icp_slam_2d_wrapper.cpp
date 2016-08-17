@@ -5,6 +5,7 @@
  */
 
 #include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.h"
+#include <mrpt/version.h>
 
 ICPslamWrapper::ICPslamWrapper(){
       rawlog_play_=false;
@@ -32,8 +33,12 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename){
 	mapBuilder.ICP_params.loadFromConfigFile ( iniFile, "ICP");
 	mapBuilder.initialize();
 
-    mapBuilder.options.verbose = true;
-    mapBuilder.options.alwaysInsertByClass.fromString( iniFile.read_string("MappingApplication","alwaysInsertByClass","") );
+#if MRPT_VERSION<0x150
+	mapBuilder.options.verbose					= true;
+#else
+	mapBuilder.setVerbosityLevel(mrpt::utils::LVL_DEBUG);
+#endif
+	mapBuilder.options.alwaysInsertByClass.fromString( iniFile.read_string("MappingApplication","alwaysInsertByClass","") );
 
 
 	mapBuilder.ICP_params.dumpToConsole();
