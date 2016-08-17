@@ -11,7 +11,11 @@ find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs senso
 
 #find mrpt packages
 find_package(MRPT REQUIRED base gui obs slam)
-find_package(Eigen3 REQUIRED )
+
+# Include Eigen3
+find_package(PkgConfig)
+pkg_search_module(Eigen3 REQUIRED eigen3)
+
 #Include directories
 INCLUDE_DIRECTORIES(
    ${CMAKE_SOURCE_DIR}/src
@@ -19,8 +23,8 @@ INCLUDE_DIRECTORIES(
 )
 
 
-catkin_package( 
-    CATKIN_DEPENDS   
+catkin_package(
+    CATKIN_DEPENDS
     DEPENDS Eigen )
 
 ###########
