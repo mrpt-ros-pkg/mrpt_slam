@@ -65,8 +65,8 @@
 #	include <mrpt/obs/CSensoryFrame.h>
 #	include <mrpt/maps/CMultiMetricMap.h>
 # include <mrpt/obs/CRawlog.h>
-	using namespace mrpt::maps;
-	using namespace mrpt::obs;
+  using namespace mrpt::maps;
+  using namespace mrpt::obs;
 #else
 #	include <mrpt/slam/CActionRobotMovement2D.h>
 # include <mrpt/slam/CActionRobotMovement3D.h>
@@ -75,12 +75,9 @@
 #	include <mrpt/slam/CSensoryFrame.h>
 #	include <mrpt/slam/CMultiMetricMap.h>
 # include <mrpt/slam/CRawlog.h>
-	using namespace mrpt::slam;
 #endif
 using namespace mrpt;
 using namespace mrpt::slam;
-using namespace mrpt::obs;
-using namespace mrpt::maps;
 using namespace mrpt::opengl;
 using namespace mrpt::gui;
 using namespace mrpt::system;

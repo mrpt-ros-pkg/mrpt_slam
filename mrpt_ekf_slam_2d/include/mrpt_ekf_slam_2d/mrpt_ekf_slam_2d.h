@@ -32,8 +32,8 @@
 #	include <mrpt/maps/CMultiMetricMap.h>
 # include <mrpt/obs/CObservationBearingRange.h>
 # include <mrpt/obs/CRawlog.h>
-	using namespace mrpt::maps;
-	using namespace mrpt::obs;
+  using namespace mrpt::maps;
+  using namespace mrpt::obs;
 #else
 #	include <mrpt/slam/CActionRobotMovement2D.h>
 #	include <mrpt/slam/CActionCollection.h>
@@ -42,7 +42,6 @@
 #	include <mrpt/slam/CMultiMetricMap.h>
 # include <mrpt/slam/CObservationBearingRange.h>
 # include <mrpt/slam/CRawlog.h>
-	using namespace mrpt::slam;
 #endif
 
 using namespace mrpt;
@@ -53,8 +52,6 @@ using namespace mrpt::math;
 using namespace mrpt::poses;
 using namespace mrpt::utils;
 using namespace std;
-using namespace mrpt::maps;
-using namespace mrpt::obs;
 using namespace mrpt::gui;
 /**
  * @brief The EKFslam class provides EKF SLAM 2d from MRPT libraries.
