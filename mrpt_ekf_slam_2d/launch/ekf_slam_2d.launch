@@ -3,7 +3,7 @@
   <include file="$(find mrpt_rawlog)/launch/demo_play_ekf_2d.launch" />
 
 <!--PARAMETERS-->
-    <param name="ellipse_scale" value="10"/>
+    <param name="ellipse_scale" value="1"/>
     <param name="ini_filename" value="$(find mrpt_ekf_slam_2d)/tutorial/kf-slam_demo_2d.ini"/>
     <param name="odom_frame_id" value="/odom"/>
     <param name="global_frame_id" value="/map"/>

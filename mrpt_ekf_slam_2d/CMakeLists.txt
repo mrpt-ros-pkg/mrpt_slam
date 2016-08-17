@@ -38,6 +38,6 @@ add_executable(mrpt_ekf_slam_2d
     src/mrpt_ekf_slam_2d_app.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_ekf_slam_2d ${MRPT_LIB}
+TARGET_LINK_LIBRARIES(mrpt_ekf_slam_2d ${MRPT_LIBS}
     ${catkin_LIBRARIES}
 )

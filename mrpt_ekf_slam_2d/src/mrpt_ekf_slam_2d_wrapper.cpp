@@ -49,6 +49,7 @@ void EKFslamWrapper::get_param(){
 }
 void EKFslamWrapper::init(){
     //get parameters from ini file
+
      if(!is_file_exists(ini_filename)){
         ROS_ERROR_STREAM("CAN'T READ INI FILE");
         return;
@@ -60,6 +61,7 @@ void EKFslamWrapper::init(){
         ROS_WARN_STREAM("PLAY FROM RAWLOG FILE: "<<rawlog_filename.c_str());
         rawlog_play_=true;
      }
+ 
 
          state_viz_pub_=n_.advertise<visualization_msgs::MarkerArray>("/state_viz", 1);//map
          data_association_viz_pub_=n_.advertise<visualization_msgs::MarkerArray>("/data_association_viz", 1);// data_association
@@ -83,7 +85,7 @@ void EKFslamWrapper::init(){
 
 
 
-
+           init3Dwindow();
 }
 
 void EKFslamWrapper::odometryForCallback (CObservationOdometryPtr  &_odometry, const std_msgs::Header &_msg_header) {
@@ -177,6 +179,7 @@ void EKFslamWrapper::landmarkCallback(const mrpt_msgs::ObservationRangeBearing &
              mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
              viz_state(); 
              viz_dataAssociation();
+             run3Dwindow();
     }
 }
 
@@ -207,9 +210,15 @@ bool EKFslamWrapper::rawlogPlay(){
           
              viz_state(); 
              viz_dataAssociation();
+             run3Dwindow();
 		}
       
      }
+    	if (win3d)
+	{
+		cout << "\n Close the 3D window to quit the application.\n";
+		win3d->waitForKey();
+	}
     return true;
  }
 

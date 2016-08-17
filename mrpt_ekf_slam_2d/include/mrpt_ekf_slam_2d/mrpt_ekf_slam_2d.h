@@ -22,6 +22,7 @@
 #include <mrpt/opengl/CSetOfLines.h>
 #include <mrpt/opengl/stock_objects.h>
 #include <mrpt/obs/CObservationBearingRange.h>
+#include <mrpt/gui/CDisplayWindow3D.h>
 using namespace mrpt;
 using namespace mrpt::slam;
 using namespace mrpt::maps;
@@ -48,6 +49,12 @@ public:
    * @brief destructor
    */
     ~EKFslam();
+   /**
+   * @brief init 3D window from mrpt lib
+   */
+    void init3Dwindow();
+    void run3Dwindow();  
+    void landmark_to_3d(const CRangeBearingKFSLAM2D::KFArray_FEAT &lm, TPoint3D &p);
   /**
    * @brief read ini file
    *
@@ -76,6 +83,16 @@ protected:
 	CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_; ///< used if there are is not odom
 	CActionRobotMovement2D::TMotionModelOptions motion_model_options_;         ///< used with odom value motion noise
 
+    CPosePDFGaussian	  robotPose_;///< current robot pose
+    std::vector<mrpt::math::TPoint2D> 	 LMs_;///< vector of the landmarks
+	std::map<unsigned int,CLandmark::TLandmarkID>    LM_IDs_;///< vector of the landmarks ID
+	CMatrixDouble  fullCov_;///< full covariance matrix
+	CVectorDouble  fullState_;///< full state vector 
+
+    mrpt::gui::CDisplayWindow3DPtr	win3d;///<MRPT window 
+    bool  SHOW_3D_LIVE;
+    bool  CAMERA_3DSCENE_FOLLOWS_ROBOT;
+    vector<TPose3D>  meanPath;
  
 
 
