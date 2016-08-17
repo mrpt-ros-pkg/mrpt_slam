@@ -167,10 +167,10 @@ private:
     std::vector<std::pair<CActionCollection,CSensoryFrame>> data;///< vector of pairs of actions and obsrvations from rawlog file
 
     
-     CMultiMetricMap *metric_map_; ///<receive map after iteration of SLAM to metric map
+
      std::vector< mrpt::opengl::CEllipsoidPtr> viz_beacons;
  
-     CPose3DPDFParticles   curPDF;///<current robot pose
+ 
 
     ros::Publisher pub_map_, pub_metadata_, pub_Particles_,pub_Particles_Beacons_,beacon_viz_pub_;///<publishers for map and pose particles
     
