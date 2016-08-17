@@ -97,6 +97,8 @@ public:
    * @brief init 3D window from mrpt lib (under development)
    */
     void init3Dwindow();
+    void run3Dwindow(CMultiMetricMap* mostLikMap);
+
   /**
    * @brief read the parameters from launch file
    */
@@ -176,16 +178,20 @@ protected:
 
     CTicTac	tictac;///<timer for SLAM performance evaluation
 	float	t_exec;///<the time which take one SLAM update execution 
-    CSensoryFramePtr sf;///< observations
+  		CSensoryFramePtr		observations;
+		CObservationPtr			observation;
     mrpt::system::TTimeStamp timeLastUpdate_;///< last update of the pose and map
 
     ros::Time stamp;///< timestamp for observations
 
     mrpt::gui::CDisplayWindow3DPtr	win3D_;///<MRPT window 
-    mrpt::opengl::COpenGLScene scene_; 
+
+std::vector<mrpt::obs::CObservation2DRangeScanPtr> lst_current_laser_scans; 
+    bool isObsBasedRawlog;
     bool 	SHOW_PROGRESS_3D_REAL_TIME ;
-	int		SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS;
+    int		SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS;
 	bool 	SHOW_LASER_SCANS_3D;
+    bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
 };
 
 #endif /* MRPT_ICP_SLAM_2D_WRAPPER_H */
