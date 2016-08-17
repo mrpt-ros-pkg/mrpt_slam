@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 MESSAGE("FALGS: ${CMAKE_CXX_FLAGS}")
 
 #find catkin packages
-find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs sensor_msgs mrpt_bridge dynamic_reconfigure)
+find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs sensor_msgs visualization_msgs mrpt_bridge dynamic_reconfigure)
 
 #find mrpt packages
 find_package(MRPT REQUIRED base gui obs slam)
