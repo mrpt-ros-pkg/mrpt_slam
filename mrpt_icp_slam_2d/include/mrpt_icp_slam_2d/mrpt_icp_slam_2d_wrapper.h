@@ -97,7 +97,7 @@ public:
    * @brief init 3D window from mrpt lib (under development)
    */
     void init3Dwindow();
-    void run3Dwindow(CMultiMetricMap* mostLikMap);
+    void run3Dwindow();
 
   /**
    * @brief read the parameters from launch file

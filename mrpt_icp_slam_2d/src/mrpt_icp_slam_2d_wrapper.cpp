@@ -83,11 +83,16 @@ void ICPslamWrapper::init3Dwindow(){
 #endif
 }
 
-void ICPslamWrapper::run3Dwindow(CMultiMetricMap* mostLikMap){
+void ICPslamWrapper::run3Dwindow(){
 
     // Create 3D window if requested (the code is copied from ../mrpt/apps/icp-slam/icp-slam_main.cpp):
     if (SHOW_PROGRESS_3D_REAL_TIME){
+
+        //get currently builded map
+        metric_map_ =  mapBuilder.getCurrentlyBuiltMetricMap(); 
+
         lst_current_laser_scans.clear();
+
          CPose3D robotPose;
 		 mapBuilder.getCurrentPoseEstimation()->getMean(robotPose);
          COpenGLScenePtr		scene = COpenGLScene::Create();
@@ -128,14 +133,14 @@ void ICPslamWrapper::run3Dwindow(CMultiMetricMap* mostLikMap){
 				// The maps:
 				{
 					opengl::CSetOfObjectsPtr obj = opengl::CSetOfObjects::Create();
-					mostLikMap->getAs3DObject( obj );
+					metric_map_->getAs3DObject( obj );
 					view->insert(obj);
 
 					// Only the point map:
 					opengl::CSetOfObjectsPtr ptsMap = opengl::CSetOfObjects::Create();
-					if (mostLikMap->m_pointsMaps.size())
+					if (metric_map_->m_pointsMaps.size())
 					{
-                        mostLikMap->m_pointsMaps[0]->getAs3DObject(ptsMap);
+                        metric_map_->m_pointsMaps[0]->getAs3DObject(ptsMap);
                         view_map->insert( ptsMap );
 					}
 				}
@@ -277,22 +282,21 @@ void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg) {
 	   // CObservationPtr obs = CObservationPtr(laser);
 	    observation = CObservationPtr(laser);
         stamp=ros::Time(0);
-       
+        tictac.Tic();
         mapBuilder.processObservation( observation );
-       
-        //get currently builded map
-        metric_map_ =  mapBuilder.getCurrentlyBuiltMetricMap(); 
- tictac.Tic();
-        run3Dwindow(metric_map_);
- t_exec = tictac.Tac();
+        t_exec = tictac.Tac();
       	printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
+
+
+        run3Dwindow();
         publishMapPose();
       
 
     }
 }
 void   ICPslamWrapper::publishMapPose(){
-
+        //get currently builded map
+        metric_map_ =  mapBuilder.getCurrentlyBuiltMetricMap(); 
             
             //publish map
             if (metric_map_->m_gridMaps.size()){                      
@@ -431,8 +435,13 @@ bool ICPslamWrapper::rawlogPlay() {
     pub_pose_.publish(pose);
 
         }
+
+    run3Dwindow();
    }
-        
+
+        //if there is mrpt_gui it will wait until push any key in order to close the window
+       	if (win3D_)
+		    win3D_->waitForKey(); 
 
     return true;
 }
