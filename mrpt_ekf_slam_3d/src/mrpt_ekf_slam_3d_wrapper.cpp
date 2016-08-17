@@ -80,7 +80,7 @@ void EKFslamWrapper::init(){
 		}
 	}
 
-
+init3Dwindow();
 
 
 }
@@ -176,6 +176,7 @@ void EKFslamWrapper::landmarkCallback(const mrpt_msgs::ObservationRangeBearing &
              mapping.getCurrentState( robotPose_,LMs_,LM_IDs_,fullState_,fullCov_ );
              viz_state(); 
              viz_dataAssociation();
+             run3Dwindow();
 
     }
 }
@@ -207,9 +208,15 @@ bool EKFslamWrapper::rawlogPlay(){
             // ros::spinOnce();
              viz_state(); 
             viz_dataAssociation();
+            run3Dwindow();
 		}
       
      }
+    	if (win3d)
+	{
+		cout << "\n Close the 3D window to quit the application.\n";
+		win3d->waitForKey();
+	}
     return true;
  }
 

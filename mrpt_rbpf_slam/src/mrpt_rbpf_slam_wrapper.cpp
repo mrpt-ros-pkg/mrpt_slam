@@ -89,6 +89,7 @@ void PFslamWrapper::init(){
     //init slam
     mapBuilder = new mrpt::slam::CMetricMapBuilderRBPF(rbpfMappingOptions);
     init_slam();
+    init3Dwindow();
 
 }
 
@@ -151,7 +152,7 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg) {
         t_exec = tictac.Tac();
       	printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
         publishMapPose();
-
+        run3Dwindow();
     }
 }
 
@@ -186,6 +187,7 @@ void PFslamWrapper::callbackBeacon (const mrpt_msgs::ObservationRangeBeacon &_ms
         printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
 
         publishMapPose();
+        run3Dwindow();
     }
 }
 
@@ -414,11 +416,14 @@ bool PFslamWrapper::rawlogPlay() {
 
 		pub_Particles_.publish(poseArray);
       }
-    ros::spinOnce();
-
+        ros::spinOnce();
+        run3Dwindow();
     }
 
  }   
+            //if there is mrpt_gui it will wait until push any key in order to close the window
+       	if (win3D)
+		    win3D->waitForKey(); 
     return true;
 }
 

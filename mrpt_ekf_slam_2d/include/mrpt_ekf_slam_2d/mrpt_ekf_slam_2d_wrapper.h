@@ -46,6 +46,7 @@
 #include <mrpt/opengl/CEllipsoid.h>
 #include <mrpt/opengl/stock_objects.h>
 #include <mrpt_msgs/ObservationRangeBearing.h>
+
 /**
  * @brief The EKFslamWrapper class provides  the ROS wrapper for EKF SLAM 2d from MRPT libraries. 
  *   
@@ -61,6 +62,7 @@ public:
    * @brief destructor
    */
     ~EKFslamWrapper();
+
     /**
    * @brief read the parameters from launch file
    */
@@ -174,11 +176,7 @@ private:
     CTicTac	tictac;///<timer for SLAM performance evaluation
 	float	t_exec;///<the time which take one SLAM update execution 
     
-	CPosePDFGaussian	  robotPose_;///< current robot pose
-    std::vector<mrpt::math::TPoint2D> 	 LMs_;///< vector of the landmarks
-	std::map<unsigned int,CLandmark::TLandmarkID>    LM_IDs_;///< vector of the landmarks ID
-	CMatrixDouble  fullCov_;///< full covariance matrix
-	CVectorDouble  fullState_;///< full state vector 
+	
     ros:: Publisher  data_association_viz_pub_, state_viz_pub_;///< publishers
     tf::TransformListener listenerTF_;///<transform listener
     tf::TransformBroadcaster tf_broadcaster_;///<transform broadcaster

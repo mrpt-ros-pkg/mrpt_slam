@@ -28,6 +28,7 @@
 #include <mrpt/opengl/CEllipsoid.h>
 #include <mrpt/opengl/stock_objects.h>
 
+#include <mrpt/gui/CDisplayWindow3D.h>
 
 
 using namespace mrpt;
@@ -56,6 +57,11 @@ public:
    * @brief destructor
    */
     ~PFslam();
+
+   void init3Dwindow();
+
+    void run3Dwindow();
+
 
   /**
    * @brief read ini file
@@ -99,6 +105,15 @@ protected:
 
     CMetricMapBuilderRBPF::TConstructionOptions		rbpfMappingOptions;///< options for SLAM from ini file
     mrpt::system::TTimeStamp timeLastUpdate_;///< last update of the pose and map
+
+    CMultiMetricMap *metric_map_; ///<receive map after iteration of SLAM to metric map
+    CPose3DPDFParticles   curPDF;///<current robot pose
+
+    mrpt::gui::CDisplayWindow3DPtr	win3D;///<MRPT window 
+    bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
+    bool SHOW_PROGRESS_IN_WINDOW;
+    int SHOW_PROGRESS_IN_WINDOW_DELAY_MS;
+    int  PROGRESS_WINDOW_WIDTH, PROGRESS_WINDOW_HEIGHT; 
 
 };
 

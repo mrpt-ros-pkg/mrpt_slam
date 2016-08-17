@@ -11,10 +11,10 @@ ICPslamWrapper::ICPslamWrapper(){
       stamp=ros::Time(0);
     //Default parameters for 3D window
     SHOW_PROGRESS_3D_REAL_TIME = false;
-    SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS = 0;
+    SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS = 0;//this parameter is not used 
 	SHOW_LASER_SCANS_3D = true;
-    
-
+    CAMERA_3DSCENE_FOLLOWS_ROBOT = true;
+    isObsBasedRawlog=true;
 }
 ICPslamWrapper::~ICPslamWrapper(){
 
@@ -40,6 +40,7 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename){
 	mapBuilder.ICP_options.dumpToConsole();
 
     //parameters for mrpt3D window
+    CAMERA_3DSCENE_FOLLOWS_ROBOT = iniFile.read_bool("MappingApplication","CAMERA_3DSCENE_FOLLOWS_ROBOT", true,  /*Force existence:*/ true);
 	MRPT_LOAD_CONFIG_VAR( SHOW_PROGRESS_3D_REAL_TIME, bool,  iniFile, "MappingApplication");
 	MRPT_LOAD_CONFIG_VAR( SHOW_LASER_SCANS_3D , bool,  iniFile, "MappingApplication");
 	MRPT_LOAD_CONFIG_VAR( SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS, int, iniFile, "MappingApplication");
@@ -72,13 +73,150 @@ void ICPslamWrapper::get_param(){
     
 }
 void ICPslamWrapper::init3Dwindow(){
-   
-   
-	//if (SHOW_PROGRESS_3D_REAL_TIME){
-		//win3D_ = mrpt::gui::CDisplayWindow3D::Create("pf-localization - The MRPT project", 1000, 600);
-      // win3D_->setCameraZoom(20);
-      //  win3D_->setCameraAzimuthDeg(-45);
-	//}
+#if MRPT_HAS_WXWIDGETS
+	if (SHOW_PROGRESS_3D_REAL_TIME){
+		win3D_ = mrpt::gui::CDisplayWindow3D::Create("pf-localization - The MRPT project", 1000, 600);
+        win3D_->setCameraZoom(20);
+        win3D_->setCameraAzimuthDeg(-45);
+	}
+
+#endif
+}
+
+void ICPslamWrapper::run3Dwindow(){
+
+    // Create 3D window if requested (the code is copied from ../mrpt/apps/icp-slam/icp-slam_main.cpp):
+    if (SHOW_PROGRESS_3D_REAL_TIME && win3D.present()){
+
+        //get currently builded map
+        metric_map_ =  mapBuilder.getCurrentlyBuiltMetricMap(); 
+
+        lst_current_laser_scans.clear();
+
+         CPose3D robotPose;
+		 mapBuilder.getCurrentPoseEstimation()->getMean(robotPose);
+         COpenGLScenePtr		scene = COpenGLScene::Create();
+
+         COpenGLViewportPtr view=scene->getViewport("main");
+
+          COpenGLViewportPtr view_map = scene->createViewport("mini-map");
+          view_map->setBorderSize(2);
+          view_map->setViewportPosition(0.01,0.01,0.35,0.35);
+          view_map->setTransparent(false);
+
+				{
+					mrpt::opengl::CCamera &cam = view_map->getCamera();
+					cam.setAzimuthDegrees(-90);
+					cam.setElevationDegrees(90);
+					cam.setPointingAt(robotPose);
+					cam.setZoomDistance(20);
+					cam.setOrthogonal();
+				}
+
+				// The ground:
+				mrpt::opengl::CGridPlaneXYPtr groundPlane = mrpt::opengl::CGridPlaneXY::Create(-200,200,-200,200,0,5);
+				groundPlane->setColor(0.4,0.4,0.4);
+				view->insert( groundPlane );
+				view_map->insert( CRenderizablePtr( groundPlane) ); // A copy
+
+				// The camera pointing to the current robot pose:
+				if (CAMERA_3DSCENE_FOLLOWS_ROBOT)
+				{
+				    scene->enableFollowCamera(true);
+
+					mrpt::opengl::CCamera &cam = view_map->getCamera();
+					cam.setAzimuthDegrees(-45);
+					cam.setElevationDegrees(45);
+					cam.setPointingAt(robotPose);
+				}
+
+				// The maps:
+				{
+					opengl::CSetOfObjectsPtr obj = opengl::CSetOfObjects::Create();
+					metric_map_->getAs3DObject( obj );
+					view->insert(obj);
+
+					// Only the point map:
+					opengl::CSetOfObjectsPtr ptsMap = opengl::CSetOfObjects::Create();
+					if (metric_map_->m_pointsMaps.size())
+					{
+                        metric_map_->m_pointsMaps[0]->getAs3DObject(ptsMap);
+                        view_map->insert( ptsMap );
+					}
+				}
+
+				// Draw the robot path:
+				CPose3DPDFPtr posePDF =  mapBuilder.getCurrentPoseEstimation();
+				CPose3D  curRobotPose;
+				posePDF->getMean(curRobotPose);
+				{
+					opengl::CSetOfObjectsPtr obj = opengl::stock_objects::RobotPioneer();
+					obj->setPose( curRobotPose );
+					view->insert(obj);
+				}
+				{
+					opengl::CSetOfObjectsPtr obj = opengl::stock_objects::RobotPioneer();
+					obj->setPose( curRobotPose );
+					view_map->insert( obj );
+				}
+
+
+                    opengl::COpenGLScenePtr &ptrScene = win3D_->get3DSceneAndLock();
+					ptrScene = scene;
+
+					win3D_->unlockAccess3DScene();
+
+					// Move camera:
+					win3D_->setCameraPointingToPoint( curRobotPose.x(),curRobotPose.y(),curRobotPose.z() );
+
+					// Update:
+					win3D_->forceRepaint();
+
+
+
+            // Build list of scans:
+			if (SHOW_LASER_SCANS_3D)
+			{
+				// Rawlog in "Observation-only" format:
+				if (isObsBasedRawlog)
+				{
+					if (IS_CLASS(observation,CObservation2DRangeScan))
+					{
+						lst_current_laser_scans.push_back( CObservation2DRangeScanPtr(observation) );
+					}
+				}
+				else
+				{
+					// Rawlog in the Actions-SF format:
+					for (size_t i=0; ; i++)
+					{
+						CObservation2DRangeScanPtr new_obs = observations->getObservationByClass<CObservation2DRangeScan>(i);
+						if (!new_obs)
+						     break; // There're no more scans
+						else lst_current_laser_scans.push_back( new_obs );
+					}
+				}
+			}
+
+
+				// Draw laser scanners in 3D:
+				if (SHOW_LASER_SCANS_3D)
+				{
+					for (size_t i=0;i<lst_current_laser_scans.size();i++)
+					{
+						// Create opengl object and load scan data from the scan observation:
+						opengl::CPlanarLaserScanPtr obj = opengl::CPlanarLaserScan::Create();
+						obj->setScan(*lst_current_laser_scans[i]);
+						obj->setPose( curRobotPose );
+						obj->setSurfaceColor(1.0f,0.0f,0.0f, 0.5f);
+						// inser into the scene:
+						view->insert(obj);
+					}
+				}
+
+
+    }
+
 
 }
 void ICPslamWrapper::init(){
@@ -125,7 +263,7 @@ void ICPslamWrapper::init(){
 		}
 	}
 
-   // init3Dwindow();
+    init3Dwindow();
 }
 
 void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg) {
@@ -141,19 +279,25 @@ void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg) {
     } else {        
         mrpt::poses::CPose3D pose = laser_poses_[_msg.header.frame_id];
         mrpt_bridge::convert(_msg, laser_poses_[_msg.header.frame_id],  *laser);
-	    CObservationPtr obs = CObservationPtr(laser);
+	   // CObservationPtr obs = CObservationPtr(laser);
+	    observation = CObservationPtr(laser);
         stamp=ros::Time(0);
         tictac.Tic();
-        mapBuilder.processObservation( obs );
+        mapBuilder.processObservation( observation );
         t_exec = tictac.Tac();
       	printf("Map building executed in %.03fms\n", 1000.0f*t_exec );
+
+
+        run3Dwindow();
         publishMapPose();
+      
 
     }
 }
 void   ICPslamWrapper::publishMapPose(){
-
- metric_map_ =  mapBuilder.getCurrentlyBuiltMetricMap();             
+        //get currently builded map
+        metric_map_ =  mapBuilder.getCurrentlyBuiltMetricMap(); 
+            
             //publish map
             if (metric_map_->m_gridMaps.size()){                      
                 nav_msgs::OccupancyGrid  _msg;   
@@ -224,8 +368,7 @@ bool ICPslamWrapper::rawlogPlay() {
          size_t								rawlogEntry = 0;
 	    CFileGZInputStream					rawlogFile( rawlog_filename );
         CActionCollectionPtr	action;
-		CSensoryFramePtr		observations;
-		CObservationPtr			observation;
+
 
     for (;;)
 	{
@@ -234,7 +377,7 @@ bool ICPslamWrapper::rawlogPlay() {
 			if (! CRawlog::getActionObservationPairOrObservation( rawlogFile, action, observations, observation, rawlogEntry) ){
 			break; // file EOF
                }
-		     const bool isObsBasedRawlog = observation.present();
+		     isObsBasedRawlog = observation.present();
             // Execute:
 			// ----------------------------------------
 			tictac.Tic();
@@ -290,11 +433,15 @@ bool ICPslamWrapper::rawlogPlay() {
     pose.pose.orientation = tf::createQuaternionMsgFromYaw(robotPose.yaw());
 
     pub_pose_.publish(pose);
-   
 
         }
+
+    run3Dwindow();
    }
-        
+
+        //if there is mrpt_gui it will wait until push any key in order to close the window
+       	if (win3D_)
+		    win3D_->waitForKey(); 
 
     return true;
 }

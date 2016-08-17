@@ -19,6 +19,11 @@ EKFslam::EKFslam(){
         motion_model_options_.gausianModel.a4 = 0.097;
         motion_model_options_.gausianModel.minStdXY  = 0.005;
         motion_model_options_.gausianModel.minStdPHI = 0.05;
+
+    //display values
+  SHOW_3D_LIVE=false;
+  CAMERA_3DSCENE_FOLLOWS_ROBOT=false;
+
 }
 
 EKFslam::~EKFslam(){
@@ -34,6 +39,11 @@ void EKFslam::read_iniFile(std::string ini_filename){
 	mapping.loadOptions( iniFile );
 	mapping.KF_options.dumpToConsole();
 	mapping.options.dumpToConsole();
+
+    //read display variables
+  SHOW_3D_LIVE = iniFile.read_bool("MappingApplication","SHOW_3D_LIVE", false);
+ CAMERA_3DSCENE_FOLLOWS_ROBOT = iniFile.read_bool("MappingApplication","CAMERA_3DSCENE_FOLLOWS_ROBOT", false);
+
 }
 
 void EKFslam::observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry) {
@@ -60,8 +70,101 @@ void EKFslam::observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometr
     }
 }
 
+void EKFslam::init3Dwindow(){
+#if MRPT_HAS_WXWIDGETS
+if (SHOW_3D_LIVE){
+  		win3d = mrpt::gui::CDisplayWindow3D::Create("KF-SLAM live view",800,500);
+	}
+#endif
+}
+
+void EKFslam::run3Dwindow(){
+
+// Save 3D view of the filter state:
+    if (SHOW_3D_LIVE && win3d.present() ){
+    mapping.getCurrentState( robotPose_ ,LMs_,LM_IDs_,fullState_,fullCov_ );
+	// Most of this code was copy and pase from ros::amcl
+	
+    		// Get the mean robot pose as 3D:
+			const CPose3D robotPoseMean3D = CPose3D(robotPose_.mean);
+
+			// Build the path:
+			meanPath.push_back( TPose3D(robotPoseMean3D) );
+
+        //create the scene
+        COpenGLScenePtr   scene3D = COpenGLScene::Create();
+		opengl::CGridPlaneXYPtr grid = opengl::CGridPlaneXY::Create(-1000,1000,-1000,1000,0,5);
+		grid->setColor(0.4,0.4,0.4);
+		scene3D->insert( grid );
+	
+		// Robot path:       
+		opengl::CSetOfLinesPtr linesPath = opengl::CSetOfLines::Create();
+	    linesPath->setColor(1,0,0);
+	    TPose3D init_pose;
+		if (!meanPath.empty()){
+		    init_pose = TPose3D(CPose3D(meanPath[0]));
+			int path_decim = 0;
+			for (vector<TPose3D>::iterator it=meanPath.begin();it!=meanPath.end();++it){
+				linesPath->appendLine(init_pose,*it);
+				init_pose = *it;
+				if (++path_decim>10){
+					path_decim = 0;
+					mrpt::opengl::CSetOfObjectsPtr xyz = mrpt::opengl::stock_objects::CornerXYZSimple(0.3f,2.0f);
+					xyz->setPose(CPose3D(*it));
+					scene3D->insert(xyz);
+			    }
+			}
+			scene3D->insert( linesPath );
+}
+
+    // finally a big corner for the latest robot pose:
+    mrpt::opengl::CSetOfObjectsPtr xyz = mrpt::opengl::stock_objects::CornerXYZSimple(1.0,2.5);
+    xyz->setPose(robotPoseMean3D);
+    scene3D->insert(xyz);
 
 
+    // The camera pointing to the current robot pose:
+    if (CAMERA_3DSCENE_FOLLOWS_ROBOT){
+        win3d->setCameraPointingToPoint(robotPoseMean3D.x(),robotPoseMean3D.y(),robotPoseMean3D.z());
+    }
+
+    // Draw latest data association:
+    const CRangeBearingKFSLAM2D::TDataAssocInfo & da = mapping.getLastDataAssociation(); 
+    mrpt::opengl::CSetOfLinesPtr lins = mrpt::opengl::CSetOfLines::Create();
+	lins->setLineWidth(1.2);
+	lins->setColor(1,1,1);
+	for (std::map<observation_index_t,prediction_index_t>::const_iterator it=da.results.associations.begin();it!=da.results.associations.end();++it){
+        const prediction_index_t idxPred = it->second;
+        // This index must match the internal list of features in the map:
+        CRangeBearingKFSLAM2D::KFArray_FEAT featMean;
+		mapping.getLandmarkMean(idxPred, featMean);
+
+		TPoint3D featMean3D;
+		landmark_to_3d(featMean,featMean3D);
+        // Line: robot -> landmark:
+		lins->appendLine(robotPoseMean3D.x(),robotPoseMean3D.y(),robotPoseMean3D.z(),featMean3D.x,featMean3D.y,featMean3D.z);
+	}
+	scene3D->insert( lins );
 
 
+    // The current state of KF-SLAM:
+    opengl::CSetOfObjectsPtr  objs = opengl::CSetOfObjects::Create();
+    mapping.getAs3DObject(objs);
+    scene3D->insert( objs );
+
+
+    mrpt::opengl::COpenGLScenePtr &scn = win3d->get3DSceneAndLock();
+    scn = scene3D;
+
+					
+
+    win3d->unlockAccess3DScene();
+    win3d->repaint();
+    
+
+				
+   }
+
+}
+void EKFslam::landmark_to_3d(const CRangeBearingKFSLAM2D::KFArray_FEAT &lm, TPoint3D &p) { p.x=lm[0]; p.y=lm[1]; p.z=0; }
 

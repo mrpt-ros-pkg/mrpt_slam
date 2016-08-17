@@ -38,7 +38,7 @@ add_executable(mrpt_icp_slam_2d
     src/mrpt_icp_slam_2d_app.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_icp_slam_2d ${MRPT_LIB}
+TARGET_LINK_LIBRARIES(mrpt_icp_slam_2d ${MRPT_LIBS}
     ${catkin_LIBRARIES}
 )
 

@@ -37,7 +37,7 @@ add_executable(mrpt_rbpf_slam
     src/mrpt_rbpf_slam_app.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_rbpf_slam ${MRPT_LIB}
+TARGET_LINK_LIBRARIES(mrpt_rbpf_slam ${MRPT_LIBS}
     ${catkin_LIBRARIES}
 )
 

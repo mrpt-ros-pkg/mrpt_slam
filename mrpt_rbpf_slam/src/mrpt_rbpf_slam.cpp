@@ -21,7 +21,11 @@ PFslam::PFslam(){
         motion_model_options_.gausianModel.minStdPHI = 0.05;
     
       
-
+     PROGRESS_WINDOW_WIDTH=600; 
+     PROGRESS_WINDOW_HEIGHT=500;
+     SHOW_PROGRESS_IN_WINDOW=false;
+    SHOW_PROGRESS_IN_WINDOW_DELAY_MS=0;
+    CAMERA_3DSCENE_FOLLOWS_ROBOT=false;
 }
 
 PFslam::~PFslam(){
@@ -32,6 +36,15 @@ void PFslam::read_iniFile(std::string ini_filename){
     CConfigFile		iniFile( ini_filename );
     rbpfMappingOptions.loadFromConfigFile(iniFile,"MappingApplication");
 	rbpfMappingOptions.dumpToConsole();
+
+    //Display variables
+    CAMERA_3DSCENE_FOLLOWS_ROBOT = iniFile.read_bool("MappingApplication","CAMERA_3DSCENE_FOLLOWS_ROBOT", true);
+		SHOW_PROGRESS_IN_WINDOW = iniFile.read_bool("MappingApplication","SHOW_PROGRESS_IN_WINDOW", false);
+		SHOW_PROGRESS_IN_WINDOW_DELAY_MS = iniFile.read_int("MappingApplication","SHOW_PROGRESS_IN_WINDOW_DELAY_MS",1);
+
+
+		MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_WIDTH, int,  iniFile, "MappingApplication");
+		MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_HEIGHT, int,  iniFile, "MappingApplication");
 
 }
 
@@ -92,5 +105,111 @@ void PFslam::init_slam(){
 
 	randomGenerator.randomize();
 }    
+
+
+void PFslam::init3Dwindow(){
+#if MRPT_HAS_WXWIDGETS
+
+ if (SHOW_PROGRESS_IN_WINDOW)
+    {
+		win3D = mrpt::gui::CDisplayWindow3D::Create("RBPF-SLAM @ MRPT C++ Library", PROGRESS_WINDOW_WIDTH, PROGRESS_WINDOW_HEIGHT);
+		win3D->setCameraZoom(40);
+		win3D->setCameraAzimuthDeg(-50);
+		win3D->setCameraElevationDeg(70);
+    }
+
+#endif
+}
+void PFslam::run3Dwindow(){
+
+
+// Save a 3D scene view of the mapping process:
+ if (SHOW_PROGRESS_IN_WINDOW && win3D.present()){
+        //get the current map and pose
+         metric_map_ = mapBuilder->mapPDF.getCurrentMostLikelyMetricMap();
+         mapBuilder->mapPDF.getEstimatedPosePDF(curPDF);
+         COpenGLScenePtr scene;
+		 scene = COpenGLScene::Create();
+
+		// The ground:
+		mrpt::opengl::CGridPlaneXYPtr groundPlane = mrpt::opengl::CGridPlaneXY::Create(-200,200,-200,200,0,5);
+		groundPlane->setColor(0.4,0.4,0.4);
+		scene->insert( groundPlane );
+
+		// The camera pointing to the current robot pose:
+		if (CAMERA_3DSCENE_FOLLOWS_ROBOT){
+			mrpt::opengl::CCameraPtr objCam = mrpt::opengl::CCamera::Create();
+			CPose3D		robotPose;
+			curPDF.getMean(robotPose);
+
+			objCam->setPointingAt(robotPose);
+			objCam->setAzimuthDegrees(-30);
+			objCam->setElevationDegrees(30);
+			scene->insert( objCam );
+		}
+        // Draw the map(s):
+            mrpt::opengl::CSetOfObjectsPtr objs = mrpt::opengl::CSetOfObjects::Create();
+            metric_map_->getAs3DObject( objs );
+			scene->insert( objs );
+
+        // Draw the robot particles:
+            size_t		M = mapBuilder->mapPDF.particlesCount();
+			mrpt::opengl::CSetOfLinesPtr objLines = mrpt::opengl::CSetOfLines::Create();
+			objLines->setColor(0,1,1);
+			for (size_t i=0;i<M;i++){
+				std::deque<TPose3D>		path;
+				mapBuilder->mapPDF.getPath(i,path);
+
+				float	x0=0,y0=0,z0=0;
+				for (size_t k=0;k<path.size();k++){
+					objLines->appendLine(
+					x0, y0, z0+0.001,
+					path[k].x, path[k].y, path[k].z+0.001 );
+					x0=path[k].x;
+					y0=path[k].y;
+					z0=path[k].z;
+				}
+			}
+					scene->insert( objLines );
+
+    // An ellipsoid:
+    CPose3D			lastMeanPose;
+    float			minDistBtwPoses=-1;
+    std::deque<TPose3D>		dummyPath;
+    mapBuilder->mapPDF.getPath(0,dummyPath);
+    for (int k=(int)dummyPath.size()-1;k>=0;k--){
+		CPose3DPDFParticles	poseParts;
+		mapBuilder->mapPDF.getEstimatedPosePDFAtTime(k,poseParts);
+		CPose3D		meanPose;
+		CMatrixDouble66 COV;
+		poseParts.getCovarianceAndMean(COV,meanPose);
+
+		if ( meanPose.distanceTo(lastMeanPose)>minDistBtwPoses ){
+			CMatrixDouble33 COV3 = COV.block(0,0,3,3);
+
+			minDistBtwPoses = 6 * sqrt(COV3(0,0)+COV3(1,1));
+
+			opengl::CEllipsoidPtr objEllip = opengl::CEllipsoid::Create();
+			objEllip->setLocation(meanPose.x(), meanPose.y(), meanPose.z() + 0.001 );
+			objEllip->setCovMatrix(COV3, COV3(2,2)==0 ? 2:3 );
+
+			objEllip->setColor(0,0,1);
+			objEllip->enableDrawSolid3D(false);
+			scene->insert( objEllip );
+
+			lastMeanPose = meanPose;
+		}
+	}
+			
+             
+     COpenGLScenePtr &scenePtr = win3D->get3DSceneAndLock();
+     scenePtr = scene;
+     win3D->unlockAccess3DScene();
+     win3D->forceRepaint();
+                   
+               
+    }
+
+}
 
 
