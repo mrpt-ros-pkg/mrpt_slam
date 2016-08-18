@@ -50,3 +50,8 @@ add_executable(mrpt_ekf_slam_3d
 TARGET_LINK_LIBRARIES(mrpt_ekf_slam_3d ${MRPT_LIBS}
     ${catkin_LIBRARIES}  ${Eigen_LIBRARIES}
 )
+
+IF(${MRPT_VERSION} LESS 1.5.0)
+  MESSAGE(WARNING "Target mrpt_ekf_slam_3d will not be built. It requires MRPT version 1.5.0 or higher, but you have ${MRPT_VERSION}.")
+  set_target_properties(mrpt_ekf_slam_3d PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+endif()
