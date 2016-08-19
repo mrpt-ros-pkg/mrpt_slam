@@ -24,6 +24,7 @@ env:
 before_install:
   - sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu $ROS_CI_DESKTOP main\" > /etc/apt/sources.list.d/ros-latest.list"
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+  - sudo add-apt-repository ppa:joseluisblancoc/mrpt -y
   - sudo apt-get update -qq
   - sudo apt-get install -y python-catkin-pkg python-rosdep python-wstool ros-$ROS_DISTRO-catkin
   - source /opt/ros/$ROS_DISTRO/setup.bash
@@ -37,7 +38,7 @@ before_install:
   - sudo apt-get install -y libdc1394-22-dev libavformat-dev libswscale-dev
   - sudo apt-get install -y libassimp-dev libjpeg-dev libopencv-dev libgtest-dev
   - sudo apt-get install -y libeigen3-dev libsuitesparse-dev libpcap-dev
-  - sudo apt-get -y install libmrpt-dev
+  - sudo apt-get install -y libmrpt-dev mrpt-apps
 
 # Create a catkin workspace with the package under integration.
 install:
