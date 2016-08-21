@@ -1,6 +1,6 @@
 <package>
   <name>mrpt_slam</name>
-  <version>1.0.0</version>
+  <version>0.1.0</version>
   <description>mrpt_slam</description>
   <maintainer email="v.d.tananaev@gmail.com">Vladislav Tananaev</maintainer>
   <maintainer email="jlblanco@ual.es">Jose Luis Blanco Claraco</maintainer>
