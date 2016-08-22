@@ -6,6 +6,7 @@
 
 #include "mrpt_ekf_slam_3d/mrpt_ekf_slam_3d.h"
 #include <ros/console.h>
+#include <mrpt_bridge/utils.h>
 
 EKFslam::EKFslam(){
 #if MRPT_VERSION>=0x150
@@ -45,6 +46,14 @@ void EKFslam::read_iniFile(std::string ini_filename){
 	mapping.loadOptions( iniFile );
 	mapping.KF_options.dumpToConsole();
 	mapping.options.dumpToConsole();
+    
+#if MRPT_VERSION<0x150
+    mapping.options.verbose                 = true;
+#else
+    log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
+    mapping.setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+    mapping.logRegisterCallback( static_cast<output_logger_callback_t> (&mrpt_bridge::mrptToROSLoggerCallback) );
+#endif
 
 
    //read display variables

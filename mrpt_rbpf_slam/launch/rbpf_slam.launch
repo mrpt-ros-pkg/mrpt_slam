@@ -5,7 +5,8 @@
     <param name="global_frame_id" value="/map"/>
     <param name="base_frame_id" value="r1/base_link"/>
     <param name="sensor_source" value="r1/front_laser/scan"/> <!--for multiple sensors, place comma eg "r1/front_laser/scan,/beacon" -->
-
+    <env name="ROSCONSOLE_CONFIG_FILE" value="$(find mrpt_rbpf_slam)/config/rosconsole.config"/>
+    
     <!--PLAY BAG FILE-->
   <include file="$(find mrpt_rawlog)/launch/demo_rosbag.launch" />
 

@@ -8,6 +8,7 @@
     <param name="global_frame_id" value="/map"/>
     <param name="base_frame_id" value="/base_link"/>
     <param name="sensor_source" value="/front_laser/scan"/><!-- for multiple sensors, place comma eg "r1/front_laser/scan,/scan_rear " -->
+    <env name="ROSCONSOLE_CONFIG_FILE" value="$(find mrpt_ekf_slam_3d)/config/rosconsole.config"/>
 
     <!--SLAM RUN--> 
     <node pkg="rviz" type="rviz" name="rviz_nav" output="screen" args="-d $(find mrpt_ekf_slam_3d)/rviz/rviz_conf_ekf_3d.rviz"></node>

@@ -6,6 +6,7 @@
  */ 
 #include <mrpt_rbpf_slam/mrpt_rbpf_slam.h>
 #include <mrpt/version.h>
+#include <mrpt_bridge/utils.h>
 
 PFslam::PFslam(){
     use_motion_model_default_options_=false;
@@ -102,7 +103,9 @@ void PFslam::init_slam(){
 #if MRPT_VERSION<0x150
 	mapBuilder->options.verbose					= true;
 #else
-	mapBuilder->setVerbosityLevel(mrpt::utils::LVL_DEBUG);
+	log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
+	mapBuilder->setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+	mapBuilder->logRegisterCallback( static_cast<output_logger_callback_t> (&mrpt_bridge::mrptToROSLoggerCallback) );
 #endif
 
 	mapBuilder->options.enableMapUpdating		= true;
