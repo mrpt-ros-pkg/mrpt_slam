@@ -5,6 +5,9 @@
  */
 
 #include "mrpt_ekf_slam_2d/mrpt_ekf_slam_2d.h"
+#if MRPT_VERSION>=0x150
+#include <mrpt_bridge/utils.h>
+#endif
 
 EKFslam::EKFslam(){
     use_motion_model_default_options_=false;
@@ -39,7 +42,16 @@ void EKFslam::read_iniFile(std::string ini_filename){
 	mapping.loadOptions( iniFile );
 	mapping.KF_options.dumpToConsole();
 	mapping.options.dumpToConsole();
-
+    
+#if MRPT_VERSION<0x150
+    mapping.options.verbose                 = true;
+#else
+    log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
+    mapping.setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+    mapping.logging_enable_console_output=false;
+    mapping.logRegisterCallback( static_cast<output_logger_callback_t> (&mrpt_bridge::mrptToROSLoggerCallback) );
+#endif
+    
     //read display variables
   SHOW_3D_LIVE = iniFile.read_bool("MappingApplication","SHOW_3D_LIVE", false);
  CAMERA_3DSCENE_FOLLOWS_ROBOT = iniFile.read_bool("MappingApplication","CAMERA_3DSCENE_FOLLOWS_ROBOT", false);

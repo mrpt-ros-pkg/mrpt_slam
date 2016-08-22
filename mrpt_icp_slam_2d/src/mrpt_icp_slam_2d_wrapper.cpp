@@ -6,7 +6,10 @@
 
 #include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.h"
 #include <mrpt/version.h>
-
+#if MRPT_VERSION>=0x150
+#include <mrpt_bridge/utils.h>
+#endif
+ 
 ICPslamWrapper::ICPslamWrapper(){
       rawlog_play_=false;
       stamp=ros::Time(0);
@@ -36,7 +39,10 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename){
 #if MRPT_VERSION<0x150
 	mapBuilder.options.verbose					= true;
 #else
-	mapBuilder.setVerbosityLevel(mrpt::utils::LVL_DEBUG);
+	log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
+  mapBuilder.setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+  mapBuilder.logging_enable_console_output=false;
+  mapBuilder.logRegisterCallback( static_cast<output_logger_callback_t> (&mrpt_bridge::mrptToROSLoggerCallback) );
 #endif
 	mapBuilder.options.alwaysInsertByClass.fromString( iniFile.read_string("MappingApplication","alwaysInsertByClass","") );
 
