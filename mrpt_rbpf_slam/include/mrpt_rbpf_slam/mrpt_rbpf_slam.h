@@ -41,6 +41,7 @@
 	using namespace mrpt::obs;
 #else
 #	include <mrpt/slam/CActionRobotMovement2D.h>
+#	include <mrpt/slam/CObservationBeaconRanges.h>
 #	include <mrpt/slam/CActionRobotMovement3D.h>
 #	include <mrpt/slam/CActionCollection.h>
 #	include <mrpt/slam/CObservationOdometry.h>
