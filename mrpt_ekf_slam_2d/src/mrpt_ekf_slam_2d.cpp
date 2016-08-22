@@ -5,7 +5,9 @@
  */
 
 #include "mrpt_ekf_slam_2d/mrpt_ekf_slam_2d.h"
+#if MRPT_VERSION>=0x150
 #include <mrpt_bridge/utils.h>
+#endif
 
 EKFslam::EKFslam(){
     use_motion_model_default_options_=false;

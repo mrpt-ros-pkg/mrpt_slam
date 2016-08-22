@@ -6,7 +6,9 @@
  */ 
 #include <mrpt_rbpf_slam/mrpt_rbpf_slam.h>
 #include <mrpt/version.h>
+#if MRPT_VERSION>=0x150
 #include <mrpt_bridge/utils.h>
+#endif
 
 PFslam::PFslam(){
     use_motion_model_default_options_=false;

@@ -5,8 +5,10 @@
  */
 
 #include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.h"
-#include <mrpt_bridge/utils.h>
 #include <mrpt/version.h>
+#if MRPT_VERSION>=0x150
+#include <mrpt_bridge/utils.h>
+#endif
  
 ICPslamWrapper::ICPslamWrapper(){
       rawlog_play_=false;

@@ -6,7 +6,9 @@
 
 #include "mrpt_ekf_slam_3d/mrpt_ekf_slam_3d.h"
 #include <ros/console.h>
+#if MRPT_VERSION>=0x150
 #include <mrpt_bridge/utils.h>
+#endif
 
 EKFslam::EKFslam(){
 #if MRPT_VERSION>=0x150
