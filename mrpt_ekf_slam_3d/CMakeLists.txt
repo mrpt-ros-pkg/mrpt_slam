@@ -15,7 +15,8 @@ find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs senso
 find_package(MRPT REQUIRED base gui obs slam)
 
 # Include Eigen3
-find_package(Eigen3 REQUIRED)
+find_package(PkgConfig)
+pkg_search_module(Eigen3 REQUIRED eigen3)
 
 #Include directories
 INCLUDE_DIRECTORIES(
@@ -26,7 +27,7 @@ INCLUDE_DIRECTORIES(
 
 catkin_package(
     CATKIN_DEPENDS
-    DEPENDS Eigen3 )
+    DEPENDS Eigen )
 
 ###########
 ## Build ##
@@ -34,7 +35,7 @@ catkin_package(
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${Eigen3_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS}
   include
 )
 
@@ -47,7 +48,7 @@ add_executable(mrpt_ekf_slam_3d
 )
 
 TARGET_LINK_LIBRARIES(mrpt_ekf_slam_3d ${MRPT_LIBS}
-    ${catkin_LIBRARIES}  ${Eigen3_LIBRARIES}
+    ${catkin_LIBRARIES}  ${Eigen_LIBRARIES}
 )
 
 IF(${MRPT_VERSION} LESS 1.5.0)
