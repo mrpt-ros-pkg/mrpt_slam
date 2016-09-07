@@ -38,6 +38,13 @@
 #include <mrpt_bridge/beacon.h>
 #include <mrpt_bridge/time.h>
 
+#if MRPT_VERSION>=0x130
+# include <mrpt/obs/CObservationBeaconRanges.h>
+  using namespace mrpt::obs;
+#else
+# include <mrpt/slam/CObservationBeaconRanges.h>
+  using namespace mrpt::slam;
+#endif
 
 /**
  * @brief The PFslamWrapper class provides  the ROS wrapper for Rao-Blackwellized Particle filter SLAM from MRPT libraries. 
