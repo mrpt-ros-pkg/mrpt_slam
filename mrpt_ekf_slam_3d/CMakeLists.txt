@@ -14,6 +14,10 @@ find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs senso
 #find mrpt packages
 find_package(MRPT REQUIRED base gui obs slam)
 
+if (MRPT_VERSION VERSION_LESS 2.0.0)
+	set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_CXX_FLAGS}")
+endif()
+
 # Include Eigen3
 find_package(PkgConfig)
 pkg_search_module(Eigen3 REQUIRED eigen3)
