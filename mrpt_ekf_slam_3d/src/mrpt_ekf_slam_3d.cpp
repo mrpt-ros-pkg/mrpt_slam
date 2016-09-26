@@ -49,9 +49,7 @@ void EKFslam::read_iniFile(std::string ini_filename)
   mapping.KF_options.dumpToConsole();
   mapping.options.dumpToConsole();
 
-#if MRPT_VERSION < 0x150
-  mapping.options.verbose = true;
-#else
+#if MRPT_VERSION >= 0x150
   log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
   mapping.setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
   mapping.logging_enable_console_output = false;
