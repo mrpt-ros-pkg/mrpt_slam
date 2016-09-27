@@ -2,6 +2,12 @@
 Changelog for package mrpt_ekf_slam_3d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Avoid gcc warnings with MRPT < 2.0.0
+* fix build against mrpt < 1.5.0
+* Contributors: Jose-Luis Blanco-Claraco
+
 0.1.2 (2016-09-24)
 ------------------
 * Make formatting conform to ROS C++ Style Guide.

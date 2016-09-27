@@ -2,6 +2,9 @@
 Changelog for package mrpt_icp_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.1.2 (2016-09-24)
 ------------------
 * Make formatting conform to ROS C++ Style Guide.
