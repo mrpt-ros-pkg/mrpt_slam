@@ -2,8 +2,8 @@
 Changelog for package mrpt_ekf_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.3 (2016-09-27)
+------------------
 * Avoid gcc warnings with MRPT < 2.0.0
 * fix build against mrpt < 1.5.0
 * Contributors: Jose-Luis Blanco-Claraco
