@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<!--
+Mon Oct 10 19:20:36 EEST 2016, Nikos Koukis
+
+TODO - Write this.
+
+-->
+
+<launch>
+	<!-- LAUNCH ARGUMENTS -->
+	<!-- ************************************* -->
+	<arg name="output"        default="screen" />
+
+    <!-- LAUNCH PARAMETERS -->
+	<!-- ************************************* -->
+    NRD, ERD, GSO, verbosity, scan_topic, odometry_topic, disable_visuals, ground_truth, ini_fname
+
+	<param name="/graphslam_engine/deciders_optimizers/NRD" value="CICPCriteriaNRD"                                           />
+	<param name="/graphslam_engine/deciders_optimizers/ERD" value="CLoopCloserERD"                                            />
+	<param name="/graphslam_engine/deciders_optimizers/GSO" value="CLevMarqGSO"                                               />
+	<param name="/graphslam_engine/files/config"            value="$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"   />
+	<param name="/graphslam_engine/files/grount_truth"      value=""                                                          />
+	<param name="/graphslam_engine/misc/disable_visuals"    value="false" type="bool"                                         />
+	<param name="/graphslam_engine/misc/verbosity"          value="1"                                                         />
+
+	<!-- NODES TO BE LAUNCHED -->
+	<!-- ************************************* -->
+	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam" output="$(arg output)" />
+
+</launch>
