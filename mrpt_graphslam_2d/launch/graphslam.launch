@@ -17,7 +17,7 @@ TODO - Write this.
     NRD, ERD, GSO, verbosity, scan_topic, odometry_topic, disable_visuals, ground_truth, ini_fname
 
 	<param name="/graphslam_engine/deciders_optimizers/NRD" value="CICPCriteriaNRD"                                           />
-	<param name="/graphslam_engine/deciders_optimizers/ERD" value="CLoopCloserERD"                                            />
+	<param name="/graphslam_engine/deciders_optimizers/ERD" value="CICPCriteriaERD"                                            />
 	<param name="/graphslam_engine/deciders_optimizers/GSO" value="CLevMarqGSO"                                               />
 	<param name="/graphslam_engine/files/config"            value="$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"   />
 	<param name="/graphslam_engine/files/grount_truth"      value=""                                                          />
