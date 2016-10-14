@@ -17,13 +17,13 @@ TODO - Write this.
     <!-- LAUNCH PARAMETERS -->
 	<!-- ************************************* -->
 
-	<param name="/graphsalm_engine/deciders_optimizers/NRD" value="CICPCriteriaNRD"                                           />
-	<param name="/graphsalm_engine/deciders_optimizers/ERD" value="CICPCriteriaERD"                                            />
-	<param name="/graphsalm_engine/deciders_optimizers/GSO" value="CLevMarqGSO"                                               />
-	<param name="/graphsalm_engine/files/config"            value="$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"   />
-	<param name="/graphsalm_engine/files/grount_truth"      value=""                                                          />
-	<param name="/graphsalm_engine/misc/disable_visuals"    value="false" type="bool"                                         />
-	<param name="/graphsalm_engine/misc/verbosity"          value="0"                                                         />
+	<param name="/$(arg main_ns)/deciders_optimizers/NRD" value="CICPCriteriaNRD"                                           />
+	<param name="/$(arg main_ns)/deciders_optimizers/ERD" value="CICPCriteriaERD"                                            />
+	<param name="/$(arg main_ns)/deciders_optimizers/GSO" value="CLevMarqGSO"                                               />
+	<param name="/$(arg main_ns)/files/config"            value="$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"   />
+	<param name="/$(arg main_ns)/files/grount_truth"      value=""                                                          />
+	<param name="/$(arg main_ns)/misc/disable_visuals"    value="false" type="bool"                                         />
+	<param name="/$(arg main_ns)/misc/verbosity"          value="0"                                                         />
 
 	<!-- NODES TO BE LAUNCHED -->
 	<!-- ************************************* -->

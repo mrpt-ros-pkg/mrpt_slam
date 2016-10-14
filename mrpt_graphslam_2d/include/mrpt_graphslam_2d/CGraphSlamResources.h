@@ -136,21 +136,21 @@ private:
 	/**\}*/
 
 	/**\brief Pointer to the logging instance */
-	mrpt::utils::COutputLogger* logger;
+	mrpt::utils::COutputLogger* m_logger;
 	ros::NodeHandle* nh;
 
 	// ROS server parameters
 	/**\name node, edge, optimizer modules in string representation */
 	/**\{*/
-	std::string node_reg;
-	std::string edge_reg;
-	std::string optimizer;
+	std::string m_node_reg;
+	std::string m_edge_reg;
+	std::string m_optimizer;
 	/**\}*/
 
 	/**\name graphslam-engine various filenames */
 	/**\{*/
-	std::string ini_fname; /**<.ini configuration file */
-	std::string gt_fname; /**<ground-truth filename */
+	std::string m_ini_fname; /**<.ini configuration file */
+	std::string m_gt_fname; /**<ground-truth filename */
 	/**\}*/
 
 	/**\brief Minimum logging level
@@ -158,18 +158,18 @@ private:
 	 * \note Value is fetched  from the ROS Parameter Server (not from the
 	 * external .ini file.
 	 */
-	mrpt::utils::VerbosityLevel min_logging_level;
+	mrpt::utils::VerbosityLevel m_min_logging_level;
 
 	/**\brief Are visuals on? */
-	bool disable_visuals;
+	bool m_disable_visuals;
 
 	/**\brief Struct instance holding the available deciders/optimizers that the
 	 * user can issue
 	 */
-	mrpt::graphslam::supplementary::TUserOptionsChecker graphslam_opts;
-	CGraphSlamHandler* graphslam_handler;
+	mrpt::graphslam::supplementary::TUserOptionsChecker m_graphslam_opts;
+	CGraphSlamHandler* m_graphslam_handler;
 
-	bool has_read_config;
+	bool m_has_read_config;
 
 	/**\name Received measurements - boolean flags
 	 * 
@@ -177,10 +177,10 @@ private:
 	 * corresponding topics.
 	 */
 	/**\{*/
-	bool received_odom;
-	bool received_laser_scan;
-	bool received_camera;
-	bool received_point_cloud;
+	bool m_received_odom;
+	bool m_received_laser_scan;
+	bool m_received_camera;
+	bool m_received_point_cloud;
 	/**\}*/
 	
 	/**\}*/
@@ -191,22 +191,22 @@ private:
 	 */
 	/**\{*/
 	/**\brief Received laser scan - converted into MRPT CObservation* format */
-	mrpt::obs::CObservationOdometryPtr mrpt_odom;
-	mrpt::obs::CObservation2DRangeScanPtr mrpt_laser_scan;
+	mrpt::obs::CObservationOdometryPtr m_mrpt_odom;
+	mrpt::obs::CObservation2DRangeScanPtr m_mrpt_laser_scan;
 	/**\}*/
 
 	mrpt::graphslam::CGraphSlamEngine<mrpt::graphs::CNetworkOfPoses2DInf>*
-		graphslam_engine;
+		m_graphslam_engine;
 
 	/**\name Subscribers
 	 *
 	 * ROS Topic Subscriber instances
 	 * */
 	/**\{*/
-	ros::Subscriber odom_sub;
-	ros::Subscriber laser_scan_sub;
-	ros::Subscriber camera_scan_sub;
-	ros::Subscriber point_cloud_scan_sub;
+	ros::Subscriber m_odom_sub;
+	ros::Subscriber m_laser_scan_sub;
+	ros::Subscriber m_camera_scan_sub;
+	ros::Subscriber m_point_cloud_scan_sub;
 	/**\}*/
 
 	/**\name Topic names
@@ -215,14 +215,14 @@ private:
 	 */
 	/**\{*/
 	std::string m_odom_topic;
-	std::string laser_scan_topic;
-	std::string camera_topic;
-	std::string point_cloud_topic;
+	std::string m_laser_scan_topic;
+	std::string m_camera_topic;
+	std::string m_point_cloud_topic;
 	/**\}*/
 
 	/**\brief Total counter of the processed measurements
 	 */
-	size_t measurement_cnt;
+	size_t m_measurement_cnt;
 };
 
 #endif /* end of include guard: CGRAPHSLAMRESOURCES_H */
