@@ -54,6 +54,8 @@ int main(int argc, char **argv)
 		resources.printParams();
 
 		while (ros::ok() && resources.continueExec()) {
+			resources.usePublishersBroadcasters();
+
 			ros::spinOnce();
 			loop_rate.sleep();
 		}
@@ -66,13 +68,18 @@ int main(int argc, char **argv)
 
 	}
 	catch (exception& e) {
-		logger.logFmt(LVL_ERROR, "Finished with a (known) exception!");
-		cerr << e.what() << endl;
+		ROS_ERROR_STREAM(
+				"Finished with a (known) exception!"
+				<< std::endl
+				<< e.what()
+				<< std::endl);
 		mrpt::system::pause();
 		return -1;
 	}
 	catch (...) {
-		logger.logFmt(LVL_ERROR, "Finished with a (unknown) exception!");
+		ROS_ERROR_STREAM(
+				"Finished with a (unknown) exception!"
+				<< std::endl);
 		mrpt::system::pause();
 		return -1;
 	}

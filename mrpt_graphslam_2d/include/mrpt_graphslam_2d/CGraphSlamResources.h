@@ -14,7 +14,12 @@
 #include <ros/ros.h>
 #include <mrpt_bridge/mrpt_bridge.h>
 #include <mrpt_msgs/Pose2DStamped.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Path.h>
 #include <sensor_msgs/LaserScan.h>
+
+#include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
 
 // MRPT
 #include <mrpt/graphs/CNetworkOfPoses.h>
@@ -41,6 +46,11 @@
 class CGraphSlamResources
 {
 public:
+	/**\brief type of graph constraints */
+	typedef typename mrpt::graphs::CNetworkOfPoses2DInf::constraint_t constraint_t;
+	/**\brief type of underlying poses (2D/3D). */
+	typedef typename mrpt::graphs::CNetworkOfPoses2DInf::constraint_t::type_value pose_t;
+
 	CGraphSlamResources(
 			mrpt::utils::COutputLogger* logger_in,
 			ros::NodeHandle* nh
@@ -86,8 +96,15 @@ public:
 	 * execution.
 	 */
 	void generateReport();
+	/**\brief Provide feedback about the SLAM operation using ROS publilshers,
+	 * update the registered frames using tf::TransformBroadcasters
+	 *
+	 * Method makes the necessary calls to all the publishers of the class and
+	 * broadcaster instances
+	 */
+	void usePublishersBroadcasters();
 
-	
+
 	static const std::string sep_header;
 	static const std::string sep_subheader;
 private:
@@ -160,8 +177,9 @@ private:
 	 */
 	mrpt::utils::VerbosityLevel m_min_logging_level;
 
-	/**\brief Are visuals on? */
-	bool m_disable_visuals;
+	/**\brief Are MRPT visuals on? */
+	bool m_disable_MRPT_visuals;
+	bool m_disable_ROS_visuals; // TODO - implement this
 
 	/**\brief Struct instance holding the available deciders/optimizers that the
 	 * user can issue
@@ -198,18 +216,22 @@ private:
 	mrpt::graphslam::CGraphSlamEngine<mrpt::graphs::CNetworkOfPoses2DInf>*
 		m_graphslam_engine;
 
-	/**\name Subscribers
+	/**\name Subscribers - Publishers
 	 *
-	 * ROS Topic Subscriber instances
+	 * ROS Topic Subscriber/Publisher instances
 	 * */
 	/**\{*/
 	ros::Subscriber m_odom_sub;
 	ros::Subscriber m_laser_scan_sub;
 	ros::Subscriber m_camera_scan_sub;
 	ros::Subscriber m_point_cloud_scan_sub;
+
+	ros::Publisher m_curr_robot_pos_pub;
+	ros::Publisher m_robot_trajectory_pub;
+	ros::Publisher m_SLAM_eval_metric_pub;
 	/**\}*/
 
-	/**\name Topic names
+	/**\name Topic Names
 	 *
 	 * Names of the topics that the class instance subscribes or publishes to
 	 */
@@ -218,7 +240,34 @@ private:
 	std::string m_laser_scan_topic;
 	std::string m_camera_topic;
 	std::string m_point_cloud_topic;
+
+	std::string m_curr_robot_pos_topic;
+	std::string m_robot_trajectory_topic;
+	std::string m_SLAM_eval_metric_topic;
 	/**\}*/
+
+	/**\name Broadcasters
+	 * TF Broadcaster instances
+	 */
+	/**\{*/
+	tf::TransformBroadcaster m_base_link_br;
+	tf::TransformBroadcaster m_laser_link; // TODO
+	tf::TransformBroadcaster m_camera_link; // TODO
+	tf::TransformBroadcaster m_odometry_link; // TODO
+	/**\}*/
+
+	/**\name Broadcaster Names
+	 * Names of tf::TransformBroadcaster instances
+	 */
+	/**\{*/
+	std::string m_global_frame_id;
+	std::string m_base_link_frame_id;
+	/**\}*/
+
+
+	/**\brief Times a messge has been published => usePublishersBroadcasters method is called
+	 */
+	int m_pub_seq;
 
 	/**\brief Total counter of the processed measurements
 	 */

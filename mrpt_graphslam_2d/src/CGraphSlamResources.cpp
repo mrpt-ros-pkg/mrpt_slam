@@ -61,6 +61,7 @@ CGraphSlamResources::CGraphSlamResources(
 
 	// variables initialization/assignment
 	m_has_read_config = false;
+	m_pub_seq = 0;
 	this->resetReceivedFlags();
 
 	// measurements initialization
@@ -101,7 +102,8 @@ void CGraphSlamResources::readROSParameters() {
 		std::string ns = "misc/";
 
 		// enable/disable visuals
-		nh->param<bool>(ns + "disable_visuals", m_disable_visuals, false);
+		nh->param<bool>(ns + "disable_MRPT_visuals", m_disable_MRPT_visuals, false);
+		nh->param<bool>(ns + "disable_ROS_visuals", m_disable_ROS_visuals, false);
 
 		// verbosity level
 		int lvl;
@@ -133,6 +135,13 @@ void CGraphSlamResources::readROSParameters() {
 		nh->getParam(ns + "ground_truth", m_gt_fname);
 	}
 
+	// TF Frame IDs
+	{
+		std::string ns = "frame_IDs/";
+		nh->param<std::string>(ns + "global_frame", m_global_frame_id, "world");
+		nh->param<std::string>(ns + "base_link_frame", m_base_link_frame_id, "base_link");
+	}
+
 	// ASSERT that the given user options are valid
 	this->verifyUserInput();
 
@@ -155,7 +164,7 @@ void CGraphSlamResources::initGraphSLAM() {
 	m_graphslam_handler->setRawlogFname(rawlog_fname);
 
 	// Visuals initialization
-	if (!m_disable_visuals) {
+	if (!m_disable_MRPT_visuals) {
 		m_graphslam_handler->initVisualization();
 	}
 
@@ -200,7 +209,7 @@ void CGraphSlamResources::getROSParameters(std::string* str_out) {
 
 	ss << "Miscellaneous: " << endl;
 	ss << sep_subheader << endl;
-	ss << "Enable visuals?           : " << (!m_disable_visuals? "TRUE" : "FALSE")
+	ss << "Enable MRPT visuals?           : " << (!m_disable_MRPT_visuals? "TRUE" : "FALSE")
 		<< endl;
 	ss << "Logging verbosity Level   : " << 
 		COutputLogger::logging_levels_to_names[m_min_logging_level] << endl;;
@@ -331,10 +340,24 @@ void CGraphSlamResources::setupPubs() {
 	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_INFO, "Setting up the publishers...");
 
+	// setup the names
 	std::string ns = "feedback/";
-	// TODO - Implement this...
+
+	m_curr_robot_pos_topic = ns + "robot_position";
+	m_SLAM_eval_metric_topic = ns + "evaluation_metric";
+	m_robot_trajectory_topic = ns + "robot_trajectory";
 
 	// agent estimated position
+	m_curr_robot_pos_pub = nh->advertise<geometry_msgs::PoseStamped>(
+			m_curr_robot_pos_topic,
+			1000);
+	// TODO - implement this
+	 m_robot_trajectory_pub = nh->advertise<nav_msgs::Path>(
+	 		 m_robot_trajectory_topic,
+	 		 1000);
+	//m_SLAM_eval_metric_pub = nh->publish<mrpt::msgs::Pose2DStamped>(
+			//m_curr_robot_pos_topic,
+			//1000)
 
 }
 
@@ -347,6 +370,97 @@ void CGraphSlamResources::setupSrvs() {
 	// Graph statistics
 
 	// TODO - Implement this...
+}
+
+void CGraphSlamResources::usePublishersBroadcasters() {
+	using namespace mrpt::poses;
+	using namespace mrpt::utils;
+	using namespace std;
+
+
+	ros::Time timestamp = ros::Time::now();
+
+	// current robot pose
+	{
+		pose_t mrpt_pose = m_graphslam_engine->getCurrentRobotPosEstimation();
+		// broadcast the transformation from the world frame to the robot frame
+  	{
+  		tf::Transform transform;
+  		transform.setOrigin(tf::Vector3(mrpt_pose.x(), mrpt_pose.y(), 0.0));
+  		tf::Quaternion q;
+  		q.setRPY(0, 0, mrpt_pose.phi());
+  		transform.setRotation(q);
+
+  		m_base_link_br.sendTransform(
+  				tf::StampedTransform(transform, ros::Time::now(), "world", "base_link"));
+  	}
+
+  	// set an arrow indicating clearly the current orientation of the robot
+		{
+			geometry_msgs::PoseStamped geom_pose;
+
+			geom_pose.header.stamp = timestamp;
+			geom_pose.header.seq = m_pub_seq;
+			geom_pose.header.frame_id = m_base_link_frame_id; // with regards to base_link...
+
+			geometry_msgs::Point point;
+			point.x = 0; point.y = 0; point.z = 0;
+			geometry_msgs::Quaternion quat;
+			quat.x = 0; quat.y = 0; quat.z = 0; quat.w = 1;
+
+			geom_pose.pose.position = point;
+			geom_pose.pose.orientation = quat;
+			m_curr_robot_pos_pub.publish(geom_pose);
+		}
+
+		// robot trajectory
+		{
+			m_logger->logFmt(LVL_DEBUG, "Publishing the current robot trajectory");
+			mrpt::graphs::CNetworkOfPoses2DInf::global_poses_t graph_poses;
+			m_graphslam_engine->getRobotEstimatedTrajectory(&graph_poses);
+
+			nav_msgs::Path path;
+
+			// set the header
+			path.header.stamp = timestamp;
+			path.header.seq = m_pub_seq;
+			path.header.frame_id = m_global_frame_id;
+
+			// fill in the poses
+			for (int i = 0; i != graph_poses.size(); ++i) {
+				geometry_msgs::PoseStamped geom_pose;
+
+				cout << "Trying to fetch pose of nodeID " << i << endl;
+				pose_t mrpt_pose = graph_poses.at(i);
+				cout << "Fetched " << mrpt_pose << endl;
+				cout << "Converting..." << endl;
+				mrpt_bridge::convert(mrpt_pose, geom_pose.pose);
+				cout << "Converted..." << endl;
+
+				geom_pose.header.stamp = timestamp;
+				geom_pose.header.seq = m_pub_seq;
+				//geom_pose.header.frame_id = m_global_link_frame_id;
+
+				path.poses.push_back(geom_pose);
+			}
+			// TODO - maybe enable the node numbering as well?
+
+			m_robot_trajectory_pub.publish(path);
+		}
+
+
+	}
+	// Robot Trajectory
+	// publish the trajectory of the robot
+	// TODO - have it cached until an LC is detected and reported
+	{
+	}
+
+	// SLAM Evaluation Metric
+	{
+	}
+
+	m_pub_seq++;
 }
 //////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan) {
@@ -391,8 +505,8 @@ void CGraphSlamResources::sniffOdom(const mrpt_msgs::Pose2DStamped::ConstPtr& ro
 	m_received_odom = true;
 	this->processObservation(m_mrpt_odom);
 
-
 }
+
 //////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::sniffCameraImage() {
 	THROW_EXCEPTION("Method is not implemented yet.");
@@ -421,14 +535,14 @@ void CGraphSlamResources::generateReport() {
 	m_graphslam_engine->generateReportFiles(m_graphslam_handler->output_dir_fname);
 	// save the graph and the 3DScene 
 	if (m_graphslam_handler->save_graph) {
-	m_logger->logFmt(LVL_INFO, "Saving the graph...");
+		m_logger->logFmt(LVL_INFO, "Saving the graph...");
 		std::string save_graph_fname = 
 			m_graphslam_handler->output_dir_fname +
 			"/" +
 			m_graphslam_handler->save_graph_fname;
 		m_graphslam_engine->saveGraph(&save_graph_fname);
 	}
-	if (!m_disable_visuals && m_graphslam_handler->save_3DScene) {
+	if (!m_disable_MRPT_visuals && m_graphslam_handler->save_3DScene) {
 	m_logger->logFmt(LVL_INFO, "Saving the 3DScene object...");
 		std::string save_3DScene_fname = 
 			m_graphslam_handler->output_dir_fname +

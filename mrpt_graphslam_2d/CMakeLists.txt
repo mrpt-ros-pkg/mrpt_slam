@@ -11,8 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
     std_msgs
     sensor_msgs
     geometry_msgs
+    nav_msgs
     mrpt_bridge
     mrpt_msgs
+    tf
     )
 ## System dependencies are found with CMake's conventions
 find_package(MRPT REQUIRED
@@ -112,7 +114,16 @@ find_package(MRPT REQUIRED
 catkin_package(
     INCLUDE_DIRS include
     #LIBRARIES mrpt_graphslam_2d
-    CATKIN_DEPENDS roscpp rospy std_msgs mrpt_bridge sensor_msgs geometry_msgs mrpt_msgs
+    CATKIN_DEPENDS
+    roscpp
+    rospy
+    std_msgs
+    sensor_msgs
+    geometry_msgs
+    nav_msgs
+    mrpt_bridge
+    mrpt_msgs
+    tf
     #  DEPENDS system_lib
     )
 
