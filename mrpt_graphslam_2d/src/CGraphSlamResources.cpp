@@ -64,8 +64,7 @@ CGraphSlamResources::CGraphSlamResources(
 	this->resetReceivedFlags();
 
 	// measurements initialization
-
-
+	// TODO - put them  in the corresponding function?
 	mrpt_odom = CObservationOdometry::Create();
 	mrpt_odom->hasEncodersInfo = false;
 	mrpt_odom->hasVelocities = false;
@@ -305,12 +304,12 @@ void CGraphSlamResources::setupSubs() {
 	// setup the names
 	std::string ns = "input/";
 
-	odom_topic = ns + "odom";
+	m_odom_topic = ns + "odom";
 	laser_scan_topic = ns + "laser_scan";
 
 	// odometry
 	odom_sub = nh->subscribe<mrpt_msgs::Pose2DStamped>(
-			odom_topic,
+			m_odom_topic,
 			1000,
 			&CGraphSlamResources::sniffOdom, this);
 
@@ -412,6 +411,41 @@ void CGraphSlamResources::processObservation(mrpt::obs::CObservationPtr& observ)
 	this->_process(observ);
 	this->resetReceivedFlags();
 
+}
+//////////////////////////////////////////////////////////////////////////////
+void CGraphSlamResources::generateReport() {
+	using namespace std;
+	using namespace mrpt::utils;
+
+	logger->logFmt(LVL_INFO, "Generating overall report...");
+	graphslam_engine->generateReportFiles(graphslam_handler->output_dir_fname);
+	// save the graph and the 3DScene 
+	if (graphslam_handler->save_graph) {
+	logger->logFmt(LVL_INFO, "Saving the graph...");
+		std::string save_graph_fname = 
+			graphslam_handler->output_dir_fname +
+			"/" +
+			graphslam_handler->save_graph_fname;
+		graphslam_engine->saveGraph(&save_graph_fname);
+	}
+	if (!disable_visuals && graphslam_handler->save_3DScene) {
+	logger->logFmt(LVL_INFO, "Saving the 3DScene object...");
+		std::string save_3DScene_fname = 
+			graphslam_handler->output_dir_fname +
+			"/" +
+			graphslam_handler->save_3DScene_fname;
+
+		graphslam_engine->save3DScene(&save_3DScene_fname);
+	}
+
+}
+
+bool CGraphSlamResources::continueExec() {
+	using namespace std;
+	using namespace mrpt::utils;
+
+	logger->logFmt(LVL_DEBUG, "In continueExec check method");
+	return graphslam_handler->queryObserverForEvents();
 }
 
 //////////////////////////////////////////////////////////////////////////////

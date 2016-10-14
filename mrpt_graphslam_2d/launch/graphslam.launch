@@ -11,21 +11,29 @@ TODO - Write this.
 	<!-- LAUNCH ARGUMENTS -->
 	<!-- ************************************* -->
 	<arg name="output"        default="screen" />
+	<arg name="bag_file"      default="$(find mrpt_graphslam_2d)/rosbags/20161006_ktM_2nd_floor/short_loop.bag"  />
+	<arg name="main_ns"       default="graphslam_engine" />
 
     <!-- LAUNCH PARAMETERS -->
 	<!-- ************************************* -->
-    NRD, ERD, GSO, verbosity, scan_topic, odometry_topic, disable_visuals, ground_truth, ini_fname
 
-	<param name="/graphslam_engine/deciders_optimizers/NRD" value="CICPCriteriaNRD"                                           />
-	<param name="/graphslam_engine/deciders_optimizers/ERD" value="CICPCriteriaERD"                                            />
-	<param name="/graphslam_engine/deciders_optimizers/GSO" value="CLevMarqGSO"                                               />
-	<param name="/graphslam_engine/files/config"            value="$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"   />
-	<param name="/graphslam_engine/files/grount_truth"      value=""                                                          />
-	<param name="/graphslam_engine/misc/disable_visuals"    value="false" type="bool"                                         />
-	<param name="/graphslam_engine/misc/verbosity"          value="1"                                                         />
+	<param name="/graphsalm_engine/deciders_optimizers/NRD" value="CICPCriteriaNRD"                                           />
+	<param name="/graphsalm_engine/deciders_optimizers/ERD" value="CICPCriteriaERD"                                            />
+	<param name="/graphsalm_engine/deciders_optimizers/GSO" value="CLevMarqGSO"                                               />
+	<param name="/graphsalm_engine/files/config"            value="$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"   />
+	<param name="/graphsalm_engine/files/grount_truth"      value=""                                                          />
+	<param name="/graphsalm_engine/misc/disable_visuals"    value="false" type="bool"                                         />
+	<param name="/graphsalm_engine/misc/verbosity"          value="0"                                                         />
 
 	<!-- NODES TO BE LAUNCHED -->
 	<!-- ************************************* -->
 	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam" output="$(arg output)" />
+
+    <group if="$(env ROS_IS_SIMULATION)">
+        <param name="/use_sim_time" value = "true" type="bool" />
+	    <node
+		    pkg="rosbag" type="play" name="rosbag_player"
+		    args="--clock $(arg bag_file) /scan:=$(arg main_ns)/input/laser_scan /pioneer/position_odom:=$(arg main_ns)/input/odom" output="$(arg output)" />
+	</group>
 
 </launch>

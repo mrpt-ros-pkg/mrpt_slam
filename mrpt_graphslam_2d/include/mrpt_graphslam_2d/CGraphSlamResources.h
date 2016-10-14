@@ -27,7 +27,7 @@
 #include <mrpt/utils/mrpt_macros.h>
 #include <mrpt/utils/COutputLogger.h>
 #include <mrpt/graphslam/CGraphSlamEngine.h>
-#include <mrpt/graphslam/apps_related/TGraphSlamOptions.h>
+#include <mrpt/graphslam/apps_related/TUserOptionsChecker.h>
 #include <mrpt/graphslam/apps_related/CGraphSlamHandler.h>
 
 // cpp headers
@@ -78,6 +78,15 @@ public:
 	/** TODO - Implement this */
 	void sniff3DPointCloud();
 	/**\}*/
+	/**\brief Indicate whether graphslam execution can proceed normally.
+	 * \return False if user has demanded to exit (pressed <C-c>), True otherwise
+	 */
+	bool continueExec();
+	/**\brief Generate the relevant report directory/files after the graphSLAM
+	 * execution.
+	 */
+	void generateReport();
+
 	
 	static const std::string sep_header;
 	static const std::string sep_subheader;
@@ -117,7 +126,6 @@ private:
 	void verifyUserInput();
 
 	void resetReceivedFlags();
-
 	/**\name Methods for settign up TOPIC subscribers, publishers, and
 	 * corresponding services
 	 */
@@ -158,7 +166,7 @@ private:
 	/**\brief Struct instance holding the available deciders/optimizers that the
 	 * user can issue
 	 */
-	mrpt::graphslam::supplementary::TGraphSlamOptions graphslam_opts;
+	mrpt::graphslam::supplementary::TUserOptionsChecker graphslam_opts;
 	CGraphSlamHandler* graphslam_handler;
 
 	bool has_read_config;
@@ -206,7 +214,7 @@ private:
 	 * Names of the topics that the class instance subscribes or publishes to
 	 */
 	/**\{*/
-	std::string odom_topic;
+	std::string m_odom_topic;
 	std::string laser_scan_topic;
 	std::string camera_topic;
 	std::string point_cloud_topic;

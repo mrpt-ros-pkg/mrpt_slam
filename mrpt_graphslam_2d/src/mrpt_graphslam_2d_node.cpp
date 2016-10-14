@@ -53,11 +53,16 @@ int main(int argc, char **argv)
 		// print the parameters just for verification
 		resources.printParams();
 
-		while (ros::ok()) {
-
+		while (ros::ok() && resources.continueExec()) {
 			ros::spinOnce();
 			loop_rate.sleep();
 		}
+
+		//
+		// Postprocessing
+		//
+
+		resources.generateReport();
 
 	}
 	catch (exception& e) {
