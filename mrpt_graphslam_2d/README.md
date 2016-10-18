@@ -18,6 +18,8 @@ mrpt_graphslam_2d available [here](// TODO - add it.)
 
 ## Algorithm demonstration
 - A prerecorded rosbag as well as instructions on how to run it, can be found
-    [here](https://www.dropbox.com/sh/pmuc504800tmr9v/AAA8lSQ6rAMQFyfHcUdAD1b5a?dl=0).
+    in the demo/ directory
+- Launch the launchfile that the demo/ directory contains. Tinker with the
+	launch parameters if you want to modify the program behavior
 - Rosbag was recorded in the Mechanical Engineering School of the [National
-Technical University of Athens](http://www.mech.ntua.gr/en)
+	Technical University of Athens](http://www.mech.ntua.gr/en)

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<!--
+Mon Oct 10 19:20:36 EEST 2016, Nikos Koukis
+
+TODO - Write this.
+
+-->
+
+<launch>
+	<!-- LAUNCH ARGUMENTS -->
+	<!-- ************************************* -->
+	<arg name="output"        default="screen"                                      />
+	<arg name="bag_file"      default="short_loop.bag"                              />
+	<arg name="main_ns"       default="graphslam_engine"                            />
+
+	<arg name="global_frame_ID" default="map"                                       />
+	<arg name="base_link_frame_ID" default="base_link"                              />
+	<arg name="odometry_frame_ID" default="odom"                                    />
+	<!-- Keep this one as "laser" so that it can be displayed correctly in rviz -->
+	<arg name="laser_frame_ID" default="laser"                                      />
+
+    <!-- LAUNCH PARAMETERS -->
+	<!-- ************************************* -->
+
+  <group ns="$(arg main_ns)">
+		<param name="deciders_optimizers/NRD"   value ="CICPCriteriaNRD"                                               />
+		<param name="deciders_optimizers/ERD"   value ="CICPCriteriaERD"                                               />
+		<param name="deciders_optimizers/GSO"   value ="CLevMarqGSO"                                                   />
+		<param name="files/config"              value ="$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"       />
+		<param name="files/grount_truth"        value =""                                                              />
+		<param name="misc/disable_MRPT_visuals" value ="false" type="bool"                                             />
+		<param name="misc/disable_ROS_visuals" value ="false" type="bool"                                              />
+		<param name="misc/verbosity"            value ="0"                                                             />
+		<param name="frame_IDs/global_frame"    value ="$(arg global_frame_ID)"                                        />
+		<param name="frame_IDs/base_link_frame" value ="$(arg base_link_frame_ID)"                                     />
+		<param name="frame_IDs/odometry_frame"  value ="$(arg odometry_frame_ID)"                                      />
+		<param name="frame_IDs/laser_frame"     value ="$(arg laser_frame_ID)"                                         />
+	</group>
+
+	<!-- NODES TO BE LAUNCHED -->
+	<!-- ************************************* -->
+	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam" output="$(arg output)" />
+
+  <group if="$(env ROS_IS_SIMULATION)">
+    <param name="/use_sim_time" value = "true" type="bool" />
+	  <node
+		  pkg="rosbag" type="play" name="rosbag_player"
+		  args="--clock $(arg bag_file) /scan:=$(arg main_ns)/input/laser_scan /pioneer/position_odom:=$(arg main_ns)/input/odom" output="$(arg output)" />
+	</group>
+
+	<!-- Robot Geometrical Configuration -->
+  <node pkg="tf" type="static_transform_publisher" name="base_link_laser_broadcaster" args="0 0 0.05 0 0 0 1 $(arg base_link_frame_ID) $(arg laser_frame_ID) 100" output="$(arg output)" />
+
+</launch>
