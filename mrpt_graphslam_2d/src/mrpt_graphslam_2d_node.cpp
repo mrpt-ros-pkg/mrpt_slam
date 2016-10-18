@@ -50,11 +50,13 @@ int main(int argc, char **argv)
 		// CGraphSlamResources initialization
 		CGraphSlamResources resources(&logger, &nh);
 		resources.readParams();
+		resources.setupCommunication();
 		// print the parameters just for verification
 		resources.printParams();
 
-		while (ros::ok() && resources.continueExec()) {
-			resources.usePublishersBroadcasters();
+		bool cont_exec = true;
+		while (ros::ok() && cont_exec) {
+			cont_exec = resources.usePublishersBroadcasters();
 
 			ros::spinOnce();
 			loop_rate.sleep();

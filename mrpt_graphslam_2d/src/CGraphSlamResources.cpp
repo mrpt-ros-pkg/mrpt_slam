@@ -51,11 +51,6 @@ CGraphSlamResources::CGraphSlamResources(
 	ASSERT_(m_logger);
 	ASSERT_(nh_in);
 
-	// setup subscribers, publishers, services...
-	this->setupSubs();
-	this->setupPubs();
-	this->setupSrvs();
-
 	m_graphslam_handler = new CGraphSlamHandler();
 	m_graphslam_handler->setOutputLoggerPtr(m_logger);
 
@@ -91,6 +86,7 @@ CGraphSlamResources::~CGraphSlamResources() {
 void CGraphSlamResources::readParams() {
 	this->readROSParameters();
 	m_graphslam_handler->readConfigFname(m_ini_fname);
+
 
 	m_has_read_config = true;
 }
@@ -136,10 +132,14 @@ void CGraphSlamResources::readROSParameters() {
 	}
 
 	// TF Frame IDs
+	// names of the frames of the corresponding robot parts
 	{
 		std::string ns = "frame_IDs/";
-		nh->param<std::string>(ns + "global_frame", m_global_frame_id, "world");
-		nh->param<std::string>(ns + "base_link_frame", m_base_link_frame_id, "base_link");
+
+		nh->param<std::string>(ns + "global_frame"    , m_global_frame_id    , "map");
+		nh->param<std::string>(ns + "base_link_frame" , m_base_link_frame_id , "base_link");
+		nh->param<std::string>(ns + "odometry_frame"  , m_odom_frame_id      , "odom");
+		nh->param<std::string>(ns + "laser_frame"     , m_laser_frame_id     , "laser");
 	}
 
 	// ASSERT that the given user options are valid
@@ -149,6 +149,34 @@ void CGraphSlamResources::readROSParameters() {
 			"Successfully read parameters from ROS Parameter Server");
 
 	this->initGraphSLAM();
+}
+//////////////////////////////////////////////////////////////////////////////
+void CGraphSlamResources::readStaticTFs() {
+	using namespace mrpt::utils;
+
+	// base_link => laser
+	m_logger->logFmt(LVL_ERROR, "Looking up static transform...%s => %s",
+			m_laser_frame_id.c_str(),
+			m_base_link_frame_id.c_str());
+	try {
+		m_listener.lookupTransform(
+				/* target_fname = */ m_laser_frame_id,
+				/* source_fname = */ m_base_link_frame_id,
+				/* transform time = */ ros::Time(0),
+				/* transform = */ m_base_laser_transform);
+		m_logger->logFmt(LVL_INFO, "OK.");
+	}
+	catch (tf::TransformException &ex) {
+		m_logger->logFmt(LVL_WARN, "Transformation not found, using default...");
+
+  	m_base_laser_transform.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+  	m_base_laser_transform.setRotation(tf::Quaternion(0, 0, 0, 1));
+  	m_base_laser_transform.stamp_ = ros::Time::now();
+  	m_base_laser_transform.frame_id_ = m_base_link_frame_id;
+  	m_base_laser_transform.child_frame_id_ = m_laser_frame_id;
+	}
+
+
 }
 //////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::initGraphSLAM() {
@@ -209,7 +237,7 @@ void CGraphSlamResources::getROSParameters(std::string* str_out) {
 
 	ss << "Miscellaneous: " << endl;
 	ss << sep_subheader << endl;
-	ss << "Enable MRPT visuals?           : " << (!m_disable_MRPT_visuals? "TRUE" : "FALSE")
+	ss << "Enable MRPT visuals?           : " << (m_disable_MRPT_visuals? "FALSE" : "TRUE")
 		<< endl;
 	ss << "Logging verbosity Level   : " << 
 		COutputLogger::logging_levels_to_names[m_min_logging_level] << endl;;
@@ -298,13 +326,24 @@ void CGraphSlamResources::verifyUserInput() {
 		bool gt_exists = system::fileExists(m_gt_fname);
 		ASSERTMSG_(gt_exists,
 				format(
-					"\n.Ground truth file \"%s\"doesn't exist. Either unset the corresponding ROS parameter or specify a valid pathname.\nExiting...\n",
+					"\nGround truth file \"%s\"doesn't exist. Either unset the corresponding ROS parameter or specify a valid pathname.\nExiting...\n",
 					m_gt_fname.c_str()));
 	}
 
 }
 
 //////////////////////////////////////////////////////////////////////////////
+void CGraphSlamResources::setupCommunication() {
+
+	// setup subscribers, publishers, services...
+	this->setupSubs();
+	this->setupPubs();
+	this->setupSrvs();
+
+	// fetch the static geometrical transformations
+	this->readStaticTFs();
+
+}
 
 void CGraphSlamResources::setupSubs() {
 	using namespace mrpt::utils;
@@ -344,20 +383,32 @@ void CGraphSlamResources::setupPubs() {
 	std::string ns = "feedback/";
 
 	m_curr_robot_pos_topic = ns + "robot_position";
-	m_SLAM_eval_metric_topic = ns + "evaluation_metric";
 	m_robot_trajectory_topic = ns + "robot_trajectory";
+	m_robot_tr_poses_topic = ns + "robot_tr_poses";
+	m_odom_tr_poses_topic = ns + "odom_tr_poses";
+	m_SLAM_eval_metric_topic = ns + "evaluation_metric";
 
 	// agent estimated position
 	m_curr_robot_pos_pub = nh->advertise<geometry_msgs::PoseStamped>(
 			m_curr_robot_pos_topic,
 			1000);
-	// TODO - implement this
 	 m_robot_trajectory_pub = nh->advertise<nav_msgs::Path>(
 	 		 m_robot_trajectory_topic,
 	 		 1000);
-	//m_SLAM_eval_metric_pub = nh->publish<mrpt::msgs::Pose2DStamped>(
-			//m_curr_robot_pos_topic,
-			//1000)
+	 m_robot_tr_poses_pub = nh->advertise<geometry_msgs::PoseArray>(
+	 		 m_robot_tr_poses_topic,
+	 		 1000);
+
+	 // odometry nav_msgs::Path
+	 m_odom_path.header.seq = 0;
+	 m_odom_path.header.stamp = ros::Time::now();
+	 m_odom_path.header.frame_id = m_global_frame_id;
+
+	 m_odom_tr_poses_pub = nh->advertise<nav_msgs::Path>(
+	 		 m_odom_tr_poses_topic,
+	 		 1000);
+
+
 
 }
 
@@ -372,93 +423,109 @@ void CGraphSlamResources::setupSrvs() {
 	// TODO - Implement this...
 }
 
-void CGraphSlamResources::usePublishersBroadcasters() {
+bool CGraphSlamResources::usePublishersBroadcasters() {
 	using namespace mrpt::poses;
 	using namespace mrpt::utils;
 	using namespace std;
 
+	if (!m_disable_MRPT_visuals) {
+		return this->continueExec();
+	}
 
 	ros::Time timestamp = ros::Time::now();
 
-	// current robot pose
-	{
+	// global frame <=> base_link
+  {
+		// current robot pose
 		pose_t mrpt_pose = m_graphslam_engine->getCurrentRobotPosEstimation();
-		// broadcast the transformation from the world frame to the robot frame
-  	{
-  		tf::Transform transform;
-  		transform.setOrigin(tf::Vector3(mrpt_pose.x(), mrpt_pose.y(), 0.0));
-  		tf::Quaternion q;
-  		q.setRPY(0, 0, mrpt_pose.phi());
-  		transform.setRotation(q);
 
-  		m_base_link_br.sendTransform(
-  				tf::StampedTransform(transform, ros::Time::now(), "world", "base_link"));
-  	}
+  	tf::Transform transform;
+  	transform.setOrigin(tf::Vector3(mrpt_pose.x(), mrpt_pose.y(), 0.0));
+  	tf::Quaternion q;
+  	q.setRPY(0, 0, mrpt_pose.phi());
+  	transform.setRotation(q);
 
-  	// set an arrow indicating clearly the current orientation of the robot
-		{
-			geometry_msgs::PoseStamped geom_pose;
-
-			geom_pose.header.stamp = timestamp;
-			geom_pose.header.seq = m_pub_seq;
-			geom_pose.header.frame_id = m_base_link_frame_id; // with regards to base_link...
-
-			geometry_msgs::Point point;
-			point.x = 0; point.y = 0; point.z = 0;
-			geometry_msgs::Quaternion quat;
-			quat.x = 0; quat.y = 0; quat.z = 0; quat.w = 1;
-
-			geom_pose.pose.position = point;
-			geom_pose.pose.orientation = quat;
-			m_curr_robot_pos_pub.publish(geom_pose);
-		}
-
-		// robot trajectory
-		{
-			m_logger->logFmt(LVL_DEBUG, "Publishing the current robot trajectory");
-			mrpt::graphs::CNetworkOfPoses2DInf::global_poses_t graph_poses;
-			m_graphslam_engine->getRobotEstimatedTrajectory(&graph_poses);
-
-			nav_msgs::Path path;
-
-			// set the header
-			path.header.stamp = timestamp;
-			path.header.seq = m_pub_seq;
-			path.header.frame_id = m_global_frame_id;
-
-			// fill in the poses
-			for (int i = 0; i != graph_poses.size(); ++i) {
-				geometry_msgs::PoseStamped geom_pose;
-
-				cout << "Trying to fetch pose of nodeID " << i << endl;
-				pose_t mrpt_pose = graph_poses.at(i);
-				cout << "Fetched " << mrpt_pose << endl;
-				cout << "Converting..." << endl;
-				mrpt_bridge::convert(mrpt_pose, geom_pose.pose);
-				cout << "Converted..." << endl;
-
-				geom_pose.header.stamp = timestamp;
-				geom_pose.header.seq = m_pub_seq;
-				//geom_pose.header.frame_id = m_global_link_frame_id;
-
-				path.poses.push_back(geom_pose);
-			}
-			// TODO - maybe enable the node numbering as well?
-
-			m_robot_trajectory_pub.publish(path);
-		}
+  	m_broadcaster.sendTransform(
+  			tf::StampedTransform(transform, ros::Time::now(),
+  				m_global_frame_id,
+  				m_base_link_frame_id));
+  }
+  // global frame <=> odom frame
+  // make sure that we have received odometry information in the first place...
+  if (!m_global_odom_transform.frame_id_.empty()) {
+  	m_broadcaster.sendTransform(m_global_odom_transform);
+  }
 
 
+  // set an arrow indicating clearly the current orientation of the robot
+	{
+		geometry_msgs::PoseStamped geom_pose;
+
+		geom_pose.header.stamp = timestamp;
+		geom_pose.header.seq = m_pub_seq;
+		geom_pose.header.frame_id = m_base_link_frame_id; // with regards to base_link...
+
+		geometry_msgs::Point point;
+		point.x = 0; point.y = 0; point.z = 0;
+		geometry_msgs::Quaternion quat;
+		quat.x = 0; quat.y = 0; quat.z = 0; quat.w = 1;
+
+		geom_pose.pose.position = point;
+		geom_pose.pose.orientation = quat;
+		m_curr_robot_pos_pub.publish(geom_pose);
 	}
-	// Robot Trajectory
+
+	// robot trajectory
 	// publish the trajectory of the robot
 	// TODO - have it cached until an LC is detected and reported
 	{
+		m_logger->logFmt(LVL_DEBUG, "Publishing the current robot trajectory");
+		mrpt::graphs::CNetworkOfPoses2DInf::global_poses_t graph_poses;
+		m_graphslam_engine->getRobotEstimatedTrajectory(&graph_poses);
+
+		nav_msgs::Path path;
+
+		// set the header
+		path.header.stamp = timestamp;
+		path.header.seq = m_pub_seq;
+		path.header.frame_id = m_global_frame_id;
+
+		//
+		// fill in the pose as well as the nav_msgs::Path at the same time.
+		//
+
+		geometry_msgs::PoseArray geom_poses;
+		geom_poses.header.stamp = timestamp;
+		geom_poses.header.frame_id = m_global_frame_id;
+
+		for (int i = 0; i != graph_poses.size(); ++i) {
+			geometry_msgs::PoseStamped geom_pose_stamped;
+			geometry_msgs::Pose geom_pose;
+
+			// grab the pose - convert to geometry_msgs::Pose format
+			pose_t mrpt_pose = graph_poses.at(i);
+			mrpt_bridge::convert(mrpt_pose, geom_pose);
+			geom_poses.poses.push_back(geom_pose);
+			geom_pose_stamped.pose = geom_pose;
+
+			// edit the header
+			geom_pose_stamped.header.stamp = timestamp;
+			geom_pose_stamped.header.seq = m_pub_seq;
+			geom_pose_stamped.header.frame_id = m_global_frame_id;
+
+			path.poses.push_back(geom_pose_stamped);
+		}
+
+		m_robot_tr_poses_pub.publish(geom_poses);
+		m_robot_trajectory_pub.publish(path);
 	}
 
 	// SLAM Evaluation Metric
 	{
 	}
+
+	// Odometry trajectory - nav_msgs::Path
+	m_odom_tr_poses_pub.publish(m_odom_path);
 
 	m_pub_seq++;
 }
@@ -487,8 +554,36 @@ void CGraphSlamResources::sniffOdom(const mrpt_msgs::Pose2DStamped::ConstPtr& ro
 
 	m_logger->logFmt(LVL_DEBUG, "sniffOdom: Received an odometry msg. Converting it to MRPT format...");
 
-	// build and fill an CObservationOdometry instance
+	// update the odometry frame
+  m_global_odom_transform.setOrigin(tf::Vector3(
+  			ros_odom->pose.x,
+  			ros_odom->pose.y,
+  			0));
+  tf::Quaternion quaternion;
+  quaternion.setRPY(0, 0, ros_odom->pose.theta);
+  quaternion.normalize();
+  m_global_odom_transform.setRotation(quaternion);
+  m_global_odom_transform.stamp_ = ros_odom->header.stamp;
+  m_global_odom_transform.frame_id_ = m_global_frame_id;
+  m_global_odom_transform.child_frame_id_ = m_odom_frame_id;
+  
+  // add to the overall odometry path
+	geometry_msgs::PoseStamped geom_pose_stamped;
+	{
+		geom_pose_stamped.header.frame_id = m_global_frame_id;
+		geom_pose_stamped.header.stamp = ros::Time::now();
 
+		geometry_msgs::Point p;
+		p.x = ros_odom->pose.x;
+		p.y = ros_odom->pose.y;
+		p.z = 0;
+		geom_pose_stamped.pose.position = p;
+
+		tf::quaternionTFToMsg(quaternion, geom_pose_stamped.pose.orientation);
+	}
+  m_odom_path.poses.push_back(geom_pose_stamped);
+
+	// build and fill an CObservationOdometry instance
 	mrpt_bridge::convert(
 			/* src = */ ros_odom->header.stamp,
 			/* dst = */m_mrpt_odom->timestamp);

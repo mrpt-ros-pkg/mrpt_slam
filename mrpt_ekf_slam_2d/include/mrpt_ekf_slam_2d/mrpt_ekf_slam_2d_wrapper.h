@@ -160,7 +160,7 @@ public:
                         const ros::Duration& polling_sleep_duration = ros::Duration(0.01));
 
   /**
-  * @brief  publis tf tree
+  * @brief  publish tf tree
   *
   */
   void publishTF();

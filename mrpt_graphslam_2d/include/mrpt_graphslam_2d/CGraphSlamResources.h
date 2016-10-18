@@ -15,9 +15,11 @@
 #include <mrpt_bridge/mrpt_bridge.h>
 #include <mrpt_msgs/Pose2DStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseArray.h>
 #include <nav_msgs/Path.h>
 #include <sensor_msgs/LaserScan.h>
 
+#include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
 
@@ -101,8 +103,20 @@ public:
 	 *
 	 * Method makes the necessary calls to all the publishers of the class and
 	 * broadcaster instances
+	 *
+	 * \sa continueExec
+	 * \return True if the graphSLAM execution is to continue normally
 	 */
-	void usePublishersBroadcasters();
+	bool usePublishersBroadcasters();
+	/**\brief Wrapper method around the setup* private class methods.
+	 *
+	 * Handy for setting up publishers, subscribers, services, TF-related stuff
+	 * all at once from the user application
+	 * 
+	 * \note method should be called right after the call to
+	 * CGraphSlamResources::readParams method
+	 */
+	void setupCommunication();
 
 
 	static const std::string sep_header;
@@ -131,6 +145,7 @@ private:
 	 * \sa readParams
 	 */
 	void readROSParameters();
+	void readStaticTFs();
 	/**\brief Fill in the given string with the parameters that have been read
 	 * from the ROS parameter server
 	 *
@@ -143,8 +158,10 @@ private:
 	void verifyUserInput();
 
 	void resetReceivedFlags();
-	/**\name Methods for settign up TOPIC subscribers, publishers, and
+	/**\name Methods for setting up topic subscribers, publishers, and
 	 * corresponding services
+	 *
+	 * \sa setupCommunication
 	 */
 	/**\{*/
 	void setupSubs();
@@ -228,7 +245,10 @@ private:
 
 	ros::Publisher m_curr_robot_pos_pub;
 	ros::Publisher m_robot_trajectory_pub;
-	ros::Publisher m_SLAM_eval_metric_pub;
+	ros::Publisher m_robot_tr_poses_pub;
+	ros::Publisher m_gt_trajectory_pub; // TODO
+	ros::Publisher m_SLAM_eval_metric_pub; // TODO
+	ros::Publisher m_odom_tr_poses_pub;
 	/**\}*/
 
 	/**\name Topic Names
@@ -243,17 +263,17 @@ private:
 
 	std::string m_curr_robot_pos_topic;
 	std::string m_robot_trajectory_topic;
+	std::string m_robot_tr_poses_topic;
+	std::string m_odom_tr_poses_topic;
 	std::string m_SLAM_eval_metric_topic;
 	/**\}*/
 
-	/**\name Broadcasters
-	 * TF Broadcaster instances
+	/**\name TransformBroadcasters - TransformListeners
 	 */
 	/**\{*/
-	tf::TransformBroadcaster m_base_link_br;
-	tf::TransformBroadcaster m_laser_link; // TODO
-	tf::TransformBroadcaster m_camera_link; // TODO
-	tf::TransformBroadcaster m_odometry_link; // TODO
+	tf::TransformBroadcaster m_broadcaster;
+	tf::TransformListener m_listener;
+	tf::Transformer m_transformer;
 	/**\}*/
 
 	/**\name Broadcaster Names
@@ -262,8 +282,23 @@ private:
 	/**\{*/
 	std::string m_global_frame_id;
 	std::string m_base_link_frame_id;
+	std::string m_odom_frame_id;
+	std::string m_laser_frame_id;
 	/**\}*/
 
+	/**\name Geometrical Configuration
+	 * \brief Variables that setup the geometrical dimensions, distances between
+	 * the different robot parts etc.
+	 */
+	/**\{*/
+	tf::StampedTransform m_base_laser_transform;
+	tf::StampedTransform m_global_odom_transform;
+	/**\}*/
+
+	/**\brief Odometry path of the robot.
+	 * Handy mostly for visualization reasons.
+	 */
+	nav_msgs::Path m_odom_path;
 
 	/**\brief Times a messge has been published => usePublishersBroadcasters method is called
 	 */
