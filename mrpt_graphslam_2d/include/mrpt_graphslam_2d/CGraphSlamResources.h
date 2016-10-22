@@ -17,7 +17,9 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
 #include <nav_msgs/Path.h>
+#include <nav_msgs/OccupancyGrid.h>
 #include <sensor_msgs/LaserScan.h>
+#include <std_msgs/Header.h>
 
 #include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
@@ -25,6 +27,7 @@
 
 // MRPT
 #include <mrpt/graphs/CNetworkOfPoses.h>
+#include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt/obs/CObservationOdometry.h>
 #include <mrpt/obs/CObservation2DRangeScan.h>
 #include <mrpt/system/threads.h>
@@ -249,6 +252,7 @@ private:
 	ros::Publisher m_gt_trajectory_pub; // TODO
 	ros::Publisher m_SLAM_eval_metric_pub; // TODO
 	ros::Publisher m_odom_tr_poses_pub;
+	ros::Publisher m_gridmap_pub; // TODO
 	/**\}*/
 
 	/**\name Topic Names
@@ -266,6 +270,7 @@ private:
 	std::string m_robot_tr_poses_topic;
 	std::string m_odom_tr_poses_topic;
 	std::string m_SLAM_eval_metric_topic;
+	std::string m_gridmap_topic; // TODO
 	/**\}*/
 
 	/**\name TransformBroadcasters - TransformListeners

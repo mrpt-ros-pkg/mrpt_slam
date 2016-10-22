@@ -155,7 +155,7 @@ void CGraphSlamResources::readStaticTFs() {
 	using namespace mrpt::utils;
 
 	// base_link => laser
-	m_logger->logFmt(LVL_ERROR, "Looking up static transform...%s => %s",
+	m_logger->logFmt(LVL_WARN, "Looking up static transform...%s => %s",
 			m_laser_frame_id.c_str(),
 			m_base_link_frame_id.c_str());
 	try {
@@ -221,25 +221,25 @@ void CGraphSlamResources::getROSParameters(std::string* str_out) {
 	ss << sep_header << endl;
 	ss << endl;
 
-	ss << "Deciders / Optimizers: " << endl;
+	ss << "Deciders / Optimizers = " << endl;
 	ss << sep_subheader << endl;
-	ss << "Node Registration Decider : " << m_node_reg << endl;
-	ss << "Edge Registration Decider : " << m_edge_reg << endl;
-	ss << "GraphSLAM Optimizer       : " << m_optimizer << endl;
+	ss << "Node Registration Decider = " << m_node_reg << endl;
+	ss << "Edge Registration Decider = " << m_edge_reg << endl;
+	ss << "GraphSLAM Optimizer       = " << m_optimizer << endl;
 	ss << endl;
 
 	ss << "Filenames: " << endl;
 	ss << sep_subheader << endl;
-	ss << "Configuration .ini file   : " << m_ini_fname << endl;
-	ss << "Ground truth filename     : " << (!m_gt_fname.empty() ? m_gt_fname : "NONE")
+	ss << "Configuration .ini file   = " << m_ini_fname << endl;
+	ss << "Ground truth filename     = " << (!m_gt_fname.empty() ? m_gt_fname : "NONE")
 		<< endl;
 	ss << endl;
 
 	ss << "Miscellaneous: " << endl;
 	ss << sep_subheader << endl;
-	ss << "Enable MRPT visuals?           : " << (m_disable_MRPT_visuals? "FALSE" : "TRUE")
+	ss << "Enable MRPT visuals?      = " << (m_disable_MRPT_visuals? "FALSE" : "TRUE")
 		<< endl;
-	ss << "Logging verbosity Level   : " << 
+	ss << "Logging verbosity Level   = " << 
 		COutputLogger::logging_levels_to_names[m_min_logging_level] << endl;;
 	ss << endl;
 
@@ -387,6 +387,7 @@ void CGraphSlamResources::setupPubs() {
 	m_robot_tr_poses_topic = ns + "robot_tr_poses";
 	m_odom_tr_poses_topic = ns + "odom_tr_poses";
 	m_SLAM_eval_metric_topic = ns + "evaluation_metric";
+	m_gridmap_topic = ns + "gridmap";
 
 	// agent estimated position
 	m_curr_robot_pos_pub = nh->advertise<geometry_msgs::PoseStamped>(
@@ -408,6 +409,10 @@ void CGraphSlamResources::setupPubs() {
 	 		 m_odom_tr_poses_topic,
 	 		 1000);
 
+	 // generated gridmap
+	 m_gridmap_pub = nh->advertise<nav_msgs::OccupancyGrid>(
+	 		 m_gridmap_topic,
+	 		 1000);
 
 
 }
@@ -428,9 +433,6 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 	using namespace mrpt::utils;
 	using namespace std;
 
-	if (!m_disable_MRPT_visuals) {
-		return this->continueExec();
-	}
 
 	ros::Time timestamp = ros::Time::now();
 
@@ -527,8 +529,31 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 	// Odometry trajectory - nav_msgs::Path
 	m_odom_tr_poses_pub.publish(m_odom_path);
 
+	// generated gridmap
+	{
+		std_msgs::Header h;
+		mrpt::system::TTimeStamp mrpt_time;
+		mrpt::maps::COccupancyGridMap2D mrpt_gridmap;
+		m_graphslam_engine->getOccupancyGridMap2D(&mrpt_gridmap, &mrpt_time);
+
+		// timestamp
+		mrpt_bridge::convert(mrpt_time, h.stamp);
+		h.seq = m_pub_seq;
+		h.frame_id = m_global_frame_id;
+
+		// nav gridmap
+		nav_msgs::OccupancyGrid nav_gridmap;
+		mrpt_bridge::convert(mrpt_gridmap, nav_gridmap, h);
+		m_gridmap_pub.publish(nav_gridmap);
+	}
+
 	m_pub_seq++;
-}
+
+	if (!m_disable_MRPT_visuals) {
+		return this->continueExec();
+	}
+} // USEPUBLISHERSBROADCASTERS
+
 //////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan) {
 	using namespace std;
@@ -646,6 +671,16 @@ void CGraphSlamResources::generateReport() {
 
 		m_graphslam_engine->save3DScene(&save_3DScene_fname);
 	}
+	// get the occupancy gridmap that was built
+	if (m_graphslam_handler->save_gridmap) {
+		COccupancyGridMap2D gridmap;
+		m_graphslam_engine->getOccupancyGridMap2D(&gridmap);
+		gridmap.saveMetricMapRepresentationToFile(
+				m_graphslam_handler->output_dir_fname +
+				"/" +
+				m_graphslam_handler->save_gridmap_fname);
+	}
+
 
 }
 
