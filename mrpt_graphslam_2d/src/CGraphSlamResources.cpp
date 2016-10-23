@@ -358,13 +358,13 @@ void CGraphSlamResources::setupSubs() {
 	// odometry
 	m_odom_sub = nh->subscribe<mrpt_msgs::Pose2DStamped>(
 			m_odom_topic,
-			1000,
+			m_queue_size,
 			&CGraphSlamResources::sniffOdom, this);
 
 	// laser_scans
 	m_laser_scan_sub = nh->subscribe<sensor_msgs::LaserScan>(
 			m_laser_scan_topic,
-			1000,
+			m_queue_size,
 			&CGraphSlamResources::sniffLaserScan, this);
 	
 	// camera
@@ -392,13 +392,13 @@ void CGraphSlamResources::setupPubs() {
 	// agent estimated position
 	m_curr_robot_pos_pub = nh->advertise<geometry_msgs::PoseStamped>(
 			m_curr_robot_pos_topic,
-			1000);
+			m_queue_size);
 	 m_robot_trajectory_pub = nh->advertise<nav_msgs::Path>(
 	 		 m_robot_trajectory_topic,
-	 		 1000);
+	 		 m_queue_size);
 	 m_robot_tr_poses_pub = nh->advertise<geometry_msgs::PoseArray>(
 	 		 m_robot_tr_poses_topic,
-	 		 1000);
+	 		 m_queue_size);
 
 	 // odometry nav_msgs::Path
 	 m_odom_path.header.seq = 0;
@@ -407,12 +407,12 @@ void CGraphSlamResources::setupPubs() {
 
 	 m_odom_tr_poses_pub = nh->advertise<nav_msgs::Path>(
 	 		 m_odom_tr_poses_topic,
-	 		 1000);
+	 		 m_queue_size);
 
 	 // generated gridmap
 	 m_gridmap_pub = nh->advertise<nav_msgs::OccupancyGrid>(
 	 		 m_gridmap_topic,
-	 		 1000);
+	 		 m_queue_size);
 
 
 }

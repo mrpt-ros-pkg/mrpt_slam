@@ -312,6 +312,8 @@ private:
 	/**\brief Total counter of the processed measurements
 	 */
 	size_t m_measurement_cnt;
+
+	int m_queue_size;
 };
 
 #endif /* end of include guard: CGRAPHSLAMRESOURCES_H */

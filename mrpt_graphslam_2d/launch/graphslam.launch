@@ -29,7 +29,8 @@ TODO - Write this.
 
   <group ns="$(arg main_ns)">
 		<param name = "deciders_optimizers/NRD"   value = "CICPCriteriaNRD"                                         />
-		<param name = "deciders_optimizers/ERD"   value = "CICPCriteriaERD"                                         />
+        <!--<param name = "deciders_optimizers/ERD"   value = "CICPCriteriaERD"                                         />-->
+        <param name = "deciders_optimizers/ERD"   value = "CLoopCloserERD"                                         />
 		<param name = "deciders_optimizers/GSO"   value = "CLevMarqGSO"                                             />
 		<param name = "files/config"              value = "$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini" />
 		<param name = "files/grount_truth"        value = ""                                                        />
