@@ -99,7 +99,6 @@ void CGraphSlamResources::readROSParameters() {
 
 		// enable/disable visuals
 		nh->param<bool>(ns + "disable_MRPT_visuals", m_disable_MRPT_visuals, false);
-		nh->param<bool>(ns + "disable_ROS_visuals", m_disable_ROS_visuals, false);
 
 		// verbosity level
 		int lvl;

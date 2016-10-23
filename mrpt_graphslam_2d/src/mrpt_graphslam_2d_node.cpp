@@ -10,6 +10,10 @@
 // MRPT headers
 #include <mrpt/utils/COutputLogger.h>
 #include <mrpt/graphslam/CGraphSlamEngine.h>
+#include <mrpt/system/string_utils.h>
+
+#include <cstdlib>
+#include <cstring>
 
 // ROS headers
 #include "mrpt_graphslam_2d/CGraphSlamResources.h"
@@ -37,11 +41,10 @@ int main(int argc, char **argv)
 
 	COutputLogger logger;
 	logger.setLoggerName(node_name);
-	logger.logFmt(LVL_WARN,
-			"Initializing mrpt_graphslam_node node...\n");
+	logger.logFmt(LVL_WARN, "Initializing %s node...\n", "mrpt_graphslam_2d");
 
   ros::init(argc, argv, node_name);
-	ros::NodeHandle nh("graphslam_engine");
+	ros::NodeHandle nh;
 
 	ros::Rate loop_rate(10);
 

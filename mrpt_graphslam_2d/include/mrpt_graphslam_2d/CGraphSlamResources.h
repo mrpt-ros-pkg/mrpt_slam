@@ -199,7 +199,6 @@ private:
 
 	/**\brief Are MRPT visuals on? */
 	bool m_disable_MRPT_visuals;
-	bool m_disable_ROS_visuals; // TODO - implement this
 
 	/**\brief Struct instance holding the available deciders/optimizers that the
 	 * user can issue
