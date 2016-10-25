@@ -1,3 +1,7 @@
 *~
 build*
 install*
+
+*.DS_Store
+.Spotlight-V100
+Session.vim

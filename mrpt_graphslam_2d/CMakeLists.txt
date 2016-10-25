@@ -1,0 +1,91 @@
+# Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
+# Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
+cmake_minimum_required(VERSION 2.8.3)
+set(PROJECT_NAME mrpt_graphslam_2d)
+project(${PROJECT_NAME})
+
+## Find catkin macros and libraries
+## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+## is used, also find other catkin packages
+find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    rospy
+    std_msgs
+    sensor_msgs
+    geometry_msgs
+    nav_msgs
+    mrpt_bridge
+    mrpt_msgs
+    tf
+    )
+## System dependencies are found with CMake's conventions
+find_package(MRPT REQUIRED
+    base
+    gui
+    obs
+    maps
+    opengl
+    graphslam)
+
+
+################################################
+## Declare ROS messages, services and actions ##
+################################################
+
+################################################
+## Declare ROS dynamic reconfigure parameters ##
+################################################
+
+###################################
+## catkin specific configuration ##
+###################################
+
+catkin_package(
+    INCLUDE_DIRS include
+    #LIBRARIES mrpt_graphslam_2d
+    CATKIN_DEPENDS
+    roscpp
+    rospy
+    std_msgs
+    sensor_msgs
+    geometry_msgs
+    nav_msgs
+    mrpt_bridge
+    mrpt_msgs
+    tf
+    #  DEPENDS system_lib
+    )
+
+###########
+## Build ##
+###########
+
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
+include_directories(
+	include
+  ${catkin_INCLUDE_DIRS}
+	)
+
+## Declare a C++ executable
+add_executable(mrpt_graphslam_2d_node
+    src/mrpt_graphslam_2d_node.cpp
+    src/CGraphSlamResources.cpp
+    )
+
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(mrpt_graphslam_2d_node
+    ${MRPT_LIBS}
+    ${catkin_LIBRARIES}
+    )
+
+#############
+## Install ##
+#############
+
+
+#############
+## Testing ##
+#############
+
