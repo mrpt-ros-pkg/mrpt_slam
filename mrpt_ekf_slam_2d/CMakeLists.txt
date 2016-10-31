@@ -48,3 +48,25 @@ add_executable(mrpt_ekf_slam_2d
 TARGET_LINK_LIBRARIES(mrpt_ekf_slam_2d ${MRPT_LIBS}
     ${catkin_LIBRARIES}
 )
+
+#############
+## Install ##
+#############
+
+# Mark executables and/or libraries for installation
+install(TARGETS mrpt_ekf_slam_2d
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Mark other files for installation (e.g. launch and bag files, etc.)
+install(DIRECTORY
+  launch
+  tutorial
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+#############
+## Testing ##
+#############
