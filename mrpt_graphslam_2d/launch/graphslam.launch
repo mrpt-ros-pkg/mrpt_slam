@@ -10,7 +10,6 @@ Refer to the README.md file for usage information
 
 <launch>
 	<!-- LAUNCH ARGUMENTS -->
-	<!-- ************************************* -->
 	<arg name = "output"             default = "screen"                                                                  />
 	<arg name = "bag_file"           default = "$(find mrpt_graphslam_2d)/rosbags/20161006_ktM_2nd_floor/short_loop.bag" />
 	<arg name = "main_ns"            default = "graphslam_engine"                                                        />
@@ -23,8 +22,6 @@ Refer to the README.md file for usage information
 
 
     <!-- LAUNCH PARAMETERS -->
-	<!-- ************************************* -->
-
     <group ns="$(arg main_ns)">
         <group ns="deciders_optimizers">
 		    <param name = "NRD"   value = "CICPCriteriaNRD"                                         />
@@ -51,9 +48,7 @@ Refer to the README.md file for usage information
 	</group>
 	<!--<param name = "robot_description"    command ="cat $(find mrpt_graphslam_2d)/robot1.urdf" />-->
 
-	<!-- NODES TO BE LAUNCHED -->
-	<!-- ************************************* -->
-
+    <!-- TODO - Remove this and have it only in the demo?-->
     <group if="$(env ROS_IS_SIMULATION)">
         <param name="/use_sim_time" value = "true" type="bool" />
 	    <node
