@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(mrpt_icp_slam_2d)
 # Load catkin and all dependencies required for this package
 # TODO: remove all from COMPONENTS that are not catkin packages.
-#c++ 11 standart
+#c++ 11 standard
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 IF($ENV{VERBOSE})
 	MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
