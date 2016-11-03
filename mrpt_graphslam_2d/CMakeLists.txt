@@ -4,6 +4,12 @@ cmake_minimum_required(VERSION 2.8.3)
 set(PROJECT_NAME mrpt_graphslam_2d)
 project(${PROJECT_NAME})
 
+#c++ 11 standard
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+IF($ENV{VERBOSE})
+	MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+endif()
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -26,6 +32,10 @@ find_package(MRPT REQUIRED
     maps
     opengl
     graphslam)
+
+if (MRPT_VERSION VERSION_LESS 2.0.0)
+	set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_CXX_FLAGS}")
+endif()
 
 
 ################################################

@@ -13,17 +13,24 @@
 // ROS
 #include <ros/ros.h>
 #include <mrpt_bridge/mrpt_bridge.h>
-#include <mrpt_msgs/Pose2DStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
-#include <nav_msgs/Path.h>
-#include <nav_msgs/OccupancyGrid.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/LaserScan.h>
+#include <nav_msgs/Path.h>
+#include <nav_msgs/Odometry.h>
+#include <nav_msgs/OccupancyGrid.h>
 #include <std_msgs/Header.h>
 
-#include <tf/transform_datatypes.h>
-#include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
+// TODO - remove these
+//#include <tf/transform_datatypes.h>
+//#include <tf/transform_listener.h>
+//#include <tf/transform_broadcaster.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Vector3.h>
 
 // MRPT
 #include <mrpt/graphs/CNetworkOfPoses.h>
@@ -84,7 +91,7 @@ public:
 	/**\brief Callback method for handling incoming odometry measurements in a ROS
 	 * topic.
 	 */
-	void sniffOdom(const mrpt_msgs::Pose2DStamped::ConstPtr& ros_odom);
+	void sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom);
 	/**\brief Callback method for handling incoming LaserScans objects in a ROS
 	 * topic.
 	 */
@@ -102,7 +109,7 @@ public:
 	 */
 	void generateReport();
 	/**\brief Provide feedback about the SLAM operation using ROS publilshers,
-	 * update the registered frames using tf::TransformBroadcasters
+	 * update the registered frames using the tf2_ros::TransformBroadcaster
 	 *
 	 * Method makes the necessary calls to all the publishers of the class and
 	 * broadcaster instances
@@ -160,6 +167,9 @@ private:
 	 */
 	void verifyUserInput();
 
+	/**\brief Reset the flags indicating whether we have received new data
+	 * (odometry, laser scans etc.)
+	 */
 	void resetReceivedFlags();
 	/**\name Methods for setting up topic subscribers, publishers, and
 	 * corresponding services
@@ -275,16 +285,18 @@ private:
 	/**\name TransformBroadcasters - TransformListeners
 	 */
 	/**\{*/
-	tf::TransformBroadcaster m_broadcaster;
-	tf::TransformListener m_listener;
-	tf::Transformer m_transformer;
+	tf2_ros::Buffer m_buffer;
+	tf2_ros::TransformBroadcaster m_broadcaster;
 	/**\}*/
 
-	/**\name Broadcaster Names
-	 * Names of tf::TransformBroadcaster instances
+	/**\name TF Frame IDs
+	 * Names of the current TF Frames available
 	 */
 	/**\{*/
-	std::string m_global_frame_id;
+	/**\brief Frame that the robot starts from. In a single-robot SLAM
+	 * setup this can be set to the world frame
+	 */
+	std::string m_anchor_frame_id;
 	std::string m_base_link_frame_id;
 	std::string m_odom_frame_id;
 	std::string m_laser_frame_id;
@@ -295,8 +307,8 @@ private:
 	 * the different robot parts etc.
 	 */
 	/**\{*/
-	tf::StampedTransform m_base_laser_transform;
-	tf::StampedTransform m_global_odom_transform;
+	geometry_msgs::TransformStamped m_base_laser_transform; // TODO - either use it or lose it
+	geometry_msgs::TransformStamped m_anchor_odom_transform;
 	/**\}*/
 
 	/**\brief Odometry path of the robot.

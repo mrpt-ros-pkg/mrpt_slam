@@ -10,53 +10,56 @@ Refer to the README.md file for usage information
 
 <launch>
 	<!-- LAUNCH ARGUMENTS -->
-	<arg name = "output"             default = "screen"/>
-	<arg name = "bag_file"           default = "$(find mrpt_graphslam_2d)/rosbags/20161006_ktM_2nd_floor/short_loop.bag" />
+	<arg name = "output" default = "screen"/>
+	<arg name = "bag_file" default = "$(find mrpt_graphslam_2d)/rosbags/20161006_ktM_2nd_floor/short_loop.bag" />
 	<arg name = "do_publish_gridmap_topic" default = "true" />
 	<arg name = "disable_MRPT_visuals" default = "false" />
-	<arg name = "global_frame_ID"    default = "map" />
+
+	<arg name = "anchor_frame_ID" default = "map" />
 	<arg name = "base_link_frame_ID" default = "base_link"/>
-	<arg name = "odometry_frame_ID"  default = "odom"/>
-	<arg name = "laser_frame_ID"     default = "laser"/>
+	<arg name = "odometry_frame_ID" default = "odom"/>
+	<arg name = "laser_frame_ID" default = "laser"/>
+
+	<arg name = "ros_is_simulation" />
 
 	<arg name="NRD" default="CICPCriteriaNRD" />
 	<arg name="ERD" default="CICPCriteriaERD" />
 	<arg name="GSO" default="CLevMarqGSO" />
 
 
-    <!-- LAUNCH PARAMETERS -->
-    <group ns="deciders_optimizers">
-		<param name = "NRD"   value = "$(arg NRD)" />
-        <param name = "ERD"   value = "$(arg ERD)" />
-		<param name = "GSO"   value = "$(arg GSO)" />
-    </group>
-    <group ns="files">
-		<param name = "config"              value = "$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini" />
-		<param name = "grount_truth"        value = ""                                                        />
+  <!-- LAUNCH PARAMETERS -->
+  <group ns="deciders_optimizers">
+		<param name = "NRD" value = "$(arg NRD)" />
+    <param name = "ERD" value = "$(arg ERD)" />
+		<param name = "GSO" value = "$(arg GSO)" />
+  </group>
+  <group ns="files">
+		<param name = "config" value = "$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini" />
+		<param name = "grount_truth" value = ""                                                        />
 	</group>
 	<group ns="misc">
 		<param name = "disable_MRPT_visuals" value = "$(arg disable_MRPT_visuals)" type = "bool"               />
-		<param name = "verbosity"            value = "1" type = "int"                                          />
+		<param name = "verbosity" value = "1" type = "int"                                          />
 		<param name = "do_publish_gridmap_topic" value = "$(arg do_publish_gridmap_topic)" type = "bool" />
 	</group>
 	<group ns="frame_IDs">
-		<param name = "global_frame"    value = "$(arg global_frame_ID)" />
+		<param name = "anchor_frame" value = "$(arg anchor_frame_ID)" />
 		<param name = "base_link_frame" value = "$(arg base_link_frame_ID)"/>
-		<param name = "odometry_frame"  value = "$(arg odometry_frame_ID)" />
-		<param name = "laser_frame"     value = "$(arg laser_frame_ID)"/>
+		<param name = "odometry_frame" value = "$(arg odometry_frame_ID)" />
+		<param name = "laser_frame" value = "$(arg laser_frame_ID)"/>
 	</group>
 
 	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam" output="$(arg output)" />
 
-    <!-- TODO - Remove this and have it only in the demo?-->
-    <group if="$(env ROS_IS_SIMULATION)">
-        <param name="/use_sim_time" value = "true" type="bool" />
-	    <node
-		    pkg="rosbag" type="play" name="rosbag_player"
-		    args="--clock $(arg bag_file) /scan:=input/laser_scan /pioneer/position_odom:=input/odom" output="$(arg output)" />
+  <!-- TODO - Remove this and have it only in the demo?-->
+  <group if="$(arg ros_is_simulation)">
+    <param name="/use_sim_time" value = "true" type="bool" />
+	  <node
+		  pkg="rosbag" type="play" name="rosbag_player"
+		  args="--clock $(arg bag_file) /scan:=input/laser_scan /pioneer/position_odom:=input/odom" output="$(arg output)" />
 	</group>
 
 	<!-- Robot Geometrical Configuration -->
-    <node pkg="tf" type="static_transform_publisher" name="base_link_laser_broadcaster" args="0 0 0.05 0 0 0 1 $(arg base_link_frame_ID) $(arg laser_frame_ID) 100" output="$(arg output)" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_laser_broadcaster" args="0 0 0.05 0 0 0 1 $(arg base_link_frame_ID) $(arg laser_frame_ID) 100" output="$(arg output)" />
 
 </launch>

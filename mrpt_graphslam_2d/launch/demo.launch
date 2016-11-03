@@ -12,7 +12,7 @@ Launchfile demonstrating the mrpt_graphslam_2d application usages
 	<arg name = "output"             default = "screen"                                        />
 	<arg name = "bag_file"           default = "$(find mrpt_graphslam_2d)/demo/short_loop.bag" />
 	<arg name = "main_ns"            default = "graphslam_engine"                              />
-	<arg name = "global_frame_ID"    default = "map"                                           />
+	<arg name = "anchor_frame_ID"    default = "map"                                           />
 	<arg name = "base_link_frame_ID" default = "base_link"                                     />
 	<arg name = "odometry_frame_ID"  default = "odom"                                          />
 	<arg name = "laser_frame_ID"     default = "laser"                                         />
@@ -32,7 +32,7 @@ Launchfile demonstrating the mrpt_graphslam_2d application usages
 		<param name = "misc/disable_MRPT_visuals"     value = "$(arg disable_MRPT_visuals)"     type = "bool"           />
 		<param name = "misc/verbosity"                value = "1"                               type = "int"            />
 		<param name = "misc/do_publish_gridmap_topic" value = "$(arg do_publish_gridmap_topic)" type = "bool"           />
-		<param name = "frame_IDs/global_frame"        value = "$(arg global_frame_ID)"                                  />
+		<param name = "frame_IDs/anchor_frame"        value = "$(arg anchor_frame_ID)"                                  />
 		<param name = "frame_IDs/base_link_frame"     value = "$(arg base_link_frame_ID)"                               />
 		<param name = "frame_IDs/odometry_frame"      value = "$(arg odometry_frame_ID)"                                />
 		<param name = "frame_IDs/laser_frame"         value = "$(arg laser_frame_ID)"                                   />
