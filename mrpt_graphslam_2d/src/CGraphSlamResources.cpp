@@ -397,7 +397,7 @@ void CGraphSlamResources::setupPubs() {
 	m_curr_robot_pos_topic = ns + "robot_position";
 	m_robot_trajectory_topic = ns + "robot_trajectory";
 	m_robot_tr_poses_topic = ns + "robot_tr_poses";
-	m_odom_tr_poses_topic = ns + "odom_tr_poses";
+	m_odom_trajectory_topic = ns + "odom_trajectory";
 	m_SLAM_eval_metric_topic = ns + "evaluation_metric";
 	m_gridmap_topic = ns + "gridmap";
 
@@ -417,8 +417,8 @@ void CGraphSlamResources::setupPubs() {
 	 m_odom_path.header.stamp = ros::Time::now();
 	 m_odom_path.header.frame_id = m_anchor_frame_id;
 
-	 m_odom_tr_poses_pub = nh->advertise<nav_msgs::Path>(
-	 		 m_odom_tr_poses_topic,
+	 m_odom_trajectory_pub = nh->advertise<nav_msgs::Path>(
+	 		 m_odom_trajectory_topic,
 	 		 m_queue_size);
 
 	 // generated gridmap
@@ -510,7 +510,6 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 
 	// robot trajectory
 	// publish the trajectory of the robot
-	// TODO - have it cached until an LC is detected and reported
 	{
 		m_logger->logFmt(LVL_DEBUG, "Publishing the current robot trajectory");
 		mrpt::graphs::CNetworkOfPoses2DInf::global_poses_t graph_poses;
@@ -558,7 +557,7 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 	}
 
 	// Odometry trajectory - nav_msgs::Path
-	m_odom_tr_poses_pub.publish(m_odom_path);
+	m_odom_trajectory_pub.publish(m_odom_path);
 
 	// generated gridmap
 	{
@@ -610,7 +609,6 @@ void CGraphSlamResources::sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom
 
 	m_logger->logFmt(LVL_DEBUG, "sniffOdom: Received an odometry msg. Converting it to MRPT format...");
 
-	// TODO - check 2
 	// update the odometry frame with regards to the anchor
 	{
 		// header
@@ -632,7 +630,6 @@ void CGraphSlamResources::sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom
 		m_anchor_odom_transform.transform.rotation.w = ros_odom->pose.pose.orientation.w;
 	}
 
-	// TODO - check 3
   // add to the overall odometry path
   {
 		geometry_msgs::PoseStamped pose_stamped;
@@ -641,7 +638,6 @@ void CGraphSlamResources::sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom
   	m_odom_path.poses.push_back(pose_stamped);
   }
 
-	// TODO - check 4
 	// build and fill an MRPT CObservationOdometry instance for manipulation from
 	// the main algorithm
 	mrpt_bridge::convert(

@@ -22,10 +22,6 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <std_msgs/Header.h>
 
-// TODO - remove these
-//#include <tf/transform_datatypes.h>
-//#include <tf/transform_listener.h>
-//#include <tf/transform_broadcaster.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
@@ -219,7 +215,7 @@ private:
 	bool m_has_read_config;
 
 	/**\name Received measurements - boolean flags
-	 * 
+	 *
 	 * \brief Flags that indicate if any new measurements have arrived in the
 	 * corresponding topics.
 	 */
@@ -229,8 +225,7 @@ private:
 	bool m_received_camera;
 	bool m_received_point_cloud;
 	/**\}*/
-	
-	/**\}*/
+
 	/**\name Processed measurements
 	 *
 	 * Measurements that the class can the class instance is keeping track
@@ -260,8 +255,8 @@ private:
 	ros::Publisher m_robot_tr_poses_pub;
 	ros::Publisher m_gt_trajectory_pub; // TODO
 	ros::Publisher m_SLAM_eval_metric_pub; // TODO
-	ros::Publisher m_odom_tr_poses_pub;
-	ros::Publisher m_gridmap_pub; // TODO
+	ros::Publisher m_odom_trajectory_pub;
+	ros::Publisher m_gridmap_pub;
 	/**\}*/
 
 	/**\name Topic Names
@@ -277,7 +272,7 @@ private:
 	std::string m_curr_robot_pos_topic;
 	std::string m_robot_trajectory_topic;
 	std::string m_robot_tr_poses_topic;
-	std::string m_odom_tr_poses_topic;
+	std::string m_odom_trajectory_topic;
 	std::string m_SLAM_eval_metric_topic;
 	std::string m_gridmap_topic; // TODO
 	/**\}*/
