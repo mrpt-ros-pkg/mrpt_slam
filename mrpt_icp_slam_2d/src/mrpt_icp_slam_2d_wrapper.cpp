@@ -23,6 +23,26 @@ ICPslamWrapper::ICPslamWrapper()
 }
 ICPslamWrapper::~ICPslamWrapper()
 {
+	try {
+		std::string sOutMap = "mrpt_icpslam_";
+		mrpt::system::TTimeParts parts;
+		mrpt::system::timestampToParts(now(), parts, true);
+		sOutMap += format("%04u-%02u-%02u_%02uh%02um%02us",
+			(unsigned int)parts.year,
+			(unsigned int)parts.month,
+			(unsigned int)parts.day,
+			(unsigned int)parts.hour,
+			(unsigned int)parts.minute,
+			(unsigned int)parts.second );
+		sOutMap += ".simplemap";
+
+		sOutMap = mrpt::system::fileNameStripInvalidChars( sOutMap );
+		ROS_INFO("Saving built map to `%s`", sOutMap.c_str());
+		mapBuilder.saveCurrentMapToFile(sOutMap);
+	} catch (std::exception &e)
+	{
+		ROS_ERROR("Exception: %s",e.what());
+	}
 }
 bool ICPslamWrapper::is_file_exists(const std::string &name)
 {

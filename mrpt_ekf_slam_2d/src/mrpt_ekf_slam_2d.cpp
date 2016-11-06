@@ -11,6 +11,10 @@
 
 EKFslam::EKFslam()
 {
+#if MRPT_VERSION>=0x150
+#define gausianModel gaussianModel    // a typo was fixed in 1.5.0
+#endif
+
   use_motion_model_default_options_ = false;
   motion_model_default_options_.modelSelection = CActionRobotMovement2D::mmGaussian;
   motion_model_default_options_.gausianModel.minStdXY = 0.10;
