@@ -2,8 +2,8 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.4 (2016-11-06)
+------------------
 * Add install targets to CMake.
 * mrpt_graphslam_2d: Init MR-SLAM configuration
   Commit adds boilerplate code for:

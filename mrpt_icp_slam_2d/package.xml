@@ -1,6 +1,6 @@
 <package>
   <name>mrpt_icp_slam_2d</name>
-  <version>0.1.3</version>
+  <version>0.1.4</version>
   <description>mrpt_icp_slam_2d contains a wrapper on MRPT's 2D ICP-SLAM algorithms.</description>
   <maintainer email="jlblanco@ual.es">Jose Luis Blanco Claraco</maintainer>
 
