@@ -11,7 +11,6 @@ Panels:
         - /Odom Trajectory1
         - /SLAM Trajectory1
         - /SLAM Poses1
-        - /SLAM Poses1/Status1
         - /GT Trajectory1
       Splitter Ratio: 0.5
     Tree Height: 404
@@ -72,11 +71,9 @@ Visualization Manager:
           Value: true
         left_camera:
           Value: true
-        mf0:
-          Value: true
-        mf0_anchor:
-          Value: true
         mf1:
+          Value: true
+        mf1_anchor:
           Value: true
         mf7:
           Value: true
@@ -93,15 +90,15 @@ Visualization Manager:
       Show Names: true
       Tree:
         left_camera:
-          mf0:
+          mf1:
             {}
-        mf7:
-          mf0_anchor:
-            base_link:
-              laser:
+          mf7:
+            mf1_anchor:
+              base_link:
+                laser:
+                  {}
+              odometry:
                 {}
-            odometry:
-              {}
         right_camera:
           {}
       Update Interval: 0
@@ -172,11 +169,11 @@ Visualization Manager:
     - Arrow Length: 0.1
       Class: rviz/PoseArray
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Name: SLAM Poses
       Topic: /youbot_15/feedback/robot_tr_poses
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
@@ -234,7 +231,7 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
-      Topic: /ground_truth/marker_mf0
+      Topic: /ground_truth/marker_mf1
       Unreliable: false
       Value: true
   Enabled: true
@@ -261,22 +258,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.59923
+      Distance: 4.91671
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.362356
-        Y: 0.107798
-        Z: 0.630458
+        X: -0.163164
+        Y: 0.59622
+        Z: 1.76263
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.4698
+      Pitch: 1.5048
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.67859
+      Yaw: 1.63359
     Saved: ~
 Window Geometry:
   Displays:
