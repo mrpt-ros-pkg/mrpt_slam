@@ -77,15 +77,22 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 	)
 
+IF(${MRPT_VERSION} LESS 1.5.0)
+
+    set(WARN_MSG "${WARN_MSG}\"${PROJECT_NAME}\" requires MRPT version 1.5.0 or higher ")
+    set(WARN_MSG "${WARN_MSG} - Current MRPT version: ${MRPT_VERSION}\n")
+    set(WARN_MSG "${WARN_MSG}Ignoring target \"${PROJECT_NAME}\"...")
+    MESSAGE(WARNING ${WARN_MSG})
+else()
+
 ## Declare a C++ executable
-add_executable(mrpt_graphslam_2d_node
+add_executable(${PROJECT_NAME}_node
     src/mrpt_graphslam_2d_node.cpp
     src/CGraphSlamResources.cpp
     )
 
-
 ## Specify libraries to link a library or executable target against
-target_link_libraries(mrpt_graphslam_2d_node
+target_link_libraries(${PROJECT_NAME}_node
     ${MRPT_LIBS}
     ${catkin_LIBRARIES}
     )
@@ -112,3 +119,4 @@ install(DIRECTORY
 ## Testing ##
 #############
 
+endif()
