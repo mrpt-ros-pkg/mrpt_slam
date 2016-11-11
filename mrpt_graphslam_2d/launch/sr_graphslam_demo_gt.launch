@@ -10,6 +10,11 @@ this constitutes a wrapper around the sr_graphslam_demo.launch file
 NOTES:
 - Do not define arguments not present in the sr_graphslam_demo due to the
 corresponding bug: https://github.com/ros/ros_comm/issues/889
+
+WARNING:
+Make sure that you have downloaded the corresponding dataset from here:
+https://www.dropbox.com/sh/habf5mnc5404i66/AACvbzmAQ6UrYB4ix-6aVIc9a?dl=0.
+See the README.md file for more information on this
 -->
 
 <launch>

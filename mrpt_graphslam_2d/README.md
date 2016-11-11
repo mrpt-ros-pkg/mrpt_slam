@@ -34,10 +34,12 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
     estimate path is available
     [here](https://www.dropbox.com/sh/i672mt0uubw6muz/AADQiyNZuQc4pgBRT9choxsBa?dl=0).
     Ground-Truth estimation is provided using 2 ps3 cameras placed on the room
-    ceiling and Aruco markers that are placed on the workspace origin (static marker) and the
-    robot running SLAM (moving marker) respectively.  Just download the whole
-    folder place it directly under the rosbags directory of the
-    mrpt_graphslam_2d package and run the sr_graphslam_demo_gt.launch file.
+    ceiling. The cameras using the ar_sys ROS package are tracking Aruco
+    markers that act as the workspace origin (static marker) and as the robot
+    executing  SLAM (moving marker) respectively.
+    To run this demo, just download the whole folder place it directly under
+    the rosbags directory of the mrpt_graphslam_2d package and
+    run the sr_graphslam_demo_gt.launch file.
 
     `roslaunch mrpt_graphslam_2d sr_graphslam_demo_gt.launch`
 
