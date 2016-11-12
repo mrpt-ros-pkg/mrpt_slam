@@ -8,6 +8,8 @@
 #ifndef MPRT_RBPF_SLAM_H
 #define MRPT_RBPF_SLAM_H
 
+#include <ros/console.h>
+
 #include <mrpt/slam/CMetricMapBuilderRBPF.h>
 #include <mrpt/utils/CFileGZInputStream.h>
 #include <mrpt/utils/CFileGZOutputStream.h>
