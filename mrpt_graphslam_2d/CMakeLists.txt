@@ -4,6 +4,12 @@ cmake_minimum_required(VERSION 2.8.3)
 set(PROJECT_NAME mrpt_graphslam_2d)
 project(${PROJECT_NAME})
 
+#c++ 11 standard
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+IF($ENV{VERBOSE})
+	MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+endif()
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -26,6 +32,10 @@ find_package(MRPT REQUIRED
     maps
     opengl
     graphslam)
+
+if (MRPT_VERSION VERSION_LESS 2.0.0)
+	set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_CXX_FLAGS}")
+endif()
 
 
 ################################################
@@ -67,15 +77,22 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 	)
 
+IF(${MRPT_VERSION} LESS 1.5.0)
+
+    set(WARN_MSG "${WARN_MSG}\"${PROJECT_NAME}\" requires MRPT version 1.5.0 or higher ")
+    set(WARN_MSG "${WARN_MSG} - Current MRPT version: ${MRPT_VERSION}\n")
+    set(WARN_MSG "${WARN_MSG}Ignoring target \"${PROJECT_NAME}\"...")
+    MESSAGE(WARNING ${WARN_MSG})
+else()
+
 ## Declare a C++ executable
-add_executable(mrpt_graphslam_2d_node
+add_executable(${PROJECT_NAME}_node
     src/mrpt_graphslam_2d_node.cpp
     src/CGraphSlamResources.cpp
     )
 
-
 ## Specify libraries to link a library or executable target against
-target_link_libraries(mrpt_graphslam_2d_node
+target_link_libraries(${PROJECT_NAME}_node
     ${MRPT_LIBS}
     ${catkin_LIBRARIES}
     )
@@ -102,3 +119,4 @@ install(DIRECTORY
 ## Testing ##
 #############
 
+endif()

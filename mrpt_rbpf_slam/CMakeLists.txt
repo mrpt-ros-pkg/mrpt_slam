@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(mrpt_rbpf_slam)
 
-#c++ 11 standart
+#c++ 11 standard
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 IF($ENV{VERBOSE})
 	MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")

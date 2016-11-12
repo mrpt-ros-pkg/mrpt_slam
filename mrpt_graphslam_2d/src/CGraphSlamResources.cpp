@@ -60,7 +60,6 @@ CGraphSlamResources::CGraphSlamResources(
 	this->resetReceivedFlags();
 
 	// measurements initialization
-	// TODO - put them  in the corresponding function?
 	m_mrpt_odom = CObservationOdometry::Create();
 	m_mrpt_odom->hasEncodersInfo = false;
 	m_mrpt_odom->hasVelocities = false;
@@ -68,6 +67,10 @@ CGraphSlamResources::CGraphSlamResources(
 	m_graphslam_engine = NULL;
 
 	m_measurement_cnt = 0;
+
+	// Thu Nov 3 23:36:49 EET 2016, Nikos Koukis
+	// WARNING: ROS Server Parameters have not been read yet. Make sure you know
+	// what to initialize at this stage!
 }
 //////////////////////////////////////////////////////////////////////////////
 CGraphSlamResources::~CGraphSlamResources() {
@@ -135,10 +138,14 @@ void CGraphSlamResources::readROSParameters() {
 	{
 		std::string ns = "frame_IDs/";
 
-		nh->param<std::string>(ns + "global_frame"    , m_global_frame_id    , "map");
+		nh->param<std::string>(ns + "anchor_frame"    , m_anchor_frame_id    , "map");
 		nh->param<std::string>(ns + "base_link_frame" , m_base_link_frame_id , "base_link");
 		nh->param<std::string>(ns + "odometry_frame"  , m_odom_frame_id      , "odom");
 		nh->param<std::string>(ns + "laser_frame"     , m_laser_frame_id     , "laser");
+
+		// take action based on the above frames
+		//
+
 	}
 
 	// ASSERT that the given user options are valid
@@ -158,22 +165,28 @@ void CGraphSlamResources::readStaticTFs() {
 			m_laser_frame_id.c_str(),
 			m_base_link_frame_id.c_str());
 	try {
-		m_listener.lookupTransform(
+		m_base_laser_transform = m_buffer.lookupTransform(
 				/* target_fname = */ m_laser_frame_id,
 				/* source_fname = */ m_base_link_frame_id,
-				/* transform time = */ ros::Time(0),
-				/* transform = */ m_base_laser_transform);
+				/* transform time = */ ros::Time(0));
 		m_logger->logFmt(LVL_INFO, "OK.");
 	}
-	catch (tf::TransformException &ex) {
+	catch (tf2::LookupException &ex) {
 		m_logger->logFmt(LVL_WARN, "Transformation not found, using default...");
 
-  	m_base_laser_transform.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-  	m_base_laser_transform.setRotation(tf::Quaternion(0, 0, 0, 1));
-  	m_base_laser_transform.stamp_ = ros::Time::now();
-  	m_base_laser_transform.frame_id_ = m_base_link_frame_id;
-  	m_base_laser_transform.child_frame_id_ = m_laser_frame_id;
+		m_base_laser_transform.header.stamp = ros::Time::now();
+		m_base_laser_transform.transform.translation.x = 0.0;
+		m_base_laser_transform.transform.translation.y = 0.0;
+		m_base_laser_transform.transform.translation.z = 0.0;
+		m_base_laser_transform.transform.rotation.x = 0.0;
+		m_base_laser_transform.transform.rotation.y = 0.0;
+		m_base_laser_transform.transform.rotation.z = 0.0;
+		m_base_laser_transform.transform.rotation.w = 1.0;
+
+  	m_base_laser_transform.header.frame_id = m_base_link_frame_id;
+  	m_base_laser_transform.child_frame_id = m_laser_frame_id;
 	}
+
 
 
 }
@@ -355,7 +368,7 @@ void CGraphSlamResources::setupSubs() {
 	m_laser_scan_topic = ns + "laser_scan";
 
 	// odometry
-	m_odom_sub = nh->subscribe<mrpt_msgs::Pose2DStamped>(
+	m_odom_sub = nh->subscribe<nav_msgs::Odometry>(
 			m_odom_topic,
 			m_queue_size,
 			&CGraphSlamResources::sniffOdom, this);
@@ -384,7 +397,7 @@ void CGraphSlamResources::setupPubs() {
 	m_curr_robot_pos_topic = ns + "robot_position";
 	m_robot_trajectory_topic = ns + "robot_trajectory";
 	m_robot_tr_poses_topic = ns + "robot_tr_poses";
-	m_odom_tr_poses_topic = ns + "odom_tr_poses";
+	m_odom_trajectory_topic = ns + "odom_trajectory";
 	m_SLAM_eval_metric_topic = ns + "evaluation_metric";
 	m_gridmap_topic = ns + "gridmap";
 
@@ -402,10 +415,10 @@ void CGraphSlamResources::setupPubs() {
 	 // odometry nav_msgs::Path
 	 m_odom_path.header.seq = 0;
 	 m_odom_path.header.stamp = ros::Time::now();
-	 m_odom_path.header.frame_id = m_global_frame_id;
+	 m_odom_path.header.frame_id = m_anchor_frame_id;
 
-	 m_odom_tr_poses_pub = nh->advertise<nav_msgs::Path>(
-	 		 m_odom_tr_poses_topic,
+	 m_odom_trajectory_pub = nh->advertise<nav_msgs::Path>(
+	 		 m_odom_trajectory_topic,
 	 		 m_queue_size);
 
 	 // generated gridmap
@@ -435,26 +448,40 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 
 	ros::Time timestamp = ros::Time::now();
 
-	// global frame <=> base_link
+	// current MRPT robot pose
+	pose_t mrpt_pose = m_graphslam_engine->getCurrentRobotPosEstimation();
+
+	// anchor frame <=> base_link
   {
-		// current robot pose
-		pose_t mrpt_pose = m_graphslam_engine->getCurrentRobotPosEstimation();
+		// fill the geometry_msgs::TransformStamped object
+		geometry_msgs::TransformStamped transform_stamped;
+		transform_stamped.header.stamp = ros::Time::now();
+		transform_stamped.header.frame_id = m_anchor_frame_id;
+		transform_stamped.child_frame_id = m_base_link_frame_id;
 
-  	tf::Transform transform;
-  	transform.setOrigin(tf::Vector3(mrpt_pose.x(), mrpt_pose.y(), 0.0));
-  	tf::Quaternion q;
-  	q.setRPY(0, 0, mrpt_pose.phi());
-  	transform.setRotation(q);
+		transform_stamped.transform.translation.x = mrpt_pose.x();
+		transform_stamped.transform.translation.y = mrpt_pose.y();
+		transform_stamped.transform.translation.z = 0;
 
-  	m_broadcaster.sendTransform(
-  			tf::StampedTransform(transform, ros::Time::now(),
-  				m_global_frame_id,
-  				m_base_link_frame_id));
+		tf2::Quaternion q;
+		q.setRPY(0, 0, mrpt_pose.phi());
+		tf2::Vector3 axis = q.getAxis();
+		tf2Scalar w = q.getW();
+		transform_stamped.transform.rotation.x = axis.getX();
+		transform_stamped.transform.rotation.y = axis.getY();
+		transform_stamped.transform.rotation.z = axis.getZ();
+		transform_stamped.transform.rotation.w = w;
+
+		m_broadcaster.sendTransform(transform_stamped);
+
   }
-  // global frame <=> odom frame
+
+  // anchor frame <=> odom frame
+  //
   // make sure that we have received odometry information in the first place...
-  if (!m_global_odom_transform.frame_id_.empty()) {
-  	m_broadcaster.sendTransform(m_global_odom_transform);
+  // the corresponding field would be initialized
+  if (!m_anchor_odom_transform.child_frame_id.empty()) {
+  	m_broadcaster.sendTransform(m_anchor_odom_transform);
   }
 
 
@@ -467,9 +494,14 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 		geom_pose.header.frame_id = m_base_link_frame_id; // with regards to base_link...
 
 		geometry_msgs::Point point;
-		point.x = 0; point.y = 0; point.z = 0;
+		point.x = 0;
+		point.y = 0;
+		point.z = 0;
 		geometry_msgs::Quaternion quat;
-		quat.x = 0; quat.y = 0; quat.z = 0; quat.w = 1;
+		quat.x = 0;
+		quat.y = 0;
+		quat.z = 0;
+		quat.w = 1;
 
 		geom_pose.pose.position = point;
 		geom_pose.pose.orientation = quat;
@@ -478,7 +510,6 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 
 	// robot trajectory
 	// publish the trajectory of the robot
-	// TODO - have it cached until an LC is detected and reported
 	{
 		m_logger->logFmt(LVL_DEBUG, "Publishing the current robot trajectory");
 		mrpt::graphs::CNetworkOfPoses2DInf::global_poses_t graph_poses;
@@ -489,7 +520,7 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 		// set the header
 		path.header.stamp = timestamp;
 		path.header.seq = m_pub_seq;
-		path.header.frame_id = m_global_frame_id;
+		path.header.frame_id = m_anchor_frame_id;
 
 		//
 		// fill in the pose as well as the nav_msgs::Path at the same time.
@@ -497,7 +528,7 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 
 		geometry_msgs::PoseArray geom_poses;
 		geom_poses.header.stamp = timestamp;
-		geom_poses.header.frame_id = m_global_frame_id;
+		geom_poses.header.frame_id = m_anchor_frame_id;
 
 		for (int i = 0; i != graph_poses.size(); ++i) {
 			geometry_msgs::PoseStamped geom_pose_stamped;
@@ -512,7 +543,7 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 			// edit the header
 			geom_pose_stamped.header.stamp = timestamp;
 			geom_pose_stamped.header.seq = m_pub_seq;
-			geom_pose_stamped.header.frame_id = m_global_frame_id;
+			geom_pose_stamped.header.frame_id = m_anchor_frame_id;
 
 			path.poses.push_back(geom_pose_stamped);
 		}
@@ -526,7 +557,7 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 	}
 
 	// Odometry trajectory - nav_msgs::Path
-	m_odom_tr_poses_pub.publish(m_odom_path);
+	m_odom_trajectory_pub.publish(m_odom_path);
 
 	// generated gridmap
 	{
@@ -538,7 +569,7 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 		// timestamp
 		mrpt_bridge::convert(mrpt_time, h.stamp);
 		h.seq = m_pub_seq;
-		h.frame_id = m_global_frame_id;
+		h.frame_id = m_anchor_frame_id;
 
 		// nav gridmap
 		nav_msgs::OccupancyGrid nav_gridmap;
@@ -570,7 +601,7 @@ void CGraphSlamResources::sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr&
 	this->processObservation(m_mrpt_laser_scan);
 }
 
-void CGraphSlamResources::sniffOdom(const mrpt_msgs::Pose2DStamped::ConstPtr& ros_odom) {
+void CGraphSlamResources::sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom) {
 	using namespace std;
 	using namespace mrpt::utils;
 	using namespace mrpt::obs;
@@ -578,43 +609,43 @@ void CGraphSlamResources::sniffOdom(const mrpt_msgs::Pose2DStamped::ConstPtr& ro
 
 	m_logger->logFmt(LVL_DEBUG, "sniffOdom: Received an odometry msg. Converting it to MRPT format...");
 
-	// update the odometry frame
-  m_global_odom_transform.setOrigin(tf::Vector3(
-  			ros_odom->pose.x,
-  			ros_odom->pose.y,
-  			0));
-  tf::Quaternion quaternion;
-  quaternion.setRPY(0, 0, ros_odom->pose.theta);
-  quaternion.normalize();
-  m_global_odom_transform.setRotation(quaternion);
-  m_global_odom_transform.stamp_ = ros_odom->header.stamp;
-  m_global_odom_transform.frame_id_ = m_global_frame_id;
-  m_global_odom_transform.child_frame_id_ = m_odom_frame_id;
-  
-  // add to the overall odometry path
-	geometry_msgs::PoseStamped geom_pose_stamped;
+	// update the odometry frame with regards to the anchor
 	{
-		geom_pose_stamped.header.frame_id = m_global_frame_id;
-		geom_pose_stamped.header.stamp = ros::Time::now();
+		// header
+		m_anchor_odom_transform.header.frame_id = m_anchor_frame_id;
+		m_anchor_odom_transform.header.stamp = ros_odom->header.stamp;
+		m_anchor_odom_transform.header.seq = ros_odom->header.seq;
 
-		geometry_msgs::Point p;
-		p.x = ros_odom->pose.x;
-		p.y = ros_odom->pose.y;
-		p.z = 0;
-		geom_pose_stamped.pose.position = p;
+		m_anchor_odom_transform.child_frame_id = m_odom_frame_id;
 
-		tf::quaternionTFToMsg(quaternion, geom_pose_stamped.pose.orientation);
+		// translation
+		m_anchor_odom_transform.transform.translation.x = ros_odom->pose.pose.position.x;
+		m_anchor_odom_transform.transform.translation.y = ros_odom->pose.pose.position.y;
+		m_anchor_odom_transform.transform.translation.z = ros_odom->pose.pose.position.z;
+
+		// quaternion
+		m_anchor_odom_transform.transform.rotation.x = ros_odom->pose.pose.orientation.x;
+		m_anchor_odom_transform.transform.rotation.y = ros_odom->pose.pose.orientation.y;
+		m_anchor_odom_transform.transform.rotation.z = ros_odom->pose.pose.orientation.z;
+		m_anchor_odom_transform.transform.rotation.w = ros_odom->pose.pose.orientation.w;
 	}
-  m_odom_path.poses.push_back(geom_pose_stamped);
 
-	// build and fill an CObservationOdometry instance
+  // add to the overall odometry path
+  {
+		geometry_msgs::PoseStamped pose_stamped;
+		pose_stamped.header = ros_odom->header;
+		pose_stamped.pose = ros_odom->pose.pose;
+  	m_odom_path.poses.push_back(pose_stamped);
+  }
+
+	// build and fill an MRPT CObservationOdometry instance for manipulation from
+	// the main algorithm
 	mrpt_bridge::convert(
 			/* src = */ ros_odom->header.stamp,
-			/* dst = */m_mrpt_odom->timestamp);
-
-	m_mrpt_odom->odometry.x(ros_odom->pose.x);
-	m_mrpt_odom->odometry.y(ros_odom->pose.y);
-	m_mrpt_odom->odometry.phi(ros_odom->pose.theta);
+			/* dst = */ m_mrpt_odom->timestamp);
+	mrpt_bridge::convert(
+			/* src = */ ros_odom->pose.pose,
+			/* dst = */ m_mrpt_odom->odometry);
 
 	// print the odometry -  for debugging reasons...
 	stringstream ss;
@@ -623,7 +654,6 @@ void CGraphSlamResources::sniffOdom(const mrpt_msgs::Pose2DStamped::ConstPtr& ro
 
 	m_received_odom = true;
 	this->processObservation(m_mrpt_odom);
-
 }
 
 //////////////////////////////////////////////////////////////////////////////
