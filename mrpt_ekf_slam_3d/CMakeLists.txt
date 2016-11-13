@@ -18,32 +18,16 @@ if (MRPT_VERSION VERSION_LESS 2.0.0)
 	set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_CXX_FLAGS}")
 endif()
 
-# Include Eigen3
-# JLBC: From http://wiki.ros.org/jade/Migration#Eigen_CMake_Module_in_cmake_modules
-find_package(Eigen3)
-if(NOT EIGEN3_FOUND)
-  # Fallback to cmake_modules
-  find_package(cmake_modules REQUIRED)
-  find_package(Eigen REQUIRED)
-  set(EIGEN3_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
-  set(EIGEN3_LIBRARIES ${EIGEN_LIBRARIES})  # Not strictly necessary as Eigen is head only
-  # Possibly map additional variables to the EIGEN3_ prefix.
-else()
-  set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
-endif()
-
-
 #Include directories
 INCLUDE_DIRECTORIES(
    ${CMAKE_SOURCE_DIR}/src
    ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-
 catkin_package(
     CATKIN_DEPENDS
-    DEPENDS Eigen 
-    INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS}
+#    DEPENDS Eigen 
+#    INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS}
     )
 
 ###########
@@ -52,7 +36,7 @@ catkin_package(
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS}
+#  ${Eigen_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS}
   include
 )
 
@@ -68,7 +52,7 @@ add_executable(mrpt_ekf_slam_3d
 )
 
 TARGET_LINK_LIBRARIES(mrpt_ekf_slam_3d ${MRPT_LIBS}
-    ${catkin_LIBRARIES}  ${Eigen_LIBRARIES}
+    ${catkin_LIBRARIES}
 )
 
 #############
