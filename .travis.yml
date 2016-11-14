@@ -38,7 +38,7 @@ before_install:
   - sudo apt-get install -y libdc1394-22-dev libavformat-dev libswscale-dev
   - sudo apt-get install -y libassimp-dev libjpeg-dev libopencv-dev libgtest-dev
   - sudo apt-get install -y libeigen3-dev libsuitesparse-dev libpcap-dev
-  - sudo apt-get install -y libmrpt-dev mrpt-apps
+  - sudo apt-get install -y --force-yes libmrpt-dev 
 
 # Create a catkin workspace with the package under integration.
 install:
