@@ -2,8 +2,8 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.5 (2016-11-18)
+------------------
 * mrpt_graphslam_2d: Correct syntax in README file
 * mrpt_graphslam_2d: Complete the demo rviz, launch files
   Finish setting up the demos-related files.

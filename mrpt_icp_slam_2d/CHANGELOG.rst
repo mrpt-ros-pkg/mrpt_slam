@@ -2,8 +2,8 @@
 Changelog for package mrpt_icp_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.5 (2016-11-18)
+------------------
 * Fix cmakelists typo
 * Contributors: Nikos Koukis
 

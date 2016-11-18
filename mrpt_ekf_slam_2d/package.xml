@@ -1,6 +1,6 @@
 <package>
   <name>mrpt_ekf_slam_2d</name>
-  <version>0.1.4</version>
+  <version>0.1.5</version>
   <description>mrpt_ekf_slam_2d</description>
   <maintainer email="jlblanco@ual.es">Jose Luis</maintainer>
 
