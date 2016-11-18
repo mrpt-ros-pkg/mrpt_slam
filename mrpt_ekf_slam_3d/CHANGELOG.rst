@@ -2,6 +2,13 @@
 Changelog for package mrpt_ekf_slam_3d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Don't instruct cmake to search eigen3, mrpt has it
+* Fix cmakelists typo
+* avoid cmake errors if eigen is not found
+* Contributors: Jose Luis Blanco-Claraco, Nikos Koukis
+
 0.1.3 (2016-09-27)
 ------------------
 * Avoid gcc warnings with MRPT < 2.0.0
