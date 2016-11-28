@@ -182,7 +182,7 @@ private:
   std::vector<mrpt::opengl::CEllipsoidPtr> viz_beacons;
 
   ros::Publisher pub_map_, pub_metadata_, pub_Particles_, pub_Particles_Beacons_,
-      beacon_viz_pub_;  ///<publishers for map and pose particles
+      beacon_viz_pub_, pub_Beacons_;  ///<publishers for map and pose particles
 
   tf::TransformListener listenerTF_;         ///<transform listener
   tf::TransformBroadcaster tf_broadcaster_;  ///<transform broadcaster

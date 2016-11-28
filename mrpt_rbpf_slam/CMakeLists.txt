@@ -19,6 +19,11 @@ INCLUDE_DIRECTORIES(
    ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+add_message_files(
+  FILES
+  Beacons.msg
+  SingleBeacon.msg
+)
 
 catkin_package( CATKIN_DEPENDS )
 

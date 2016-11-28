@@ -1,4 +1,6 @@
 #include "mrpt_rbpf_slam/mrpt_rbpf_slam_wrapper.h"
+#include "mrpt_rbpf_slam/Beacons.h"
+#include "mrpt_rbpf_slam/SingleBeacon.h"
 
 PFslamWrapper::PFslamWrapper()
 {
@@ -64,6 +66,7 @@ void PFslamWrapper::init()
   pub_metadata_ = n_.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
   // robot pose
   pub_Particles_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud", 1, true);
+  pub_Beacons_ = n_.advertise<Beacons>("bacons", 1, true);
   // ro particles poses
   pub_Particles_Beacons_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud_beacons", 1, true);
   beacon_viz_pub_ = n_.advertise<visualization_msgs::MarkerArray>("/beacons_viz", 1);
@@ -262,6 +265,29 @@ void PFslamWrapper::publishMapPose()
   }
 
   pub_Particles_.publish(poseArray);
+}
+
+void PDFslamWrapper::pubBeacons() {
+
+  auto msg = mrpt_rbpf::Beacons();
+
+  for (int i = 0; i < viz_beacons.size(); i++)
+  {
+    CPose3D meanPose(viz_beacons[i]->getPose());
+
+    auto beacon_pose = geometry_msgs::Pose();
+
+    beacon_pose.position.x = meanPose.x();
+    beacon_pose.position.y = meanPose.y();
+    beacon_pose.position.z = meanPose.z();
+
+    auto beacon = mrpt_rbpf::SingleBeacon();
+    beacon.pose = beacon_pose;
+    beacon.id = i;
+
+    msg.beacons.push_back(beacon);
+  }
+  pub_Beacons_.publish(beacon);
 }
 
 void PFslamWrapper::vizBeacons()

@@ -1,0 +1,1 @@
+SingleBeacon[] beacons
