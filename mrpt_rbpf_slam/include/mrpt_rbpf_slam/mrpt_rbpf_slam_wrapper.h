@@ -154,6 +154,7 @@ public:
   *
   */
   void vizBeacons();
+  void pubBeacons();
 
 private:
   ros::NodeHandle n_;        ///< Node Handle
