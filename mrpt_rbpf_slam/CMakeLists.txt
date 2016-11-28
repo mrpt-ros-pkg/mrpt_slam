@@ -8,7 +8,10 @@ IF($ENV{VERBOSE})
 endif()
 
 #find catkin packages
-find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs sensor_msgs visualization_msgs mrpt_bridge dynamic_reconfigure)
+find_package(catkin REQUIRED COMPONENTS roslib roscpp tf 
+                                        std_msgs nav_msgs sensor_msgs 
+                                        geometry_msgs visualization_msgs 
+                                        mrpt_bridge dynamic_reconfigure)
 
 #find mrpt packages
 find_package(MRPT REQUIRED base gui obs slam)
@@ -25,7 +28,14 @@ add_message_files(
   SingleBeacon.msg
 )
 
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+)
+
 catkin_package( CATKIN_DEPENDS )
+
 
 ###########
 ## Build ##
@@ -35,8 +45,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   include
 )
-
-
 
 add_executable(mrpt_rbpf_slam
     src/mrpt_rbpf_slam.cpp
