@@ -51,9 +51,11 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
     to the ground-truth visualization
 
 - sr_graphslam_demo_gt file uses the *pass_all_args* XML directive which is only
-    available starting from the Jade distribution. If you have an older one,
+    available starting from the *ROS Jade* distribution. If you have an older one,
     just replace this with all the args in that file exclusively. For an
-    example on how to do this, see the sr_graphslam_demo.launch file
+    example on how to do this, see the
+    [sr_graphslam_demo.launch](https://github.com/mrpt-ros-pkg/mrpt_slam/blob/master/mrpt_graphslam_2d/launch/sr_graphslam.launch)
+    file
 
 - Rosbag was recorded in the Mechanical Engineering School of the [National
 	Technical University of Athens](http://www.mech.ntua.gr/en)
