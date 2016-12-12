@@ -54,7 +54,7 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
     available starting from the *ROS Jade* distribution. If you have an older one,
     just replace this with all the args in that file exclusively. For an
     example on how to do this, see the
-    [sr_graphslam_demo.launch](https://github.com/mrpt-ros-pkg/mrpt_slam/blob/master/mrpt_graphslam_2d/launch/sr_graphslam.launch)
+    [sr_graphslam_demo.launch](https://github.com/mrpt-ros-pkg/mrpt_slam/blob/master/mrpt_graphslam_2d/launch/sr_graphslam_demo.launch)
     file
 
 - Rosbag was recorded in the Mechanical Engineering School of the [National

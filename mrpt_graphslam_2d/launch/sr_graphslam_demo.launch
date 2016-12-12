@@ -37,7 +37,7 @@ single robot situations. More elaborate demo files are built on top of this one
 
 	<group ns="$(arg robot_ns)">
 	    <!-- Run single-robot graphSLAM -->
-	    <include file="$(find mrpt_graphslam_2d)/launch/sr_graphslam.launch">
+	    <include file="$(find mrpt_graphslam_2d)/launch/graphslam.launch">
 		    <arg name="output" value="$(arg output)" />
             <arg name="disable_MRPT_visuals" value="$(arg disable_MRPT_visuals)" />
 		    <arg name="start_rviz" value="$(arg start_rviz)" />

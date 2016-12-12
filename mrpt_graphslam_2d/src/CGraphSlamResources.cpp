@@ -122,6 +122,7 @@ void CGraphSlamResources::readROSParameters() {
 		// configuration file - mandatory
 		std::string config_param_path = ns + "config";
 		bool found_config = nh->getParam(ns + "config", m_ini_fname);
+		std::cout << "KALIMERA : " << m_ini_fname << std::endl;
 		ASSERTMSG_(found_config,
 				mrpt::format("Configuration file was not set. Set %s and try again.\nExiting...",
 					config_param_path.c_str()));
