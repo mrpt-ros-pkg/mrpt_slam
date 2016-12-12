@@ -84,6 +84,7 @@ else()
 add_executable(${PROJECT_NAME}_node
     src/mrpt_graphslam_2d_node.cpp
     src/CGraphSlamResources.cpp
+    src/TUserOptionsChecker_ROS.cpp
     )
 
 ## Specify libraries to link a library or executable target against

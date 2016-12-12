@@ -30,7 +30,7 @@ using namespace mrpt::utils;
 using namespace mrpt::graphslam;
 using namespace mrpt::graphslam::deciders;
 using namespace mrpt::graphslam::optimizers;
-using namespace mrpt::graphslam::supplementary;
+using namespace mrpt::graphslam::detail;
 
 using namespace std;
 

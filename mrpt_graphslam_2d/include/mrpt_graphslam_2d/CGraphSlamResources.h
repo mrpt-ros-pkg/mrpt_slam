@@ -40,8 +40,8 @@
 #include <mrpt/utils/mrpt_macros.h>
 #include <mrpt/utils/COutputLogger.h>
 #include <mrpt/graphslam/CGraphSlamEngine.h>
-#include <mrpt/graphslam/apps_related/TUserOptionsChecker.h>
 #include <mrpt/graphslam/apps_related/CGraphSlamHandler.h>
+#include "mrpt_graphslam_2d/TUserOptionsChecker_ROS.h"
 
 // cpp headers
 #include <string>
@@ -209,7 +209,7 @@ private:
 	/**\brief Struct instance holding the available deciders/optimizers that the
 	 * user can issue
 	 */
-	mrpt::graphslam::supplementary::TUserOptionsChecker m_graphslam_opts;
+	mrpt::graphslam::detail::TUserOptionsChecker_ROS m_options_checker;
 	CGraphSlamHandler* m_graphslam_handler;
 
 	bool m_has_read_config;

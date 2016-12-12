@@ -3,65 +3,62 @@
 <!--
 Mon Oct 10 19:20:36 EEST 2016, Nikos Koukis
 
-The purpose of the launchfile is to initialize a (single) robot agent to
-operate in an MR-SLAM setup.
+Launchfile  responsible for the mrpt_graphslam_2d application in a multi-robot slam agent setup.
+Refer to the README.md file for usage information
 
 -->
 
 <launch>
 	<!-- LAUNCH ARGUMENTS -->
-	<arg name = "output"             default = "screen"                                                                  />
-	<arg name = "bag_file"           default = "$(find mrpt_graphslam_2d)/rosbags/20161006_ktM_2nd_floor/short_loop.bag" />
-	<arg name = "do_publish_gridmap_topic" value = "true" />
-	<arg name = "robot_ns" value = "$(env MR_ROBOT_MODEL)_$(env MR_ROBOT_ID)" />
-	<arg name = "tf_prefix" value = "$(arg robot_ns)" />
+	<arg name="output" default="screen"/>
+	<arg name="config_file" default="$(find mrpt_graphslam_2d)/config/ros_odometry_2DRangeScans.ini"  />
+	<arg name="do_publish_gridmap_topic" default="true" />
 
-	<arg name = "anchor_frame_ID"    value = "$(arg tf_prefix)_map"       />
-	<arg name = "base_link_frame_ID" value = "$(arg tf_prefix)_base_link" />
-	<arg name = "odometry_frame_ID"  value = "$(arg tf_prefix)_odom"      />
-	<arg name = "laser_frame_ID"     value = "$(arg tf_prefix)_laser"     />
-	<arg name = "ros_is_simulation" />
+	<arg name="anchor_frame_ID" default="map" />
+	<arg name="base_link_frame_ID" default="base_link"/>
+	<arg name="odometry_frame_ID" default="odometry"/>
+	<arg name="laser_frame_ID" default="laser"/>
 
-	<arg name = "disable_MRPT_visuals" value = "false" />
-	<arg name="NRD" default="CICPCriteriaNRD" />
-	<arg name="ERD" default="CICPCriteriaERD" />
+	<arg name="NRD" default="CFixedIntervalsNRD" />
+	<arg name="ERD" default="CLoopCloserERD_MR" />
 	<arg name="GSO" default="CLevMarqGSO" />
 
-	<group ns="$(arg robot_ns)">
-  	<group ns="deciders_optimizers">
-			<param name = "NRD"   value = "CICPCriteriaNRD" />
-    	<param name = "ERD"   value = "CICPCriteriaERD" />
-			<param name = "GSO"   value = "CLevMarqGSO"     />
-  	</group>
-  	<group ns="files">
-			<param name = "config"              value = "$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini" />
-			<param name = "grount_truth"        value = ""                                                        />
-		</group>
-		<group ns="misc">
-			<param name = "disable_MRPT_visuals" value = "$(arg disable_MRPT_visuals)" type = "bool"               />
-			<param name = "verbosity"            value = "1" type = "int"                                          />
-			<param name = "robot_ID"            value = "$(env MR_ROBOT_ID)"                                          />
-			<param name = "robot_model"            value = "$(env MR_ROBOT_MODEL)"                                          />
-			<param name = "do_publish_gridmap_topic" value = "$(arg do_publish_gridmap_topic)" type = "bool" />
-		</group>
-		<group ns="frame_IDs">
-			<param name = "anchor_frame"    value = "$(arg anchor_frame_ID)"                                  />
-			<param name = "base_link_frame" value = "$(arg base_link_frame_ID)"                               />
-			<param name = "odometry_frame"  value = "$(arg odometry_frame_ID)"                                />
-			<param name = "laser_frame"     value = "$(arg laser_frame_ID)"                                   />
+  <!-- Should we also start an instance of rviz ? -->
+  <arg name="start_rviz" default="false" />
+  <arg name="rviz_file" default="$(find mrpt_graphslam_2d)/rviz/mr_graphslam.rviz" />
 
-			<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam" output="$(arg output)" />
-		</group>
+	<arg name="disable_MRPT_visuals" default="false" />
 
-  	<group if="$(arg ros_is_simulation)">
-    	<param name="/use_sim_time" value = "true" type="bool" />
-	  	<node
-		  	pkg="rosbag" type="play" name="rosbag_player"
-		  	args="--clock $(arg bag_file) /scan:=input/laser_scan /pioneer/position_odom:=input/odom" output="$(arg output)" />
-		</group>
+  <!-- LAUNCH PARAMETERS -->
+  <group ns="deciders_optimizers">
+		<param name="NRD" value="$(arg NRD)" />
+    <param name="ERD" value="$(arg ERD)" />
+		<param name="GSO" value="$(arg GSO)" />
+  </group>
+  <group ns="files">
+		<param name="config" value="$(arg config_file)" />
+		<param name="grount_truth" value="" />
+	</group>
+	<group ns="misc">
+		<param name="disable_MRPT_visuals" value="$(arg disable_MRPT_visuals)" type="bool" />
+		<param name="verbosity" value="1" type="int" />
+		<param name="do_publish_gridmap_topic" value="$(arg do_publish_gridmap_topic)" type="bool" />
+	</group>
+	<group ns="frame_IDs">
+		<param name="anchor_frame" value="$(arg anchor_frame_ID)" />
+		<param name="base_link_frame" value="$(arg base_link_frame_ID)"/>
+		<param name="odometry_frame" value="$(arg odometry_frame_ID)" />
+		<param name="laser_frame" value="$(arg laser_frame_ID)"/>
+	</group>
+
+	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam" output="$(arg output)" />
+
+	<!-- Start rviz -->
+	<group if="$(arg start_rviz)">
+		<node pkg="rviz" type="rviz" name="rviz_visualization" output="$(arg output)" args="-d $(arg rviz_file)" />
 	</group>
 
 	<!-- Robot Geometrical Configuration -->
-  <node pkg="tf" type="static_transform_publisher" name="base_link_laser_broadcaster" args="0 0 0.05 0 0 0 1 $(arg base_link_frame_ID) $(arg laser_frame_ID) 100" output="$(arg output)" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_laser_broadcaster" args="0 0 0.05 0 0 0 1 $(arg base_link_frame_ID) $(arg laser_frame_ID)" output="$(arg output)" />
 
 </launch>

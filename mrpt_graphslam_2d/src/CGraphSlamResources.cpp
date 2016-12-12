@@ -9,7 +9,7 @@
 
 #include "mrpt_graphslam_2d/CGraphSlamResources.h"
 
-// supplementary functions - TODO - where to put these?
+// detail functions - TODO - where to put these?
 template<class T>
 std::string getVectorAsString(const T& t) {
 	using namespace std;
@@ -37,7 +37,6 @@ void printVectorOfVectors(const T& t) {
 const std::string CGraphSlamResources::sep_header(40, '=');
 const std::string CGraphSlamResources::sep_subheader(20, '-');
 
-//////////////////////////////////////////////////////////////////////////////
 // Ctor
 CGraphSlamResources::CGraphSlamResources(
 		mrpt::utils::COutputLogger* logger_in,
@@ -72,7 +71,6 @@ CGraphSlamResources::CGraphSlamResources(
 	// WARNING: ROS Server Parameters have not been read yet. Make sure you know
 	// what to initialize at this stage!
 }
-//////////////////////////////////////////////////////////////////////////////
 CGraphSlamResources::~CGraphSlamResources() {
 	using namespace mrpt::utils;
 
@@ -84,7 +82,6 @@ CGraphSlamResources::~CGraphSlamResources() {
 	delete m_graphslam_handler;
 
 }
-//////////////////////////////////////////////////////////////////////////////
 
 void CGraphSlamResources::readParams() {
 	this->readROSParameters();
@@ -149,6 +146,9 @@ void CGraphSlamResources::readROSParameters() {
 	}
 
 	// ASSERT that the given user options are valid
+	// Fill the TuserOptionsChecker related structures
+	m_options_checker.createDeciderOptimizerMappings();
+	m_options_checker.populateDeciderOptimizerProperties();
 	this->verifyUserInput();
 
 	m_logger->logFmt(LVL_DEBUG,
@@ -156,7 +156,6 @@ void CGraphSlamResources::readROSParameters() {
 
 	this->initGraphSLAM();
 }
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::readStaticTFs() {
 	using namespace mrpt::utils;
 
@@ -190,7 +189,6 @@ void CGraphSlamResources::readStaticTFs() {
 
 
 }
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::initGraphSLAM() {
 	using namespace mrpt::graphs;
 	using namespace mrpt::graphslam;
@@ -213,13 +211,12 @@ void CGraphSlamResources::initGraphSLAM() {
 			rawlog_fname,
 			m_gt_fname,
 			m_graphslam_handler->win_manager,
-			m_graphslam_opts.node_regs_map[m_node_reg](),
-			m_graphslam_opts.edge_regs_map[m_edge_reg](),
-			m_graphslam_opts.optimizers_map[m_optimizer]());
+			m_options_checker.node_regs_map[m_node_reg](),
+			m_options_checker.edge_regs_map[m_edge_reg](),
+			m_options_checker.optimizers_map[m_optimizer]());
 
 	m_logger->logFmt(LVL_DEBUG, "Successfully initialized CGraphSlamEngine instance.");
 }
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::getROSParameters(std::string* str_out) {
 	using namespace std;
 	using namespace mrpt::utils;
@@ -258,7 +255,6 @@ void CGraphSlamResources::getROSParameters(std::string* str_out) {
 	*str_out = ss.str();
 }
 
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::getParamsAsString(std::string* str_out) {
 	ASSERT_(str_out);
 
@@ -270,14 +266,12 @@ void CGraphSlamResources::getParamsAsString(std::string* str_out) {
 	// various parameters
 }
 
-//////////////////////////////////////////////////////////////////////////////
 std::string CGraphSlamResources::getParamsAsString() {
 	std::string params;
 	this->getParamsAsString(&params);
 	return params;
 }
 
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::printParams() {
 	using namespace std;
 	// print the problem parameters
@@ -288,7 +282,6 @@ void CGraphSlamResources::printParams() {
 
 
 }
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::verifyUserInput() {
 	using namespace mrpt;
 	using namespace mrpt::utils;
@@ -299,29 +292,29 @@ void CGraphSlamResources::verifyUserInput() {
 	bool node_success, edge_success, optimizer_success;
 	bool failed = false;
 
-	node_success = m_graphslam_opts.checkRegistrationDeciderExists(m_node_reg, "node");
-	edge_success = m_graphslam_opts.checkRegistrationDeciderExists(m_edge_reg, "edge");
-	optimizer_success = m_graphslam_opts.checkOptimizerExists(m_optimizer);
+	node_success = m_options_checker.checkRegistrationDeciderExists(m_node_reg, "node");
+	edge_success = m_options_checker.checkRegistrationDeciderExists(m_edge_reg, "edge");
+	optimizer_success = m_options_checker.checkOptimizerExists(m_optimizer);
 
 	if (!node_success) {
 		m_logger->logFmt(LVL_ERROR,
 				"\nNode Registration Decider \"%s\" is not available",
 				m_node_reg.c_str());
-		m_graphslam_opts.dumpRegistrarsToConsole("node");
+		m_options_checker.dumpRegistrarsToConsole("node");
 		failed = true;
 	}
 	if (!edge_success) {
 		m_logger->logFmt(LVL_ERROR,
 				"\nEdge Registration Decider \"%s\" is not available.",
 				m_edge_reg.c_str());
-		m_graphslam_opts.dumpRegistrarsToConsole("edge");
+		m_options_checker.dumpRegistrarsToConsole("edge");
 		failed = true;
 	}
 	if (!optimizer_success) {
 		m_logger->logFmt(LVL_ERROR,
 				"\ngraphSLAM Optimizser \"%s\" is not available.",
 				m_optimizer.c_str());
-		m_graphslam_opts.dumpOptimizersToConsole();
+		m_options_checker.dumpOptimizersToConsole();
 		failed = true;
 	}
 	ASSERT_(!failed)
@@ -344,7 +337,6 @@ void CGraphSlamResources::verifyUserInput() {
 
 }
 
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::setupCommunication() {
 
 	// setup subscribers, publishers, services...
@@ -386,7 +378,6 @@ void CGraphSlamResources::setupSubs() {
 	// TODO
 
 }
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::setupPubs() {
 	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_INFO, "Setting up the publishers...");
@@ -584,7 +575,6 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 	}
 } // USEPUBLISHERSBROADCASTERS
 
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan) {
 	using namespace std;
 	using namespace mrpt::utils;
@@ -656,17 +646,14 @@ void CGraphSlamResources::sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom
 	this->processObservation(m_mrpt_odom);
 }
 
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::sniffCameraImage() {
 	THROW_EXCEPTION("Method is not implemented yet.");
 
 }
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::sniff3DPointCloud() {
 	THROW_EXCEPTION("Method is not implemented yet.");
 
 }
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::processObservation(mrpt::obs::CObservationPtr& observ) {
 	using namespace mrpt::utils;
 	using namespace std;
@@ -675,7 +662,6 @@ void CGraphSlamResources::processObservation(mrpt::obs::CObservationPtr& observ)
 	this->resetReceivedFlags();
 
 }
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::generateReport() {
 	using namespace std;
 	using namespace mrpt::utils;
@@ -721,7 +707,6 @@ bool CGraphSlamResources::continueExec() {
 	return m_graphslam_handler->queryObserverForEvents();
 }
 
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::_process(mrpt::obs::CObservationPtr& observ) {
 	using namespace mrpt::utils;
 	using namespace std;
@@ -732,7 +717,6 @@ void CGraphSlamResources::_process(mrpt::obs::CObservationPtr& observ) {
 	m_measurement_cnt++;
 }
 
-//////////////////////////////////////////////////////////////////////////////
 void CGraphSlamResources::resetReceivedFlags() {
 	m_received_odom = false;
 	m_received_laser_scan = false;
