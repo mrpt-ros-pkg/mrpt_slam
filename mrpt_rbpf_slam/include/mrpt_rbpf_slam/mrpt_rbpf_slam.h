@@ -124,7 +124,7 @@ protected:
   CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions;  ///< options for SLAM from ini file
   mrpt::system::TTimeStamp timeLastUpdate_;                        ///< last update of the pose and map
 
-  CMultiMetricMap* metric_map_;  ///<receive map after iteration of SLAM to metric map
+  const CMultiMetricMap* metric_map_;  ///<receive map after iteration of SLAM to metric map
   CPose3DPDFParticles curPDF;    ///<current robot pose
 
   mrpt::gui::CDisplayWindow3DPtr win3D;  ///<MRPT window
