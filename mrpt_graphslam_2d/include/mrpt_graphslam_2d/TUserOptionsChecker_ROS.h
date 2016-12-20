@@ -17,7 +17,7 @@
 namespace mrpt { namespace graphslam { namespace detail {
 
 struct TUserOptionsChecker_ROS :
-	public mrpt::graphslam::detail::TUserOptionsChecker {
+	public mrpt::graphslam::detail::TUserOptionsChecker<mrpt::graphs::CNetworkOfPoses2DInf> {
 
 	/**\name handy typedefs for the creation of deciders/optimzer instances from
 	 * the corresponding strings
@@ -36,7 +36,7 @@ struct TUserOptionsChecker_ROS :
 		mrpt::graphslam::optimizers::CGraphSlamOptimizer<
 			mrpt::graphs::CNetworkOfPoses2DInf>*(*)()> optimizers_t;
 	/**\brief Parent class */
-	typedef mrpt::graphslam::detail::TUserOptionsChecker parent;
+	typedef mrpt::graphslam::detail::TUserOptionsChecker<mrpt::graphs::CNetworkOfPoses2DInf> parent;
 	/**\}*/
 
 	TUserOptionsChecker_ROS();

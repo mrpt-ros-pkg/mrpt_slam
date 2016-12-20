@@ -9,30 +9,6 @@
 
 #include "mrpt_graphslam_2d/CGraphSlamResources.h"
 
-// detail functions - TODO - where to put these?
-template<class T>
-std::string getVectorAsString(const T& t) {
-	using namespace std;
-	stringstream ss;
-	for (typename T::const_iterator it = t.begin(); it != t.end(); ++it) {
-		ss << *it << ", ";
-	}
-	return ss.str();
-}
-template<class T>
-void printVector(const T& t) {
-	std::cout << getVectorAsString(t) << std::endl;
-}
-template<class T>
-void printVectorOfVectors(const T& t) {
-	int i = 0;
-	for (typename T::const_iterator it = t.begin(); it  != t.end(); ++i, ++it) {
-		printf("Vector %d/%lu:\n\t", i, t.size());
-		printVector(*it);
-	}
-}
-
-
 // static member variables
 const std::string CGraphSlamResources::sep_header(40, '=');
 const std::string CGraphSlamResources::sep_subheader(20, '-');
@@ -555,8 +531,8 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 	{
 		std_msgs::Header h;
 		mrpt::system::TTimeStamp mrpt_time;
-		mrpt::maps::COccupancyGridMap2D mrpt_gridmap;
-		m_graphslam_engine->getOccupancyGridMap2D(&mrpt_gridmap, &mrpt_time);
+		mrpt::maps::COccupancyGridMap2DPtr mrpt_gridmap = mrpt::maps::COccupancyGridMap2D::Create();
+		m_graphslam_engine->getMap(mrpt_gridmap, &mrpt_time);
 
 		// timestamp
 		mrpt_bridge::convert(mrpt_time, h.stamp);
@@ -565,7 +541,7 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 
 		// nav gridmap
 		nav_msgs::OccupancyGrid nav_gridmap;
-		mrpt_bridge::convert(mrpt_gridmap, nav_gridmap, h);
+		mrpt_bridge::convert(*mrpt_gridmap, nav_gridmap, h);
 		m_gridmap_pub.publish(nav_gridmap);
 	}
 
@@ -688,13 +664,13 @@ void CGraphSlamResources::generateReport() {
 		m_graphslam_engine->save3DScene(&save_3DScene_fname);
 	}
 	// get the occupancy gridmap that was built
-	if (m_graphslam_handler->save_gridmap) {
-		COccupancyGridMap2D gridmap;
-		m_graphslam_engine->getOccupancyGridMap2D(&gridmap);
-		gridmap.saveMetricMapRepresentationToFile(
+	if (m_graphslam_handler->save_map) {
+		COccupancyGridMap2DPtr gridmap;
+		m_graphslam_engine->getMap(gridmap);
+		gridmap->saveMetricMapRepresentationToFile(
 				m_graphslam_handler->output_dir_fname +
 				"/" +
-				m_graphslam_handler->save_gridmap_fname);
+				m_graphslam_handler->save_map_fname);
 	}
 
 
