@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   mrpt_bridge
   mrpt_msgs
   tf
+  multimaster_msgs_fkie
   )
 ## System dependencies are found with CMake's conventions
 find_package(MRPT REQUIRED
@@ -58,6 +59,7 @@ catkin_package(
   mrpt_bridge
   mrpt_msgs
   tf
+  multimaster_msgs_fkie
   #  DEPENDS system_lib
   )
 
@@ -84,6 +86,7 @@ add_executable(${PROJECT_NAME}_node
   src/mrpt_graphslam_2d_node.cpp
   src/CGraphSlamResources.cpp
   src/TUserOptionsChecker_ROS.cpp
+  src/CConnectionManager.cpp
   )
 
 ## Specify libraries to link a library or executable target against
