@@ -22,7 +22,6 @@ CGraphSlamResources::CGraphSlamResources(
 {
 	using namespace std;
 	using namespace mrpt::obs;
-
 	ASSERT_(m_logger);
 	ASSERT_(m_nh);
 

@@ -19,13 +19,11 @@ TUserOptionsChecker_ROS::~TUserOptionsChecker_ROS() {
 
 void TUserOptionsChecker_ROS::createDeciderOptimizerMappings() {
 	MRPT_START;
-	using namespace mrpt::graphslam::detail;
 	using namespace std;
-	parent::createDeciderOptimizerMappings();
-
 	using namespace mrpt::graphs;
+	using namespace mrpt::graphslam::detail;
 	using namespace mrpt::graphslam::deciders;
-	using namespace std;
+	parent::createDeciderOptimizerMappings();
 
 	// node registration deciders
 	node_regs_map["CFixedIntervalsNRD_MR"] =

@@ -64,39 +64,9 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        back_sonar:
-          Value: true
         base_link:
           Value: true
-        camera_link:
-          Value: true
-        front_sonar:
-          Value: true
-        hokuyo_link:
-          Value: true
-        laser:
-          Value: true
         map:
-          Value: true
-        odometry:
-          Value: true
-        p3at_back_left_axle:
-          Value: true
-        p3at_back_left_hub:
-          Value: true
-        p3at_back_right_axle:
-          Value: true
-        p3at_back_right_hub:
-          Value: true
-        p3at_front_left_axle:
-          Value: true
-        p3at_front_left_hub:
-          Value: true
-        p3at_front_right_axle:
-          Value: true
-        p3at_front_right_hub:
-          Value: true
-        top_plate:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -106,29 +76,6 @@ Visualization Manager:
       Tree:
         map:
           base_link:
-            back_sonar:
-              {}
-            front_sonar:
-              {}
-            laser:
-              {}
-            p3at_back_left_axle:
-              p3at_back_left_hub:
-                {}
-            p3at_back_right_axle:
-              p3at_back_right_hub:
-                {}
-            p3at_front_left_axle:
-              p3at_front_left_hub:
-                {}
-            p3at_front_right_axle:
-              p3at_front_right_hub:
-                {}
-            top_plate:
-              hokuyo_link:
-                camera_link:
-                  {}
-          odometry:
             {}
       Update Interval: 0
       Value: true
@@ -262,22 +209,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.33126
+      Distance: 11.2431
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 4.39903
-        Y: -7.41718
-        Z: 1.10367
+        X: -1.04912
+        Y: 1.19479
+        Z: 0.964277
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.374802
+      Pitch: 0.889802
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.5086
+      Yaw: 2.57542
     Saved: ~
 Window Geometry:
   Displays:
@@ -295,5 +242,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1920
-  X: -1
+  X: 0
   Y: 31

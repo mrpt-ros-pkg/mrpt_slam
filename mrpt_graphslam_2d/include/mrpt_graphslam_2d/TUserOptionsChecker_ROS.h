@@ -10,6 +10,8 @@
 #ifndef TUSEROPTIONSCHECKER_ROS_H
 #define TUSEROPTIONSCHECKER_ROS_H
 
+#include <ros/console.h>
+
 #include <mrpt/graphslam/apps_related/TUserOptionsChecker.h>
 #include <mrpt/graphs/CNetworkOfPoses.h>
 #include "mrpt_graphslam_2d/ERD/CLoopCloserERD_MR.h"

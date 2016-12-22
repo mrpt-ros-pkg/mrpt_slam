@@ -53,32 +53,32 @@ int main(int argc, char **argv)
 
 	try {
 
-		CConnectionManager conn_manager(&logger, &nh);
-		conn_manager.setupComm();
+		//CConnectionManager conn_manager(&logger, &nh);
+		//conn_manager.setupComm();
 
-		std::vector<TSlamAgent> agents_vec;
-		conn_manager.getNearbySlamAgents(&agents_vec);
+		//std::vector<TSlamAgent> agents_vec;
+		//conn_manager.getNearbySlamAgents(&agents_vec);
 
-		//// CGraphSlamResources initialization
-		//CGraphSlamResources resources(&logger, &nh);
-		//resources.readParams();
-		//resources.setupComm();
-		//// print the parameters just for verification
-		//resources.printParams();
+		// CGraphSlamResources initialization
+		CGraphSlamResources resources(&logger, &nh);
+		resources.readParams();
+		resources.setupComm();
+		// print the parameters just for verification
+		resources.printParams();
 
-		//bool cont_exec = true;
-		//while (ros::ok() && cont_exec) {
-			//cont_exec = resources.usePublishersBroadcasters();
+		bool cont_exec = true;
+		while (ros::ok() && cont_exec) {
+			cont_exec = resources.usePublishersBroadcasters();
 
-			//ros::spinOnce();
-			//loop_rate.sleep();
-		//}
+			ros::spinOnce();
+			loop_rate.sleep();
+		}
 
-		////
-		//// Postprocessing
-		////
+		//
+		// Postprocessing
+		//
 
-		//resources.generateReport();
+		resources.generateReport();
 
 	}
 	catch (exception& e) {
