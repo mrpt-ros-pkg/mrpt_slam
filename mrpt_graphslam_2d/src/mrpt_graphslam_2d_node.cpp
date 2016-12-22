@@ -17,6 +17,8 @@
 
 // ROS headers
 #include "mrpt_graphslam_2d/CGraphSlamResources.h"
+// TODO - remove this
+#include "mrpt_graphslam_2d/CConnectionManager.h"
 
 using namespace mrpt;
 using namespace mrpt::utils;
@@ -50,26 +52,33 @@ int main(int argc, char **argv)
 
 
 	try {
-		// CGraphSlamResources initialization
-		CGraphSlamResources resources(&logger, &nh);
-		resources.readParams();
-		resources.setupCommunication();
-		// print the parameters just for verification
-		resources.printParams();
 
-		bool cont_exec = true;
-		while (ros::ok() && cont_exec) {
-			cont_exec = resources.usePublishersBroadcasters();
+		CConnectionManager conn_manager(&logger, &nh);
+		conn_manager.setupComm();
 
-			ros::spinOnce();
-			loop_rate.sleep();
-		}
+		std::vector<TSlamAgent> agents_vec;
+		conn_manager.getNearbySlamAgents(&agents_vec);
 
-		//
-		// Postprocessing
-		//
+		//// CGraphSlamResources initialization
+		//CGraphSlamResources resources(&logger, &nh);
+		//resources.readParams();
+		//resources.setupComm();
+		//// print the parameters just for verification
+		//resources.printParams();
 
-		resources.generateReport();
+		//bool cont_exec = true;
+		//while (ros::ok() && cont_exec) {
+			//cont_exec = resources.usePublishersBroadcasters();
+
+			//ros::spinOnce();
+			//loop_rate.sleep();
+		//}
+
+		////
+		//// Postprocessing
+		////
+
+		//resources.generateReport();
 
 	}
 	catch (exception& e) {

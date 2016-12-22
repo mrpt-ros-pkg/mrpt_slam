@@ -18,13 +18,13 @@ CGraphSlamResources::CGraphSlamResources(
 		mrpt::utils::COutputLogger* logger_in,
 		ros::NodeHandle* nh_in):
 	m_logger(logger_in),
-	nh(nh_in)
+	m_nh(nh_in)
 {
 	using namespace std;
 	using namespace mrpt::obs;
 
 	ASSERT_(m_logger);
-	ASSERT_(nh_in);
+	ASSERT_(m_nh);
 
 	m_graphslam_handler = new CGraphSlamHandler();
 	m_graphslam_handler->setOutputLoggerPtr(m_logger);
@@ -74,11 +74,11 @@ void CGraphSlamResources::readROSParameters() {
 		std::string ns = "misc/";
 
 		// enable/disable visuals
-		nh->param<bool>(ns + "disable_MRPT_visuals", m_disable_MRPT_visuals, false);
+		m_nh->param<bool>(ns + "disable_MRPT_visuals", m_disable_MRPT_visuals, false);
 
 		// verbosity level
 		int lvl;
-		nh->param<int>(ns + "verbosity",
+		m_nh->param<int>(ns + "verbosity",
 				lvl,
 				static_cast<int>(LVL_INFO));
 		m_min_logging_level = static_cast<VerbosityLevel>(lvl);
@@ -87,9 +87,9 @@ void CGraphSlamResources::readROSParameters() {
 	// deciders, optimizer
 	{
 		std::string ns = "deciders_optimizers/";
-		nh->param<std::string>(ns + "NRD", m_node_reg, "CFixedIntervalsNRD");
-		nh->param<std::string>(ns + "ERD", m_edge_reg, "CICPCriteriaERD");
-		nh->param<std::string>(ns + "GSO", m_optimizer, "CLevMarqGSO");
+		m_nh->param<std::string>(ns + "NRD", m_node_reg, "CFixedIntervalsNRD");
+		m_nh->param<std::string>(ns + "ERD", m_edge_reg, "CICPCriteriaERD");
+		m_nh->param<std::string>(ns + "GSO", m_optimizer, "CLevMarqGSO");
 	}
 	// filenames
 	{
@@ -97,14 +97,14 @@ void CGraphSlamResources::readROSParameters() {
 
 		// configuration file - mandatory
 		std::string config_param_path = ns + "config";
-		bool found_config = nh->getParam(ns + "config", m_ini_fname);
+		bool found_config = m_nh->getParam(ns + "config", m_ini_fname);
 		std::cout << "KALIMERA : " << m_ini_fname << std::endl;
 		ASSERTMSG_(found_config,
 				mrpt::format("Configuration file was not set. Set %s and try again.\nExiting...",
 					config_param_path.c_str()));
 
 		// ground-truth file
-		nh->getParam(ns + "ground_truth", m_gt_fname);
+		m_nh->getParam(ns + "ground_truth", m_gt_fname);
 	}
 
 	// TF Frame IDs
@@ -112,10 +112,10 @@ void CGraphSlamResources::readROSParameters() {
 	{
 		std::string ns = "frame_IDs/";
 
-		nh->param<std::string>(ns + "anchor_frame"    , m_anchor_frame_id    , "map");
-		nh->param<std::string>(ns + "base_link_frame" , m_base_link_frame_id , "base_link");
-		nh->param<std::string>(ns + "odometry_frame"  , m_odom_frame_id      , "odom");
-		nh->param<std::string>(ns + "laser_frame"     , m_laser_frame_id     , "laser");
+		m_nh->param<std::string>(ns + "anchor_frame"    , m_anchor_frame_id    , "map");
+		m_nh->param<std::string>(ns + "base_link_frame" , m_base_link_frame_id , "base_link");
+		m_nh->param<std::string>(ns + "odometry_frame"  , m_odom_frame_id      , "odom");
+		m_nh->param<std::string>(ns + "laser_frame"     , m_laser_frame_id     , "laser");
 
 		// take action based on the above frames
 		//
@@ -314,7 +314,11 @@ void CGraphSlamResources::verifyUserInput() {
 
 }
 
-void CGraphSlamResources::setupCommunication() {
+void CGraphSlamResources::setupComm() {
+	using namespace mrpt::utils;
+
+	m_logger->logFmt(LVL_INFO,
+			"Setting up ROS-related subscribers, publishers, services...");
 
 	// setup subscribers, publishers, services...
 	this->setupSubs();
@@ -337,13 +341,13 @@ void CGraphSlamResources::setupSubs() {
 	m_laser_scan_topic = ns + "laser_scan";
 
 	// odometry
-	m_odom_sub = nh->subscribe<nav_msgs::Odometry>(
+	m_odom_sub = m_nh->subscribe<nav_msgs::Odometry>(
 			m_odom_topic,
 			m_queue_size,
 			&CGraphSlamResources::sniffOdom, this);
 
 	// laser_scans
-	m_laser_scan_sub = nh->subscribe<sensor_msgs::LaserScan>(
+	m_laser_scan_sub = m_nh->subscribe<sensor_msgs::LaserScan>(
 			m_laser_scan_topic,
 			m_queue_size,
 			&CGraphSlamResources::sniffLaserScan, this);
@@ -370,13 +374,13 @@ void CGraphSlamResources::setupPubs() {
 	m_gridmap_topic = ns + "gridmap";
 
 	// agent estimated position
-	m_curr_robot_pos_pub = nh->advertise<geometry_msgs::PoseStamped>(
+	m_curr_robot_pos_pub = m_nh->advertise<geometry_msgs::PoseStamped>(
 			m_curr_robot_pos_topic,
 			m_queue_size);
-	 m_robot_trajectory_pub = nh->advertise<nav_msgs::Path>(
+	 m_robot_trajectory_pub = m_nh->advertise<nav_msgs::Path>(
 	 		 m_robot_trajectory_topic,
 	 		 m_queue_size);
-	 m_robot_tr_poses_pub = nh->advertise<geometry_msgs::PoseArray>(
+	 m_robot_tr_poses_pub = m_nh->advertise<geometry_msgs::PoseArray>(
 	 		 m_robot_tr_poses_topic,
 	 		 m_queue_size);
 
@@ -385,12 +389,12 @@ void CGraphSlamResources::setupPubs() {
 	 m_odom_path.header.stamp = ros::Time::now();
 	 m_odom_path.header.frame_id = m_anchor_frame_id;
 
-	 m_odom_trajectory_pub = nh->advertise<nav_msgs::Path>(
+	 m_odom_trajectory_pub = m_nh->advertise<nav_msgs::Path>(
 	 		 m_odom_trajectory_topic,
 	 		 m_queue_size);
 
 	 // generated gridmap
-	 m_gridmap_pub = nh->advertise<nav_msgs::OccupancyGrid>(
+	 m_gridmap_pub = m_nh->advertise<nav_msgs::OccupancyGrid>(
 	 		 m_gridmap_topic,
 	 		 m_queue_size);
 

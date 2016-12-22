@@ -61,7 +61,7 @@ public:
 
 	CGraphSlamResources(
 			mrpt::utils::COutputLogger* logger_in,
-			ros::NodeHandle* nh
+			ros::NodeHandle* nh_in
 			);
 	~CGraphSlamResources();
 
@@ -114,7 +114,7 @@ public:
 	 * \return True if the graphSLAM execution is to continue normally
 	 */
 	bool usePublishersBroadcasters();
-	/**\brief Wrapper method around the setup* private class methods.
+	/**\brief Wrapper method around the private setup* class methods.
 	 *
 	 * Handy for setting up publishers, subscribers, services, TF-related stuff
 	 * all at once from the user application
@@ -122,7 +122,7 @@ public:
 	 * \note method should be called right after the call to
 	 * CGraphSlamResources::readParams method
 	 */
-	void setupCommunication();
+	void setupComm();
 
 
 	static const std::string sep_header;
@@ -167,10 +167,11 @@ private:
 	 * (odometry, laser scans etc.)
 	 */
 	void resetReceivedFlags();
-	/**\name Methods for setting up topic subscribers, publishers, and
+	/**\name setup* ROS-related methods
+	 *\brief Methods for setting up topic subscribers, publishers, and
 	 * corresponding services
 	 *
-	 * \sa setupCommunication
+	 * \sa setupComm
 	 */
 	/**\{*/
 	void setupSubs();
@@ -180,7 +181,8 @@ private:
 
 	/**\brief Pointer to the logging instance */
 	mrpt::utils::COutputLogger* m_logger;
-	ros::NodeHandle* nh;
+	/**\brief Pointer to the Ros NodeHanle instance */
+	ros::NodeHandle* m_nh;
 
 	// ROS server parameters
 	/**\name node, edge, optimizer modules in string representation */
