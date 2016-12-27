@@ -31,6 +31,7 @@ CGraphSlamResources::CGraphSlamResources(
 	// variables initialization/assignment
 	m_has_read_config = false;
 	m_pub_seq = 0;
+	m_stats_pub_seq = 0;
 	this->resetReceivedFlags();
 
 	// measurements initialization
@@ -369,8 +370,10 @@ void CGraphSlamResources::setupPubs() {
 	m_robot_trajectory_topic = ns + "robot_trajectory";
 	m_robot_tr_poses_topic = ns + "robot_tr_poses";
 	m_odom_trajectory_topic = ns + "odom_trajectory";
-	m_SLAM_eval_metric_topic = ns + "evaluation_metric";
 	m_gridmap_topic = ns + "gridmap";
+	m_stats_topic = ns + "graphslam_stats";
+
+	// setup the publishers
 
 	// agent estimated position
 	m_curr_robot_pos_pub = m_nh->advertise<geometry_msgs::PoseStamped>(
@@ -395,7 +398,14 @@ void CGraphSlamResources::setupPubs() {
 	 // generated gridmap
 	 m_gridmap_pub = m_nh->advertise<nav_msgs::OccupancyGrid>(
 	 		 m_gridmap_topic,
-	 		 m_queue_size);
+	 		 m_queue_size,
+	 		 /*latch=*/true);
+
+	 m_stats_pub = m_nh->advertise<mrpt_msgs::GraphSlamStats>(
+	 		 m_stats_topic,
+	 		 m_queue_size,
+	 		 /*latch=*/true);
+
 
 
 }
@@ -523,10 +533,6 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 		m_robot_trajectory_pub.publish(path);
 	}
 
-	// SLAM Evaluation Metric
-	{
-	}
-
 	// Odometry trajectory - nav_msgs::Path
 	m_odom_trajectory_pub.publish(m_odom_path);
 
@@ -547,6 +553,51 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 		mrpt_bridge::convert(*mrpt_gridmap, nav_gridmap, h);
 		m_gridmap_pub.publish(nav_gridmap);
 	}
+
+	// GraphSlamStats publishing
+	{
+		mrpt_msgs::GraphSlamStats stats;
+		stats.header.seq = m_stats_pub_seq++;
+
+		map<string, int>  node_stats;
+		map<string, int>  edge_stats;
+		vector<double> def_energy_vec;
+		mrpt::system::TTimeStamp mrpt_time;
+
+		bool ret = m_graphslam_engine->getGraphSlamStats(&node_stats,
+				&edge_stats,
+				&mrpt_time);
+
+		if (ret) {
+			// node/edge count
+			stats.nodes_total = node_stats["nodes_total"];
+			stats.edges_total = edge_stats["edges_total"];
+			if (edge_stats.find("ICP2D") != edge_stats.end()) {
+				stats.edges_ICP2D = edge_stats["ICP2D"];
+			}
+			if (edge_stats.find("ICP3D") != edge_stats.end()) {
+				stats.edges_ICP3D = edge_stats["ICP3D"];
+			}
+			if (edge_stats.find("Odometry") != edge_stats.end()) {
+				stats.edges_odom = edge_stats["Odometry"];
+			}
+			stats.loop_closures = edge_stats["loop_closures"];
+
+			// SLAM evaluation metric
+			m_graphslam_engine->getDeformationEnergyVector(&stats.slam_evaluation_metric);
+
+			mrpt_bridge::convert(mrpt_time, stats.header.stamp);
+
+			m_stats_pub.publish(stats);
+		}
+		else {
+			m_logger->logFmt(LVL_ERROR, "Answer is False");
+		}
+		
+		
+
+	}
+
 
 	m_pub_seq++;
 

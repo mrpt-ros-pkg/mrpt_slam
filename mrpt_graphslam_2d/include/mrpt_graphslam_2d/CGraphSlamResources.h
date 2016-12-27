@@ -13,6 +13,7 @@
 // ROS
 #include <ros/ros.h>
 #include <mrpt_bridge/mrpt_bridge.h>
+#include <mrpt_msgs/GraphSlamStats.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/TransformStamped.h>
@@ -41,6 +42,7 @@
 #include <mrpt/utils/COutputLogger.h>
 #include <mrpt/graphslam/CGraphSlamEngine.h>
 #include <mrpt/graphslam/apps_related/CGraphSlamHandler.h>
+
 #include "mrpt_graphslam_2d/TUserOptionsChecker_ROS.h"
 
 // cpp headers
@@ -259,6 +261,7 @@ private:
 	ros::Publisher m_SLAM_eval_metric_pub; // TODO
 	ros::Publisher m_odom_trajectory_pub;
 	ros::Publisher m_gridmap_pub;
+	ros::Publisher m_stats_pub;
 	/**\}*/
 
 	/**\name Topic Names
@@ -275,8 +278,8 @@ private:
 	std::string m_robot_trajectory_topic;
 	std::string m_robot_tr_poses_topic;
 	std::string m_odom_trajectory_topic;
-	std::string m_SLAM_eval_metric_topic;
-	std::string m_gridmap_topic; // TODO
+	std::string m_gridmap_topic;
+	std::string m_stats_topic;
 	/**\}*/
 
 	/**\name TransformBroadcasters - TransformListeners
@@ -316,6 +319,7 @@ private:
 	/**\brief Times a messge has been published => usePublishersBroadcasters method is called
 	 */
 	int m_pub_seq;
+	int m_stats_pub_seq;
 
 	/**\brief Total counter of the processed measurements
 	 */
