@@ -137,9 +137,7 @@ public:
 	 *
 	 * Handy for setting up publishers, subscribers, services, TF-related stuff
 	 * all at once from the user application
-	 * 
-	 * \note method should be called right after the call to
-	 * CGraphSlamResources::readParams method
+	 *
 	 */
 	void setupComm();
 

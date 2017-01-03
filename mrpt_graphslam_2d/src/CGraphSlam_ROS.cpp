@@ -7,14 +7,14 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#include "mrpt_graphslam_2d/CGraphSlamResources.h"
+#include "mrpt_graphslam_2d/CGraphSlam_ROS.h"
 
 // static member variables
-const std::string CGraphSlamResources::sep_header(40, '=');
-const std::string CGraphSlamResources::sep_subheader(20, '-');
+const std::string CGraphSlam_ROS::sep_header(40, '=');
+const std::string CGraphSlam_ROS::sep_subheader(20, '-');
 
 // Ctor
-CGraphSlamResources::CGraphSlamResources(
+CGraphSlam_ROS::CGraphSlam_ROS(
 		mrpt::utils::COutputLogger* logger_in,
 		ros::NodeHandle* nh_in):
 	m_logger(logger_in),
@@ -47,7 +47,7 @@ CGraphSlamResources::CGraphSlamResources(
 	// WARNING: ROS Server Parameters have not been read yet. Make sure you know
 	// what to initialize at this stage!
 }
-CGraphSlamResources::~CGraphSlamResources() {
+CGraphSlam_ROS::~CGraphSlam_ROS() {
 	using namespace mrpt::utils;
 
 
@@ -59,14 +59,14 @@ CGraphSlamResources::~CGraphSlamResources() {
 
 }
 
-void CGraphSlamResources::readParams() {
+void CGraphSlam_ROS::readParams() {
 	this->readROSParameters();
 	m_graphslam_handler->readConfigFname(m_ini_fname);
 
 
 	m_has_read_config = true;
 }
-void CGraphSlamResources::readROSParameters() {
+void CGraphSlam_ROS::readROSParameters() {
 	using namespace mrpt::utils;
 
 	// misc
@@ -133,7 +133,7 @@ void CGraphSlamResources::readROSParameters() {
 
 	this->initGraphSLAM();
 }
-void CGraphSlamResources::readStaticTFs() {
+void CGraphSlam_ROS::readStaticTFs() {
 	using namespace mrpt::utils;
 
 	// base_link => laser
@@ -166,7 +166,7 @@ void CGraphSlamResources::readStaticTFs() {
 
 
 }
-void CGraphSlamResources::initGraphSLAM() {
+void CGraphSlam_ROS::initGraphSLAM() {
 	using namespace mrpt::graphs;
 	using namespace mrpt::graphslam;
 	using namespace mrpt::utils;
@@ -194,7 +194,7 @@ void CGraphSlamResources::initGraphSLAM() {
 
 	m_logger->logFmt(LVL_DEBUG, "Successfully initialized CGraphSlamEngine instance.");
 }
-void CGraphSlamResources::getROSParameters(std::string* str_out) {
+void CGraphSlam_ROS::getROSParameters(std::string* str_out) {
 	using namespace std;
 	using namespace mrpt::utils;
 
@@ -232,7 +232,7 @@ void CGraphSlamResources::getROSParameters(std::string* str_out) {
 	*str_out = ss.str();
 }
 
-void CGraphSlamResources::getParamsAsString(std::string* str_out) {
+void CGraphSlam_ROS::getParamsAsString(std::string* str_out) {
 	ASSERT_(str_out);
 
 	// ros parameters
@@ -243,13 +243,13 @@ void CGraphSlamResources::getParamsAsString(std::string* str_out) {
 	// various parameters
 }
 
-std::string CGraphSlamResources::getParamsAsString() {
+std::string CGraphSlam_ROS::getParamsAsString() {
 	std::string params;
 	this->getParamsAsString(&params);
 	return params;
 }
 
-void CGraphSlamResources::printParams() {
+void CGraphSlam_ROS::printParams() {
 	using namespace std;
 	// print the problem parameters
 	cout << this->getParamsAsString() << endl;
@@ -259,7 +259,7 @@ void CGraphSlamResources::printParams() {
 
 
 }
-void CGraphSlamResources::verifyUserInput() {
+void CGraphSlam_ROS::verifyUserInput() {
 	using namespace mrpt;
 	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_DEBUG, "Verifying user input...");
@@ -314,7 +314,7 @@ void CGraphSlamResources::verifyUserInput() {
 
 }
 
-void CGraphSlamResources::setupComm() {
+void CGraphSlam_ROS::setupComm() {
 	using namespace mrpt::utils;
 
 	m_logger->logFmt(LVL_INFO,
@@ -330,7 +330,7 @@ void CGraphSlamResources::setupComm() {
 
 }
 
-void CGraphSlamResources::setupSubs() {
+void CGraphSlam_ROS::setupSubs() {
 	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_INFO, "Setting up the subscribers...");
 	
@@ -344,13 +344,13 @@ void CGraphSlamResources::setupSubs() {
 	m_odom_sub = m_nh->subscribe<nav_msgs::Odometry>(
 			m_odom_topic,
 			m_queue_size,
-			&CGraphSlamResources::sniffOdom, this);
+			&CGraphSlam_ROS::sniffOdom, this);
 
 	// laser_scans
 	m_laser_scan_sub = m_nh->subscribe<sensor_msgs::LaserScan>(
 			m_laser_scan_topic,
 			m_queue_size,
-			&CGraphSlamResources::sniffLaserScan, this);
+			&CGraphSlam_ROS::sniffLaserScan, this);
 	
 	// camera
 	// TODO
@@ -359,7 +359,7 @@ void CGraphSlamResources::setupSubs() {
 	// TODO
 
 }
-void CGraphSlamResources::setupPubs() {
+void CGraphSlam_ROS::setupPubs() {
 	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_INFO, "Setting up the publishers...");
 
@@ -410,7 +410,7 @@ void CGraphSlamResources::setupPubs() {
 
 }
 
-void CGraphSlamResources::setupSrvs() {
+void CGraphSlam_ROS::setupSrvs() {
 	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_INFO, "Setting up the services...");
 
@@ -421,7 +421,7 @@ void CGraphSlamResources::setupSrvs() {
 	// TODO - Implement this...
 }
 
-bool CGraphSlamResources::usePublishersBroadcasters() {
+bool CGraphSlam_ROS::usePublishersBroadcasters() {
 	using namespace mrpt::poses;
 	using namespace mrpt::utils;
 	using namespace std;
@@ -606,7 +606,7 @@ bool CGraphSlamResources::usePublishersBroadcasters() {
 	}
 } // USEPUBLISHERSBROADCASTERS
 
-void CGraphSlamResources::sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan) {
+void CGraphSlam_ROS::sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan) {
 	using namespace std;
 	using namespace mrpt::utils;
 	using namespace mrpt::obs;
@@ -622,7 +622,7 @@ void CGraphSlamResources::sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr&
 	this->processObservation(m_mrpt_laser_scan);
 }
 
-void CGraphSlamResources::sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom) {
+void CGraphSlam_ROS::sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom) {
 	using namespace std;
 	using namespace mrpt::utils;
 	using namespace mrpt::obs;
@@ -677,15 +677,15 @@ void CGraphSlamResources::sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom
 	this->processObservation(m_mrpt_odom);
 }
 
-void CGraphSlamResources::sniffCameraImage() {
+void CGraphSlam_ROS::sniffCameraImage() {
 	THROW_EXCEPTION("Method is not implemented yet.");
 
 }
-void CGraphSlamResources::sniff3DPointCloud() {
+void CGraphSlam_ROS::sniff3DPointCloud() {
 	THROW_EXCEPTION("Method is not implemented yet.");
 
 }
-void CGraphSlamResources::processObservation(mrpt::obs::CObservationPtr& observ) {
+void CGraphSlam_ROS::processObservation(mrpt::obs::CObservationPtr& observ) {
 	using namespace mrpt::utils;
 	using namespace std;
 
@@ -693,7 +693,7 @@ void CGraphSlamResources::processObservation(mrpt::obs::CObservationPtr& observ)
 	this->resetReceivedFlags();
 
 }
-void CGraphSlamResources::generateReport() {
+void CGraphSlam_ROS::generateReport() {
 	using namespace std;
 	using namespace mrpt::utils;
 
@@ -730,7 +730,7 @@ void CGraphSlamResources::generateReport() {
 
 }
 
-bool CGraphSlamResources::continueExec() {
+bool CGraphSlam_ROS::continueExec() {
 	using namespace std;
 	using namespace mrpt::utils;
 
@@ -738,7 +738,7 @@ bool CGraphSlamResources::continueExec() {
 	return m_graphslam_handler->queryObserverForEvents();
 }
 
-void CGraphSlamResources::_process(mrpt::obs::CObservationPtr& observ) {
+void CGraphSlam_ROS::_process(mrpt::obs::CObservationPtr& observ) {
 	using namespace mrpt::utils;
 	using namespace std;
 
@@ -748,7 +748,7 @@ void CGraphSlamResources::_process(mrpt::obs::CObservationPtr& observ) {
 	m_measurement_cnt++;
 }
 
-void CGraphSlamResources::resetReceivedFlags() {
+void CGraphSlam_ROS::resetReceivedFlags() {
 	m_received_odom = false;
 	m_received_laser_scan = false;
 	m_received_camera = false;

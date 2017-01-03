@@ -7,8 +7,9 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CGRAPHSLAMRESOURCES_H
-#define CGRAPHSLAMRESOURCES_H
+#ifndef CGRAPHSLAM_ROS_H
+#define CGRAPHSLAM_ROS_H
+
 
 // ROS
 #include <ros/ros.h>
@@ -53,7 +54,7 @@
 /**\brief Manage variables, ROS parameters and everything else related to the
  * graphslam-engine ROS wrapper.
  */
-class CGraphSlamResources
+class CGraphSlam_ROS
 {
 public:
 	/**\brief type of graph constraints */
@@ -61,25 +62,26 @@ public:
 	/**\brief type of underlying poses (2D/3D). */
 	typedef typename mrpt::graphs::CNetworkOfPoses2DInf::constraint_t::type_value pose_t;
 
-	CGraphSlamResources(
+	CGraphSlam_ROS(
 			mrpt::utils::COutputLogger* logger_in,
 			ros::NodeHandle* nh_in
 			);
-	~CGraphSlamResources();
+	CGraphSlam_ROS() { }
+	virtual ~CGraphSlam_ROS();
 
 
-	void getParamsAsString(std::string* str_out);
-	std::string getParamsAsString();
+	virtual void getParamsAsString(std::string* str_out);
+	virtual std::string getParamsAsString();
 
 	/**\brief Read the problem configuration parameters
 	 *
 	 * \sa readROSParameters, printParams
 	 */
-	void readParams();
+	virtual void readParams();
 	/**\brief Print in a compact manner the overall problem configuration
 	 * parameters
 	 */
-	void printParams();
+	virtual void printParams();
 
 	/**\name Sniffing methods
 	 *
@@ -89,23 +91,23 @@ public:
 	/**\brief Callback method for handling incoming odometry measurements in a ROS
 	 * topic.
 	 */
-	void sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom);
+	virtual void sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom);
 	/**\brief Callback method for handling incoming LaserScans objects in a ROS
 	 * topic.
 	 */
-	void sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan);
-	void sniffCameraImage();
+	virtual void sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan);
+	virtual void sniffCameraImage();
 	/** TODO - Implement this */
-	void sniff3DPointCloud();
+	virtual void sniff3DPointCloud();
 	/**\}*/
 	/**\brief Indicate whether graphslam execution can proceed normally.
 	 * \return False if user has demanded to exit (pressed <C-c>), True otherwise
 	 */
-	bool continueExec();
+	virtual bool continueExec();
 	/**\brief Generate the relevant report directory/files after the graphSLAM
 	 * execution.
 	 */
-	void generateReport();
+	virtual void generateReport();
 	/**\brief Provide feedback about the SLAM operation using ROS publilshers,
 	 * update the registered frames using the tf2_ros::TransformBroadcaster
 	 *
@@ -115,60 +117,60 @@ public:
 	 * \sa continueExec
 	 * \return True if the graphSLAM execution is to continue normally
 	 */
-	bool usePublishersBroadcasters();
-	/**\brief Wrapper method around the private setup* class methods.
+	virtual bool usePublishersBroadcasters();
+	/**\brief Wrapper method around the protected setup* class methods.
 	 *
 	 * Handy for setting up publishers, subscribers, services, TF-related stuff
 	 * all at once from the user application
-	 * 
+	 *
 	 * \note method should be called right after the call to
-	 * CGraphSlamResources::readParams method
+	 * CGraphSlam_ROS::readParams method
 	 */
-	void setupComm();
-
+	virtual void setupComm();
 
 	static const std::string sep_header;
 	static const std::string sep_subheader;
-private:
+
+protected:
 	/**\brief Initialize the CGraphslamEngine object based on the user input. */
-	void initGraphSLAM();
+	virtual void initGraphSLAM();
 	/**\brief Process an incoming measurement.
 	 *
-	 * Method is a wrapper around the _process method 
+	 * Method is a wrapper around the _process method
 	 *
 	 * \note Method is automatically called when a new measurement is fetched
 	 * from a subscribed topic
 	 *
 	 * \sa _process
 	 */
-	void processObservation(mrpt::obs::CObservationPtr& observ);
+	virtual void processObservation(mrpt::obs::CObservationPtr& observ);
 	/**\brief Low level wrapper for executing the
 	 * CGraphSlamEngine::execGraphSlamStep method
 	 *
 	 * \sa processObservation();
 	 */
-	void _process(mrpt::obs::CObservationPtr& observ);
+	virtual void _process(mrpt::obs::CObservationPtr& observ);
 	/**\brief read configuration parameters from the ROS parameter server.
 	 *
 	 * \sa readParams
 	 */
-	void readROSParameters();
-	void readStaticTFs();
+	virtual void readROSParameters();
+	virtual void readStaticTFs();
 	/**\brief Fill in the given string with the parameters that have been read
 	 * from the ROS parameter server
 	 *
 	 * \sa getParamsAsString, readROSParameters
 	 */
-	void getROSParameters(std::string* str_out);
+	virtual void getROSParameters(std::string* str_out);
 	/**\brief Verify that the parameters read are valid and can be used with the
 	 * CGraphSlamEngine instance.
 	 */
-	void verifyUserInput();
+	virtual void verifyUserInput();
 
 	/**\brief Reset the flags indicating whether we have received new data
 	 * (odometry, laser scans etc.)
 	 */
-	void resetReceivedFlags();
+	virtual void resetReceivedFlags();
 	/**\name setup* ROS-related methods
 	 *\brief Methods for setting up topic subscribers, publishers, and
 	 * corresponding services
@@ -176,9 +178,9 @@ private:
 	 * \sa setupComm
 	 */
 	/**\{*/
-	void setupSubs();
-	void setupPubs();
-	void setupSrvs();
+	virtual void setupSubs();
+	virtual void setupPubs();
+	virtual void setupSrvs();
 	/**\}*/
 
 	/**\brief Pointer to the logging instance */
@@ -328,4 +330,4 @@ private:
 	int m_queue_size;
 };
 
-#endif /* end of include guard: CGRAPHSLAMRESOURCES_H */
+#endif /* end of include guard: CGRAPHSLAM_ROS_H */

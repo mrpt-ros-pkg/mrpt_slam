@@ -16,7 +16,7 @@
 #include <cstring>
 
 // ROS headers
-#include "mrpt_graphslam_2d/CGraphSlam_ROS.h"
+#include "mrpt_graphslam_2d/CGraphSlam_ROS_MR.h"
 // TODO - remove this
 #include "mrpt_graphslam_2d/CConnectionManager.h"
 
@@ -39,7 +39,7 @@ using namespace std;
 /** Main function of the mrpt_graphslam_application */
 int main(int argc, char **argv)
 {
-	std::string node_name = "mrpt_graphslam_2d";
+	std::string node_name = "mrpt_graphslam_2d_mr";
 
 	COutputLogger logger;
 	logger.setLoggerName(node_name);
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 		//conn_manager.getNearbySlamAgents(&agents_vec);
 
 		// CGraphSlam_ROS initialization
-		CGraphSlam_ROS graph_slam(&logger, &nh);
+		CGraphSlam_ROS_MR graph_slam(&logger, &nh);
 		graph_slam.readParams();
 		graph_slam.setupComm();
 		// print the parameters just for verification

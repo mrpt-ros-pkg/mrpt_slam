@@ -9,25 +9,25 @@ add_definitions(-std=c++11) # Use C++11
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  sensor_msgs
-  geometry_msgs
-  nav_msgs
-  mrpt_bridge
-  mrpt_msgs
-  tf
-  multimaster_msgs_fkie
-  )
+    roscpp
+    rospy
+    std_msgs
+    sensor_msgs
+    geometry_msgs
+    nav_msgs
+    mrpt_bridge
+    mrpt_msgs
+    tf
+    multimaster_msgs_fkie
+    )
 ## System dependencies are found with CMake's conventions
 find_package(MRPT REQUIRED
-  base
-  gui
-  obs
-  maps
-  opengl
-  graphslam)
+    base
+    gui
+    obs
+    maps
+    opengl
+    graphslam)
 
 if (MRPT_VERSION VERSION_LESS 2.0.0)
 	set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_CXX_FLAGS}")
@@ -47,21 +47,21 @@ endif()
 ###################################
 
 catkin_package(
-  INCLUDE_DIRS include
-  #LIBRARIES mrpt_graphslam_2d
-  CATKIN_DEPENDS
-  roscpp
-  rospy
-  std_msgs
-  sensor_msgs
-  geometry_msgs
-  nav_msgs
-  mrpt_bridge
-  mrpt_msgs
-  tf
-  multimaster_msgs_fkie
-  #  DEPENDS system_lib
-  )
+    INCLUDE_DIRS include
+    #LIBRARIES mrpt_graphslam_2d
+    CATKIN_DEPENDS
+    roscpp
+    rospy
+    std_msgs
+    sensor_msgs
+    geometry_msgs
+    nav_msgs
+    mrpt_bridge
+    mrpt_msgs
+    tf
+    multimaster_msgs_fkie
+    #  DEPENDS system_lib
+    )
 
 ###########
 ## Build ##
@@ -71,50 +71,70 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
 	include
-  ${catkin_INCLUDE_DIRS}
+    ${catkin_INCLUDE_DIRS}
 	)
 
 IF(${MRPT_VERSION} LESS 1.5.0)
-  set(WARN_MSG "${WARN_MSG}\"${PROJECT_NAME}\" requires MRPT version 1.5.0 or higher ")
-  set(WARN_MSG "${WARN_MSG} - Current MRPT version: ${MRPT_VERSION}\n")
-  set(WARN_MSG "${WARN_MSG}Ignoring target \"${PROJECT_NAME}\"...")
-  MESSAGE(WARNING ${WARN_MSG})
+    set(WARN_MSG "${WARN_MSG}\"${PROJECT_NAME}\" requires MRPT version 1.5.0 or higher ")
+    set(WARN_MSG "${WARN_MSG} - Current MRPT version: ${MRPT_VERSION}\n")
+    set(WARN_MSG "${WARN_MSG}Ignoring target \"${PROJECT_NAME}\"...")
+    MESSAGE(WARNING ${WARN_MSG})
 else()
 
-## Declare a C++ executable
-add_executable(${PROJECT_NAME}_node
-  src/mrpt_graphslam_2d_node.cpp
-  src/CGraphSlamResources.cpp
-  src/TUserOptionsChecker_ROS.cpp
-  src/CConnectionManager.cpp
-  )
+  # sr-graphSLAM
+    set(SR_GRAPHSLAM_SRC
+        src/CGraphSlam_ROS.cpp
+        src/TUserOptionsChecker_ROS.cpp
+        src/CConnectionManager.cpp
+        )
+    add_executable(${PROJECT_NAME}_node
+    	${SR_GRAPHSLAM_SRC}
+      src/${PROJECT_NAME}_node.cpp
+    	)
 
-## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node
-  ${MRPT_LIBS}
-  ${catkin_LIBRARIES}
-  )
+    # mr-graphSLAM
+    set(MR_GRAPHSLAM_SRC
+        ${SR_GRAPHSLAM_SRC}
+        src/CGraphSlam_ROS_MR.cpp
+        )
+    add_executable(${PROJECT_NAME}_mr_node
+    	${MR_GRAPHSLAM_SRC}
+      src/${PROJECT_NAME}_mr_node.cpp
+    	)
 
-#############
-## Install ##
-#############
+    ## Specify libraries to link a library or executable target against
+    target_link_libraries(${PROJECT_NAME}_node
+        ${MRPT_LIBS}
+        ${catkin_LIBRARIES}
+        )
+    target_link_libraries(${PROJECT_NAME}_mr_node
+        ${MRPT_LIBS}
+        ${catkin_LIBRARIES}
+        )
 
-# Mark executables and/or libraries for installation
-install(TARGETS mrpt_graphslam_2d_node
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+    #############
+    ## Install ##
+    #############
 
-# Mark other files for installation (e.g. launch and bag files, etc.)
-install(DIRECTORY
-  launch
-  demo
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
+    # Mark executables and/or libraries for installation
+    install(TARGETS ${PROJECT_NAME}_node ${PROJECT_NAME}_mr_node
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )
 
-#############
-## Testing ##
-#############
+    # Mark other files for installation (e.g. launch and bag files, etc.)
+    install(DIRECTORY
+        launch
+        demo
+        config
+        rviz
+        rosbags
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+        )
+
+    #############
+    ## Testing ##
+    #############
 
 endif()
