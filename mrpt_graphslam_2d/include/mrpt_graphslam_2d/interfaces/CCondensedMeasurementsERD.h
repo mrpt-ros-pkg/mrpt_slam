@@ -7,10 +7,12 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CCONDENSEDMEASUREMENTSERD_MR_H
-#define CCONDENSEDMEASUREMENTSERD_MR_H
+#ifndef CCONDENSEDMEASUREMENTSER_H
+#define CCONDENSEDMEASUREMENTSERD_H
 
-#include <mrpt/utils/COutputLogger.h>
+#include "mrpt_graphslam_2d/interfaces/CCondensedMeasurements.h"
+#include "mrpt_graphslam_2d/CConnectionManager.h"
+
 #include <string>
 
 namespace mrpt { namespace graphslam { namespace deciders {
@@ -27,7 +29,7 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * multi-robot).
  *
  * \note For an example of inheriting from this class, see the
- * mrpt::graphslam::deciders::CLoopCloserERD_MR.
+ * mrpt::graphslam::deciders::CLoopCloserERD.
  *
  * [1] <a
  * href="http://webdiis.unizar.es/~mtlazaro/papers/Lazaro-IROS13.pdf">Multi-robot
@@ -35,17 +37,16 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * J.A. Castellanos, G. Grisetti
  */
 template<class GRAPH_t>
-class CCondensedMeasurementsERD_MR :
-	public virtual mrpt::utils::COutputLogger
+class CCondensedMeasurementsERD : public virtual mrpt::graphslam::CCondensedMeasurements<GRAPH_t>
 {
 public:
-	CCondensedMeasurementsERD_MR ();
-	~CCondensedMeasurementsERD_MR ();
+	CCondensedMeasurementsERD ();
+	~CCondensedMeasurementsERD ();
 
 protected:
 };
 
 } } } // end of namespaces
 
-#include "CCondensedMeasurementsERD_MR_impl.h"
-#endif /* end of include guard: CCONDENSEDMEASUREMENTSERD_MR_H */
+#include "CCondensedMeasurementsERD_impl.h"
+#endif /* end of include guard: CCONDENSEDMEASUREMENTSERD_H */

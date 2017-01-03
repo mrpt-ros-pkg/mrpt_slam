@@ -29,13 +29,31 @@ CConnectionManager::CConnectionManager(
 
 CConnectionManager::~CConnectionManager() { }
 
-void CConnectionManager::getNearbySlamAgents(std::vector<TSlamAgent>* agents_vec) {
+void CConnectionManager::getNearbySlamAgents(
+		std::vector<TSlamAgent>* agents_vec) {
 
 	ASSERTMSG_(agents_vec, "Invalid pointer to vector of SLAM Agents.");
 	ASSERT_(has_setup_comm);
 
-	// TODO - when should I used the cached version and when I shouldn't?
+	// TODO - when should I use the cached version and when I shouldn't?
 	if (!m_nearby_slam_agents_is_cached) {
+		this->updateNearbySlamAgents();
+	}
+
+	*agents_vec = m_nearby_slam_agents;
+
+
+}
+
+const std::vector<mrpt::graphslam::detail::TSlamAgent>&  CConnectionManager::getNearbySlamAgents() {
+	if (!m_nearby_slam_agents_is_cached) {
+		this->updateNearbySlamAgents();
+	}
+
+	return m_nearby_slam_agents;
+}
+
+void CConnectionManager::updateNearbySlamAgents() {
 
 		DiscoverMasters srv;
 
@@ -108,11 +126,6 @@ void CConnectionManager::getNearbySlamAgents(std::vector<TSlamAgent>* agents_vec
 		}
 
 		//m_nearby_slam_agents = true;
-	}
-
-	
-	*agents_vec = m_nearby_slam_agents;
-
 
 }
 

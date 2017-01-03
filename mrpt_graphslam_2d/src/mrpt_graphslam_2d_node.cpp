@@ -17,8 +17,6 @@
 
 // ROS headers
 #include "mrpt_graphslam_2d/CGraphSlam_ROS.h"
-// TODO - remove this
-#include "mrpt_graphslam_2d/CConnectionManager.h"
 
 using namespace mrpt;
 using namespace mrpt::utils;
@@ -53,13 +51,7 @@ int main(int argc, char **argv)
 
 	try {
 
-		//CConnectionManager conn_manager(&logger, &nh);
-		//conn_manager.setupComm();
-
-		//std::vector<TSlamAgent> agents_vec;
-		//conn_manager.getNearbySlamAgents(&agents_vec);
-
-		// CGraphSlam_ROS initialization
+		// Initialization
 		CGraphSlam_ROS graph_slam(&logger, &nh);
 		graph_slam.readParams();
 		graph_slam.setupComm();

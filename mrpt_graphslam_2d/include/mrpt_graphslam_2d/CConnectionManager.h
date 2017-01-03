@@ -1,3 +1,6 @@
+#ifndef CCONNECTIONMANAGER_H
+#define CCONNECTIONMANAGER_H
+
 #include <ros/ros.h>
 #include <multimaster_msgs_fkie/DiscoverMasters.h>
 #include <mrpt_bridge/mrpt_bridge.h>
@@ -104,6 +107,7 @@ struct TSlamAgent {
 	std::string name;
 	std::string hostname;
 	std::string ip_addr;
+	// TODO - store the ROS topics namespace
 	/**\brief SLAM Agent ID
 	 *
 	 * It is advised that this is set to the last part of the IPv4 string
@@ -116,7 +120,7 @@ struct TSlamAgent {
 };
 
 /**\brief Class responsible of handling the network communication between SLAM
- * agents.
+ * agents in the Multi-Robot Condensed Measurements graphSLAM algorithm.
  */
 class CConnectionManager
 {
@@ -130,9 +134,13 @@ public:
 	/**\brief Fill the given vector with the SLAM Agents that the current manager
 	 * can see and communicate with
 	 *
-	 * \sa updateNeabySlamAgents
+	 * \sa updateNearbySlamAgents
 	 */
 	void getNearbySlamAgents(std::vector<TSlamAgent>* agents_vec);
+	/**\brief Read-only method for accessing list of nearby agents
+	 */
+	const std::vector<TSlamAgent>&  getNearbySlamAgents();
+
 	/**\brief Wrapper method around the private setup* class methods.
 	 *
 	 * Handy for setting up publishers, subscribers, services, TF-related stuff
@@ -183,3 +191,5 @@ private:
 } } } // end of namespaces
 
 std::ostream& operator<<(std::ostream& os, const mrpt::graphslam::detail::TSlamAgent& agent);
+
+#endif /* end of include guard: CCONNECTIONMANAGER_H */

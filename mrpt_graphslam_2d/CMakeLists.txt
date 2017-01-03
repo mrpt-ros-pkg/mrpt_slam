@@ -92,22 +92,8 @@ else()
       src/${PROJECT_NAME}_node.cpp
     	)
 
-    # mr-graphSLAM
-    set(MR_GRAPHSLAM_SRC
-        ${SR_GRAPHSLAM_SRC}
-        src/CGraphSlam_ROS_MR.cpp
-        )
-    add_executable(${PROJECT_NAME}_mr_node
-    	${MR_GRAPHSLAM_SRC}
-      src/${PROJECT_NAME}_mr_node.cpp
-    	)
-
     ## Specify libraries to link a library or executable target against
     target_link_libraries(${PROJECT_NAME}_node
-        ${MRPT_LIBS}
-        ${catkin_LIBRARIES}
-        )
-    target_link_libraries(${PROJECT_NAME}_mr_node
         ${MRPT_LIBS}
         ${catkin_LIBRARIES}
         )
@@ -117,7 +103,7 @@ else()
     #############
 
     # Mark executables and/or libraries for installation
-    install(TARGETS ${PROJECT_NAME}_node ${PROJECT_NAME}_mr_node
+    install(TARGETS ${PROJECT_NAME}_node
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

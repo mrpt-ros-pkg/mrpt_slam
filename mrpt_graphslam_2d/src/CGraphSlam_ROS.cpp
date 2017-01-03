@@ -52,7 +52,7 @@ CGraphSlam_ROS::~CGraphSlam_ROS() {
 
 
 	// cleaning heap...
-	m_logger->logFmt(LVL_DEBUG, "Releasing CGraphSlamEngine instance...");
+	m_logger->logFmt(LVL_DEBUG, "Releasing CGraphSlamEngine_ROS instance...");
 	delete m_graphslam_engine;
 	m_logger->logFmt(LVL_DEBUG, "Releasing CGraphSlamHandler instance...");
 	delete m_graphslam_handler;
@@ -170,11 +170,11 @@ void CGraphSlam_ROS::initGraphSLAM() {
 	using namespace mrpt::graphs;
 	using namespace mrpt::graphslam;
 	using namespace mrpt::utils;
-	
-	m_logger->logFmt(LVL_DEBUG, "Initializing CGraphSlamEngine instance...");
+
+	m_logger->logFmt(LVL_DEBUG, "Initializing CGraphSlamEngine_ROS instance...");
 
 
-	// TODO - quickfix for calling CGraphSlamEngine...
+	// TODO - quickfix for calling CGraphSlamEngine_ROS...
 	std::string rawlog_fname("");
 	m_graphslam_handler->setRawlogFname(rawlog_fname);
 
@@ -183,7 +183,8 @@ void CGraphSlam_ROS::initGraphSLAM() {
 		m_graphslam_handler->initVisualization();
 	}
 
-	m_graphslam_engine = new CGraphSlamEngine<CNetworkOfPoses2DInf>(
+	m_graphslam_engine = new CGraphSlamEngine_ROS<CNetworkOfPoses2DInf>(
+			m_nh,
 			m_ini_fname,
 			rawlog_fname,
 			m_gt_fname,
@@ -192,7 +193,7 @@ void CGraphSlam_ROS::initGraphSLAM() {
 			m_options_checker.edge_regs_map[m_edge_reg](),
 			m_options_checker.optimizers_map[m_optimizer]());
 
-	m_logger->logFmt(LVL_DEBUG, "Successfully initialized CGraphSlamEngine instance.");
+	m_logger->logFmt(LVL_DEBUG, "Successfully initialized CGraphSlamEngine_ROS instance.");
 }
 void CGraphSlam_ROS::getROSParameters(std::string* str_out) {
 	using namespace std;
@@ -459,12 +460,12 @@ bool CGraphSlam_ROS::usePublishersBroadcasters() {
 
   // anchor frame <=> odom frame
   //
-  // make sure that we have received odometry information in the first place...
+  // make sure that we have received odometry information in the first
+  // place...
   // the corresponding field would be initialized
   if (!m_anchor_odom_transform.child_frame_id.empty()) {
   	m_broadcaster.sendTransform(m_anchor_odom_transform);
   }
-
 
   // set an arrow indicating clearly the current orientation of the robot
 	{

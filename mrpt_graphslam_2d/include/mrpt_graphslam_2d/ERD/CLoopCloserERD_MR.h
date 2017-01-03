@@ -11,7 +11,7 @@
 #define CLOOPCLOSERERD_MR_H
 
 #include <mrpt/graphslam/ERD/CLoopCloserERD.h>
-#include "mrpt_graphslam_2d/interfaces/CCondensedMeasurementsERD_MR.h"
+#include "mrpt_graphslam_2d/interfaces/CCondensedMeasurementsERD.h"
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
@@ -27,7 +27,7 @@ namespace mrpt { namespace graphslam { namespace deciders {
 template<class GRAPH_t>
 class CLoopCloserERD_MR :
 	public CLoopCloserERD<GRAPH_t>,
-	public CCondensedMeasurementsERD_MR<GRAPH_t>
+	public CCondensedMeasurementsERD<GRAPH_t>
 {
 public:
 	/**\brief Handy typedefs */
