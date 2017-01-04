@@ -1,5 +1,5 @@
-#ifndef CCONDENSEDMEASUREMENTS_H
-#define CCONDENSEDMEASUREMENTS_H
+#ifndef CREGISTRATIONDECIDEROROPTIMIZER_CM_H
+#define CREGISTRATIONDECIDEROROPTIMIZER_CM_H
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_ROS.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
@@ -8,13 +8,16 @@ namespace mrpt { namespace graphslam {
 
 /**\brief Interface for implementing deciders/optimizers related to the Condensed
  * Measurements multi-robot graphSLAM algorithm.
+ *
+ * \note Condensed Measurements-related classes are suffixed with _CM.
+ *
  */
 template<class GRAPH_t>
-class CCondensedMeasurements : public mrpt::graphslam::CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>
+class CRegistrationDeciderOrOptimizer_CM : public mrpt::graphslam::CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>
 {
 public:
-	CCondensedMeasurements();
-	~CCondensedMeasurements();
+	CRegistrationDeciderOrOptimizer_CM();
+	~CRegistrationDeciderOrOptimizer_CM();
 
 	virtual void setCConnectionManagerPtr(
 			mrpt::graphslam::detail::CConnectionManager* conn_manager);
@@ -29,6 +32,6 @@ protected:
 } } // end of namespaces
 
 // template methods implementations
-#include "mrpt_graphslam_2d/interfaces/CCondensedMeasurements_impl.h"
+#include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM_impl.h"
 
-#endif /* end of include guard: CCONDENSEDMEASUREMENTS_H */
+#endif /* end of include guard: CREGISTRATIONDECIDEROROPTIMIZER_CM_H */

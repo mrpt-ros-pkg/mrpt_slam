@@ -131,7 +131,7 @@ void CGraphSlam_ROS::readROSParameters() {
 	m_logger->logFmt(LVL_DEBUG,
 			"Successfully read parameters from ROS Parameter Server");
 
-	this->initGraphSLAM();
+	this->initClass();
 }
 void CGraphSlam_ROS::readStaticTFs() {
 	using namespace mrpt::utils;
@@ -166,7 +166,7 @@ void CGraphSlam_ROS::readStaticTFs() {
 
 
 }
-void CGraphSlam_ROS::initGraphSLAM() {
+void CGraphSlam_ROS::initClass() {
 	using namespace mrpt::graphs;
 	using namespace mrpt::graphslam;
 	using namespace mrpt::utils;

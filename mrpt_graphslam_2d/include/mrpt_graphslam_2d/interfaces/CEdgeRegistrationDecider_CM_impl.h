@@ -7,40 +7,17 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CLOOPCLOSERERD_MR_IMPL_H
-#define CLOOPCLOSERERD_MR_IMPL_H
+#ifndef CEDGEREGISTRATIONDECIDER_CM_IMPL_H
+#define CEDGEREGISTRATIONDECIDER_CM_IMPL_H
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
-// Ctors, Dtors
 template<class GRAPH_t>
-CLoopCloserERD_MR<GRAPH_t>::CLoopCloserERD_MR() {
-	// CLoopCloser Ctor is automatically called.
-
-	this->is_mr_slam_class = true;
-	this->initializeLoggers("CLoopCloserERD_MR");
-}
+CEdgeRegistrationDecider_CM<GRAPH_t>::CEdgeRegistrationDecider_CM() {}
 
 template<class GRAPH_t>
-CLoopCloserERD_MR<GRAPH_t>::~CLoopCloserERD_MR() {
-	// CLoopCloser Dtor is automatically called.
-}
-
-// Member methods implementations
-template<class GRAPH_t>
-bool CLoopCloserERD_MR<GRAPH_t>::updateState(
-		mrpt::obs::CActionCollectionPtr action,
-		mrpt::obs::CSensoryFramePtr observations,
-		mrpt::obs::CObservationPtr observation ) {
-
-	parent::updateState(action, observations, observation);
-
-	// search for possible edges with the other agent's graph.
-	// TODO
-
-}
+CEdgeRegistrationDecider_CM<GRAPH_t>::~CEdgeRegistrationDecider_CM() {}
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CLOOPCLOSERERD_MR_IMPL_H */
-
+#endif /* end of include guard: CEDGEREGISTRATIONDECIDER_CM_IMPL_H */

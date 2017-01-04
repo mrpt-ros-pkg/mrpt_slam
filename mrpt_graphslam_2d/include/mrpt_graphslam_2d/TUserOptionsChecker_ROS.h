@@ -14,7 +14,7 @@
 
 #include <mrpt/graphslam/apps_related/TUserOptionsChecker.h>
 #include <mrpt/graphs/CNetworkOfPoses.h>
-#include "mrpt_graphslam_2d/ERD/CLoopCloserERD_MR.h"
+#include "mrpt_graphslam_2d/ERD/CLoopCloserERD_CM.h"
 
 namespace mrpt { namespace graphslam { namespace detail {
 
@@ -23,6 +23,8 @@ struct TUserOptionsChecker_ROS :
 
 	/**\name handy typedefs for the creation of deciders/optimzer instances from
 	 * the corresponding strings
+	 *
+ 	 * \note ROS-related classes are suffixed with _ROS
 	 */
 	/**\{*/
 	typedef std::map<

@@ -7,8 +7,8 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CCONDENSEDMEASUREMENTSNRD_MR_H
-#define CCONDENSEDMEASUREMENTSNRD_MR_H
+#ifndef CNODEREGISTRATIONDECIDER_CM_H
+#define CNODEREGISTRATIONDECIDER_CM_H
 
 #include <mrpt/utils/COutputLogger.h>
 #include <string>
@@ -21,10 +21,7 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * SLAM scheme according to the Condensed Measurements multi-robot strategy by
  * M.T. Lazaro et al. [1] are to inherit from this method.
  *
- *\note Node Registration related classes are suffixed with NRD.
- *
- * \note Multi-robot related classes are suffixed MR (stands for
- * multi-robot).
+ * \note Condensed Measurements-related classes are suffixed with _CM.
  *
  * \note For an example of inheriting from this class, see the
  * mrpt::graphslam::deciders::CFixedIntervalsNRD_MR.
@@ -35,17 +32,16 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * J.A. Castellanos, G. Grisetti
  */
 template<class GRAPH_t>
-class CCondensedMeasurementsNRD_MR :
-	public virtual mrpt::utils::COutputLogger
+class CNodeRegistrationDecider_CM : public CRegistrationDeciderOrOptimizer_CM
 {
 public:
-	CCondensedMeasurementsNRD_MR ();
-	~CCondensedMeasurementsNRD_MR ();
+	CNodeRegistrationDecider_CM ();
+	~CNodeRegistrationDecider_CM ();
 
 protected:
 };
 
 } } } // end of namespaces
 
-#include "CCondensedMeasurementsNRD_MR_impl.h"
-#endif /* end of include guard: CCONDENSEDMEASUREMENTSNRD_MR_H */
+#include "CNodeRegistrationDecider_CM_impl.h"
+#endif /* end of include guard: CNODEREGISTRATIONDECIDER_CM_H */

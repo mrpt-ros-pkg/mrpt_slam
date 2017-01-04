@@ -1,10 +1,19 @@
+/* +---------------------------------------------------------------------------+
+	 |                     Mobile Robot Programming Toolkit (MRPT)               |
+	 |                          http://www.mrpt.org/                             |
+	 |                                                                           |
+	 | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
+	 | See: http://www.mrpt.org/Authors - All rights reserved.                   |
+	 | Released under BSD License. See details in http://www.mrpt.org/License    |
+	 +---------------------------------------------------------------------------+ */
+
 #ifndef CGRAPHSLAMENGINE_ROS_H
 #define CGRAPHSLAMENGINE_ROS_H
 
+#include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_ROS.h"
+
 #include <mrpt/graphslam/CGraphSlamEngine.h>
 #include <ros/ros.h>
-#include "mrpt_graphslam_2d/interfaces/CCondensedMeasurements.h"
-#include "mrpt_graphslam_2d/CConnectionManager.h"
 
 namespace mrpt { namespace graphslam { 
 
@@ -12,9 +21,7 @@ namespace mrpt { namespace graphslam {
  * CGraphSlamEngine class template and implements methods for interacting with
  * ROS.
  *
- * \note Class is specialized for executing the Condensed Measurements
- * multi-robot graphSLAM.
- */
+  */
 template<class GRAPH_t=typename mrpt::graphs::CNetworkOfPoses2DInf>
 class CGraphSlamEngine_ROS : public CGraphSlamEngine<GRAPH_t>
 {
@@ -31,14 +38,14 @@ public:
 			mrpt::graphslam::deciders::CEdgeRegistrationDecider<GRAPH_t>* edge_reg=NULL,
 			mrpt::graphslam::optimizers::CGraphSlamOptimizer<GRAPH_t>* optimizer=NULL
 			);
-	~CGraphSlamEngine_ROS();
+	virtual ~CGraphSlamEngine_ROS();
 
-	void initCGraphSlamEngine_ROS();
+	virtual void initClass();
 
-	bool execGraphSlamStep(
+	virtual bool execGraphSlamStep(
 			mrpt::obs::CObservationPtr& observation,
 			size_t& rawlog_entry);
-	bool execGraphSlamStep(
+	virtual bool execGraphSlamStep(
 			mrpt::obs::CActionCollectionPtr& action,
 			mrpt::obs::CSensoryFramePtr& observations,
 			mrpt::obs::CObservationPtr& observation,
@@ -46,7 +53,6 @@ public:
 
 protected:
 	ros::NodeHandle* m_nh;
-	mrpt::graphslam::detail::CConnectionManager m_conn_manager;
 
 
 };

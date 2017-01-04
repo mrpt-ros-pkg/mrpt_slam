@@ -7,17 +7,19 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CLOOPCLOSERERD_MR_H
-#define CLOOPCLOSERERD_MR_H
+#ifndef CLOOPCLOSERERD_CM_H
+#define CLOOPCLOSERERD_CM_H
 
 #include <mrpt/graphslam/ERD/CLoopCloserERD.h>
-#include "mrpt_graphslam_2d/interfaces/CCondensedMeasurementsERD.h"
+#include "mrpt_graphslam_2d/interfaces/CEdgeRegistrationDecider_CM.h"
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
 /** Loop Closer Edge Registration Decider class that can also be used in
  * multi-robot SLAM operations since it can utilize information from other
  * robot agents and correct own graph according to the strategy described in [1].
+ *
+ * \note Condensed Measurements-related classes are suffixed with _CM.
  *
  * [1] <a
  * href="http://webdiis.unizar.es/~mtlazaro/papers/Lazaro-IROS13.pdf">Multi-robot
@@ -27,7 +29,7 @@ namespace mrpt { namespace graphslam { namespace deciders {
 template<class GRAPH_t>
 class CLoopCloserERD_MR :
 	public CLoopCloserERD<GRAPH_t>,
-	public CCondensedMeasurementsERD<GRAPH_t>
+	public CEdgeRegistrationDecider_CM<GRAPH_t>
 {
 public:
 	/**\brief Handy typedefs */
@@ -73,5 +75,5 @@ protected:
 
 } } } // end of namespaces
 
-#include "CLoopCloserERD_MR_impl.h"
-#endif /* end of include guard: CLOOPCLOSERERD_MR_H */
+#include "CLoopCloserERD_CM_impl.h"
+#endif /* end of include guard: CLOOPCLOSERERD_CM_H */

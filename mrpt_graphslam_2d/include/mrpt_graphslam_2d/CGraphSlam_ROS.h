@@ -133,8 +133,8 @@ public:
 	static const std::string sep_subheader;
 
 private:
-	/**\brief Initialize the CGraphslamEngine_ROS object based on the user input. */
-	void initGraphSLAM();
+	/**\brief Initialize the CGraphslamEngine object based on the user input. */
+	void initClass();
 	/**\brief Process an incoming measurement.
 	 *
 	 * Method is a wrapper around the _process method

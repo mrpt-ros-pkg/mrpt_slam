@@ -4,14 +4,18 @@
 #include <ros/ros.h>
 
 #include <mrpt/utils/COutputLogger.h>
+#include <mrpt/graphslam/interfaces/CRegistrationDeciderOrOptimizer.h>
 
 namespace mrpt { namespace graphslam {
 
 /**\brief Interface class that all ROS-specific deciders/optimizers can inherit
  * from.
+ *
+ * \note ROS-related classes are suffixed with _ROS
  */
 template<class GRAPH_t=typename mrpt::graphs::CNetworkOfPoses2DInf>
-class CRegistrationDeciderOrOptimizer_ROS : public virtual mrpt::utils::COutputLogger
+class CRegistrationDeciderOrOptimizer_ROS :
+	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer<GRAPH_t>
 {
 public:
 	CRegistrationDeciderOrOptimizer_ROS();

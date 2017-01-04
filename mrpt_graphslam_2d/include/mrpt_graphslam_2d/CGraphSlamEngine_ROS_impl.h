@@ -1,3 +1,12 @@
+/* +---------------------------------------------------------------------------+
+	 |                     Mobile Robot Programming Toolkit (MRPT)               |
+	 |                          http://www.mrpt.org/                             |
+	 |                                                                           |
+	 | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
+	 | See: http://www.mrpt.org/Authors - All rights reserved.                   |
+	 | Released under BSD License. See details in http://www.mrpt.org/License    |
+	 +---------------------------------------------------------------------------+ */
+
 #ifndef CGRAPHSLAMENGINE_ROS_IMPL_H
 #define CGRAPHSLAMENGINE_ROS_IMPL_H
 namespace mrpt { namespace graphslam {
@@ -20,14 +29,10 @@ CGraphSlamEngine_ROS<GRAPH_t>::CGraphSlamEngine_ROS(
 			win_manager,
 			node_reg,
 			edge_reg,
-			optimizer),
-	m_conn_manager(
-			dynamic_cast<mrpt::utils::COutputLogger*>(this),
-			nh)
+			optimizer)
 {
-		// TODO fill the cconnectionmanager
 
-	this->initCGraphSlamEngine_ROS();
+	this->initClass();
 
 }
 
@@ -57,34 +62,31 @@ bool CGraphSlamEngine_ROS<GRAPH_t>::execGraphSlamStep(
 }
 
 template<class GRAPH_t>
-void CGraphSlamEngine_ROS<GRAPH_t>::initCGraphSlamEngine_ROS() {
+void CGraphSlamEngine_ROS<GRAPH_t>::initClass() {
 	using namespace mrpt::graphslam;
 
 	// in case of ROS specific deciders/optimizers (they inherit from the CDeciderOrOptimizer_ROS interface)
-	// set the NodeHandle, CConnectionManager*
+	// set the NodeHandle
 	{
-	 	CCondensedMeasurements<GRAPH_t>* dec_opts_cm =
-	 	 	dynamic_cast<CCondensedMeasurements<GRAPH_t>*>(this->m_node_registrar);
+	 	CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>* dec_opt_ros =
+	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_node_registrar);
 
-	 	if (dec_opts_cm) {
-	 	 	dec_opts_cm->setNodeHandle(m_nh);
-	 	 	dec_opts_cm->setCConnectionManagerPtr(&m_conn_manager);
+	 	if (dec_opt_ros) {
+	 	 	dec_opt_ros->setNodeHandle(m_nh);
 	 	}
 	}
 	{
-		CCondensedMeasurements<GRAPH_t>* dec_opts_cm =
-	 	 	dynamic_cast<CCondensedMeasurements<GRAPH_t>*>(this->m_edge_registrar);
-		if (dec_opts_cm) {
-	 		dec_opts_cm->setNodeHandle(m_nh);
-	 		dec_opts_cm->setCConnectionManagerPtr(&m_conn_manager);
+		CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>* dec_opt_ros =
+	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_edge_registrar);
+		if (dec_opt_ros) {
+	 		dec_opt_ros->setNodeHandle(m_nh);
 		}
 	}
 	{
-		CCondensedMeasurements<GRAPH_t>* dec_opts_cm =
-	 	 	dynamic_cast<CCondensedMeasurements<GRAPH_t>*>(this->m_optimizer);
-		if (dec_opts_cm) {
-	 		dec_opts_cm->setNodeHandle(m_nh);
-	 		dec_opts_cm->setCConnectionManagerPtr(&m_conn_manager);
+		CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>* dec_opt_ros =
+			dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_optimizer);
+		if (dec_opt_ros) {
+	 		dec_opt_ros->setNodeHandle(m_nh);
 		}
 	}
 	

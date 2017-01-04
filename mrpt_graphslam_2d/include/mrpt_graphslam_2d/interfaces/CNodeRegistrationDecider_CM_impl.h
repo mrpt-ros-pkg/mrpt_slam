@@ -7,17 +7,17 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CCONDENSEDMEASUREMENTSERD_IMPL_H
-#define CCONDENSEDMEASUREMENTSERD_IMPL_H
+#ifndef CNODEREGISTRATIONDECIDER_CM_IMPL_H
+#define CNODEREGISTRATIONDECIDER_CM_IMPL_H
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
 template<class GRAPH_t>
-CCondensedMeasurementsERD<GRAPH_t>::CCondensedMeasurementsERD() {}
+CNodeRegistrationDecider_CM<GRAPH_t>::CNodeRegistrationDecider_CM() {}
 
 template<class GRAPH_t>
-CCondensedMeasurementsERD<GRAPH_t>::~CCondensedMeasurementsERD() {}
+CNodeRegistrationDecider_CM<GRAPH_t>::~CNodeRegistrationDecider_CM() {}
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CCONDENSEDMEASUREMENTSERD_IMPL_H */
+#endif /* end of include guard: CNODEREGISTRATIONDECIDER_CM_IMPL_H */
