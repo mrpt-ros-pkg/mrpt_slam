@@ -9,6 +9,14 @@
 
 #include "mrpt_graphslam_2d/CGraphSlam_ROS.h"
 
+using namespace mrpt;
+using namespace mrpt::utils;
+using namespace mrpt::obs;
+using namespace mrpt::graphs;
+using namespace mrpt::graphslam;
+using namespace std;
+using namespace mrpt::poses;
+
 // static member variables
 const std::string CGraphSlam_ROS::sep_header(40, '=');
 const std::string CGraphSlam_ROS::sep_subheader(20, '-');
@@ -18,10 +26,7 @@ CGraphSlam_ROS::CGraphSlam_ROS(
 		mrpt::utils::COutputLogger* logger_in,
 		ros::NodeHandle* nh_in):
 	m_logger(logger_in),
-	m_nh(nh_in)
-{
-	using namespace std;
-	using namespace mrpt::obs;
+	m_nh(nh_in) {
 	ASSERT_(m_logger);
 	ASSERT_(m_nh);
 
@@ -48,7 +53,6 @@ CGraphSlam_ROS::CGraphSlam_ROS(
 	// what to initialize at this stage!
 }
 CGraphSlam_ROS::~CGraphSlam_ROS() {
-	using namespace mrpt::utils;
 
 
 	// cleaning heap...
@@ -67,7 +71,6 @@ void CGraphSlam_ROS::readParams() {
 	m_has_read_config = true;
 }
 void CGraphSlam_ROS::readROSParameters() {
-	using namespace mrpt::utils;
 
 	// misc
 	{
@@ -98,7 +101,6 @@ void CGraphSlam_ROS::readROSParameters() {
 		// configuration file - mandatory
 		std::string config_param_path = ns + "config";
 		bool found_config = m_nh->getParam(ns + "config", m_ini_fname);
-		std::cout << "KALIMERA : " << m_ini_fname << std::endl;
 		ASSERTMSG_(found_config,
 				mrpt::format("Configuration file was not set. Set %s and try again.\nExiting...",
 					config_param_path.c_str()));
@@ -131,10 +133,17 @@ void CGraphSlam_ROS::readROSParameters() {
 	m_logger->logFmt(LVL_DEBUG,
 			"Successfully read parameters from ROS Parameter Server");
 
-	this->initClass();
+	std::string rawlog_fname("");
+	m_graphslam_handler->setRawlogFname(rawlog_fname);
+
+	// Visuals initialization
+	if (!m_disable_MRPT_visuals) {
+		m_graphslam_handler->initVisualization();
+	}
+
+
 }
 void CGraphSlam_ROS::readStaticTFs() {
-	using namespace mrpt::utils;
 
 	// base_link => laser
 	m_logger->logFmt(LVL_WARN, "Looking up static transform...%s => %s",
@@ -166,27 +175,15 @@ void CGraphSlam_ROS::readStaticTFs() {
 
 
 }
-void CGraphSlam_ROS::initClass() {
-	using namespace mrpt::graphs;
-	using namespace mrpt::graphslam;
-	using namespace mrpt::utils;
+
+void CGraphSlam_ROS::initEngine_ROS() { 
 
 	m_logger->logFmt(LVL_DEBUG, "Initializing CGraphSlamEngine_ROS instance...");
-
-
-	// TODO - quickfix for calling CGraphSlamEngine_ROS...
-	std::string rawlog_fname("");
-	m_graphslam_handler->setRawlogFname(rawlog_fname);
-
-	// Visuals initialization
-	if (!m_disable_MRPT_visuals) {
-		m_graphslam_handler->initVisualization();
-	}
 
 	m_graphslam_engine = new CGraphSlamEngine_ROS<CNetworkOfPoses2DInf>(
 			m_nh,
 			m_ini_fname,
-			rawlog_fname,
+			/*rawlog_fname=*/ "",
 			m_gt_fname,
 			m_graphslam_handler->win_manager,
 			m_options_checker.node_regs_map[m_node_reg](),
@@ -194,10 +191,26 @@ void CGraphSlam_ROS::initClass() {
 			m_options_checker.optimizers_map[m_optimizer]());
 
 	m_logger->logFmt(LVL_DEBUG, "Successfully initialized CGraphSlamEngine_ROS instance.");
+
 }
+
+void CGraphSlam_ROS::initEngine_CM() { 
+
+	m_logger->logFmt(LVL_DEBUG, "Initializing CGraphSlamEngine_CM instance...");
+	m_graphslam_engine = new CGraphSlamEngine_CM<CNetworkOfPoses2DInf>(
+			m_nh,
+			m_ini_fname,
+			/*rawlog_fname=*/ "",
+			m_gt_fname,
+			m_graphslam_handler->win_manager,
+			m_options_checker.node_regs_map[m_node_reg](),
+			m_options_checker.edge_regs_map[m_edge_reg](),
+			m_options_checker.optimizers_map[m_optimizer]());
+	m_logger->logFmt(LVL_DEBUG, "Successfully initialized CGraphSlamEngine_CM instance.");
+
+}
+
 void CGraphSlam_ROS::getROSParameters(std::string* str_out) {
-	using namespace std;
-	using namespace mrpt::utils;
 
 	ASSERT_(str_out);
 
@@ -251,18 +264,15 @@ std::string CGraphSlam_ROS::getParamsAsString() {
 }
 
 void CGraphSlam_ROS::printParams() {
-	using namespace std;
 	// print the problem parameters
 	cout << this->getParamsAsString() << endl;
 
 	m_graphslam_handler->printParams();
 	m_graphslam_engine->printParams();
 
-
 }
+
 void CGraphSlam_ROS::verifyUserInput() {
-	using namespace mrpt;
-	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_DEBUG, "Verifying user input...");
 
 
@@ -316,7 +326,6 @@ void CGraphSlam_ROS::verifyUserInput() {
 }
 
 void CGraphSlam_ROS::setupComm() {
-	using namespace mrpt::utils;
 
 	m_logger->logFmt(LVL_INFO,
 			"Setting up ROS-related subscribers, publishers, services...");
@@ -332,7 +341,6 @@ void CGraphSlam_ROS::setupComm() {
 }
 
 void CGraphSlam_ROS::setupSubs() {
-	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_INFO, "Setting up the subscribers...");
 	
 	// setup the names
@@ -361,7 +369,6 @@ void CGraphSlam_ROS::setupSubs() {
 
 }
 void CGraphSlam_ROS::setupPubs() {
-	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_INFO, "Setting up the publishers...");
 
 	// setup the names
@@ -412,7 +419,6 @@ void CGraphSlam_ROS::setupPubs() {
 }
 
 void CGraphSlam_ROS::setupSrvs() {
-	using namespace mrpt::utils;
 	m_logger->logFmt(LVL_INFO, "Setting up the services...");
 
 	// SLAM statistics
@@ -423,9 +429,6 @@ void CGraphSlam_ROS::setupSrvs() {
 }
 
 bool CGraphSlam_ROS::usePublishersBroadcasters() {
-	using namespace mrpt::poses;
-	using namespace mrpt::utils;
-	using namespace std;
 
 
 	ros::Time timestamp = ros::Time::now();
@@ -732,16 +735,12 @@ void CGraphSlam_ROS::generateReport() {
 }
 
 bool CGraphSlam_ROS::continueExec() {
-	using namespace std;
-	using namespace mrpt::utils;
 
 	m_logger->logFmt(LVL_DEBUG, "In continueExec check method");
 	return m_graphslam_handler->queryObserverForEvents();
 }
 
 void CGraphSlam_ROS::_process(mrpt::obs::CObservationPtr& observ) {
-	using namespace mrpt::utils;
-	using namespace std;
 
 	m_logger->logFmt(LVL_DEBUG, "Calling execGraphSlamStep...");
 

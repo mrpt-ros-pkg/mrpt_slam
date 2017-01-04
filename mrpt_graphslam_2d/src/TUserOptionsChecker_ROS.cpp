@@ -26,14 +26,14 @@ void TUserOptionsChecker_ROS::createDeciderOptimizerMappings() {
 	parent::createDeciderOptimizerMappings();
 
 	// node registration deciders
-	node_regs_map["CFixedIntervalsNRD_MR"] =
+	this->node_regs_map["CFixedIntervalsNRD_MR"] =
 		&createNodeRegistrationDecider<CFixedIntervalsNRD<CNetworkOfPoses2DInf> >;
-	node_regs_map["CICPCriteriaNRD_MR"] =
+	this->node_regs_map["CICPCriteriaNRD_MR"] =
 		&createNodeRegistrationDecider<CICPCriteriaNRD<CNetworkOfPoses2DInf> >;
 
 	// edge registration deciders
-	this->edge_regs_map["CLoopCloserERD_MR"] =
-		this->createEdgeRegistrationDecider<CLoopCloserERD_MR<CNetworkOfPoses2DInf> >;
+	this->edge_regs_map["CLoopCloserERD_CM"] =
+		this->createEdgeRegistrationDecider<CLoopCloserERD_CM<CNetworkOfPoses2DInf> >;
 
 	// optimizers
 
@@ -71,9 +71,9 @@ void TUserOptionsChecker_ROS::populateDeciderOptimizerProperties() {
 
 		this->regs_descriptions.push_back(dec);
 	}
-	{ // CLoopCloserERD_MR
+	{ // CLoopCloserERD_CM
 		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
-		dec->name = "CLoopCloserERD_MR";
+		dec->name = "CLoopCloserERD_CM";
 		dec->description =
 			"Multi-robot SLAM implementation of the CLoopCloserERD class based on \"Condensed Measurements\"";
 		dec->type = "Edge";

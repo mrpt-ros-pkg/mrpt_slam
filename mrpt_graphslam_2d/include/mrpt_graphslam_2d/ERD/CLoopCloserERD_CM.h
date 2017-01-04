@@ -27,7 +27,7 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * J.A. Castellanos, G. Grisetti
  */
 template<class GRAPH_t>
-class CLoopCloserERD_MR :
+class CLoopCloserERD_CM :
 	public CLoopCloserERD<GRAPH_t>,
 	public CEdgeRegistrationDecider_CM<GRAPH_t>
 {
@@ -44,7 +44,7 @@ public:
 	typedef mrpt::graphslam::deciders::CRangeScanRegistrationDecider<GRAPH_t>
 		range_scanner_t;
 	typedef CLoopCloserERD<GRAPH_t> parent; /**< parent class */
-	typedef CLoopCloserERD_MR<GRAPH_t> decider_t; /**< self type - Handy typedef */
+	typedef CLoopCloserERD_CM<GRAPH_t> decider_t; /**< self type - Handy typedef */
 	/**\brief Typedef for referring to a list of partitions */
 	typedef std::vector<mrpt::vector_uint> partitions_t;
 	typedef std::map<mrpt::utils::TNodeID,
@@ -59,8 +59,8 @@ public:
 	/**\}*/
 
 	// Ctor, Dtor
-	CLoopCloserERD_MR();
-	~CLoopCloserERD_MR();
+	CLoopCloserERD_CM();
+	~CLoopCloserERD_CM();
 
 	// member implementations
 	bool updateState(

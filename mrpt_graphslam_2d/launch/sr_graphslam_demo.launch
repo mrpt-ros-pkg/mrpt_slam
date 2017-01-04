@@ -12,18 +12,19 @@ single robot situations. More elaborate demo files are built on top of this one
 
 <launch>
 	<arg name="robot_ns" default="/" />
-    <arg name="output" default="screen" />
-    <arg name="disable_MRPT_visuals" default="false" />
-    <arg name="bag_dir" default="$(find mrpt_graphslam_2d)/rosbags/demo_short_loop" />
-    <arg name="bag_file" default="demo.bag"/>
-    <arg name="bag_file_full" default="$(arg bag_dir)/$(arg bag_file)"/>
+  <arg name="output" default="screen" />
+  <arg name="disable_MRPT_visuals" default="false" />
+  <arg name="verbosity" default="1" />
+  <arg name="bag_dir" default="$(find mrpt_graphslam_2d)/rosbags/demo_short_loop" />
+  <arg name="bag_file" default="demo.bag"/>
+  <arg name="bag_file_full" default="$(arg bag_dir)/$(arg bag_file)"/>
 	<arg name="bag_topic_remaps" default="/scan:=input/laser_scan"/>
 
-    <!-- Should we also start an instance of rviz ? -->
-    <arg name="start_rviz" default="true" />
-    <arg name="rviz_file" default="$(find mrpt_graphslam_2d)/rviz/sr_graphslam.rviz" />
+  <!-- Should we also start an instance of rviz ? -->
+  <arg name="start_rviz" default="true" />
+  <arg name="rviz_file" default="$(find mrpt_graphslam_2d)/rviz/sr_graphslam.rviz" />
 
-    <arg name="anchor_frame_ID" default="map"/>
+  <arg name="anchor_frame_ID" default="map"/>
 
 	<arg name="config_file" default="$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"/>
 
@@ -31,24 +32,25 @@ single robot situations. More elaborate demo files are built on top of this one
 	<arg name="ERD" default="CICPCriteriaERD" />
 	<arg name="GSO" default="CLevMarqGSO" />
 
-    <!-- Launch the demo bagfile -->
-    <param name="/use_sim_time" value="true" type="bool" />
+  <!-- Launch the demo bagfile -->
+  <param name="/use_sim_time" value="true" type="bool" />
 	<node pkg="rosbag" type="play" name="rosbag_player" args="--clock $(arg bag_file_full) $(arg bag_topic_remaps)" output="$(arg output)"/>
 
 	<group ns="$(arg robot_ns)">
-	    <!-- Run single-robot graphSLAM -->
-	    <include file="$(find mrpt_graphslam_2d)/launch/graphslam.launch">
-		    <arg name="output" value="$(arg output)" />
-            <arg name="disable_MRPT_visuals" value="$(arg disable_MRPT_visuals)" />
-		    <arg name="start_rviz" value="$(arg start_rviz)" />
-		    <arg name="rviz_file" value="$(arg rviz_file)" />
-            <arg name = "config_file" value = "$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"  />
-		    <arg name="anchor_frame_ID" value="$(arg anchor_frame_ID)" />
-            <arg name="NRD" value="$(arg NRD)" />
-            <arg name="ERD" value="$(arg ERD)" />
-            <!--<arg name="ERD" value="$(arg ERD)" />-->
-		    <arg name="GSO" value="$(arg GSO)" />
-	    </include>
-    </group>
+	  <!-- Run single-robot graphSLAM -->
+	  <include file="$(find mrpt_graphslam_2d)/launch/graphslam.launch">
+		  <arg name="output" value="$(arg output)" />
+      <arg name="disable_MRPT_visuals" value="$(arg disable_MRPT_visuals)" />
+  		<arg name="verbosity" value="$(arg verbosity)" />
+		  <arg name="start_rviz" value="$(arg start_rviz)" />
+		  <arg name="rviz_file" value="$(arg rviz_file)" />
+      <arg name = "config_file" value = "$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"  />
+		  <arg name="anchor_frame_ID" value="$(arg anchor_frame_ID)" />
+      <arg name="NRD" value="$(arg NRD)" />
+      <arg name="ERD" value="$(arg ERD)" />
+      <!--<arg name="ERD" value="$(arg ERD)" />-->
+		  <arg name="GSO" value="$(arg GSO)" />
+	  </include>
+  </group>
 
 </launch>

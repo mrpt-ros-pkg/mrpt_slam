@@ -85,7 +85,7 @@ Visualization Manager:
       Draw Behind: true
       Enabled: true
       Name: map
-      Topic: /pioneer_3at_1/feedback/gridmap
+      Topic: /feedback/gridmap
       Unreliable: false
       Value: true
     - Alpha: 1

@@ -34,10 +34,10 @@ using namespace mrpt::graphslam::detail;
 
 using namespace std;
 
-/** Main function of the mrpt_graphslam application */
+/** Main function of the mrpt_graphslam condensed-measurements _application */
 int main(int argc, char **argv)
 {
-	std::string node_name = "mrpt_graphslam_2d";
+	std::string node_name = "mrpt_graphslam_2d_cm";
 
 	COutputLogger logger;
 	logger.setLoggerName(node_name);
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 		// Initialization
 		CGraphSlam_ROS graph_slam(&logger, &nh);
 		graph_slam.readParams();
-		graph_slam.initEngine_ROS();
+		graph_slam.initEngine_CM();
 		graph_slam.setupComm();
 
 		// print the parameters just for verification

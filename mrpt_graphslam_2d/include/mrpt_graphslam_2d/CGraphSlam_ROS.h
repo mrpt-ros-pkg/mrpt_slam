@@ -44,6 +44,7 @@
 #include <mrpt/graphslam/apps_related/CGraphSlamHandler.h>
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS.h"
+#include "mrpt_graphslam_2d/CGraphSlamEngine_CM.h"
 #include "mrpt_graphslam_2d/TUserOptionsChecker_ROS.h"
 
 
@@ -129,12 +130,21 @@ public:
 	 */
 	void setupComm();
 
+	/**\brief Initialize the CGraphslamEngine_* object
+	 * 
+	 * The CGraphSlamEngine instance is to be instaniated depending on the user
+	 * application at hand. User should call this method just after reading the
+	 * problem parameters.
+	 */
+	/**\{*/
+	void initEngine_ROS();
+	void initEngine_CM();
+	/**\}*/
+
 	static const std::string sep_header;
 	static const std::string sep_subheader;
 
 private:
-	/**\brief Initialize the CGraphslamEngine object based on the user input. */
-	void initClass();
 	/**\brief Process an incoming measurement.
 	 *
 	 * Method is a wrapper around the _process method

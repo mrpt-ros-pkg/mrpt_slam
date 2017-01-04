@@ -41,27 +41,6 @@ CGraphSlamEngine_ROS<GRAPH_t>::~CGraphSlamEngine_ROS() {
 }
 
 template<class GRAPH_t>
-bool CGraphSlamEngine_ROS<GRAPH_t>::execGraphSlamStep(
-		mrpt::obs::CObservationPtr& observation,
-		size_t& rawlog_entry) { 
-	parent::execGraphSlamStep(observation, rawlog_entry);
-}
-
-template<class GRAPH_t>
-bool CGraphSlamEngine_ROS<GRAPH_t>::execGraphSlamStep(
-		mrpt::obs::CActionCollectionPtr& action,
-		mrpt::obs::CSensoryFramePtr& observations,
-		mrpt::obs::CObservationPtr& observation,
-		size_t& rawlog_entry) { 
-
-	// call parent method
-	parent::execGraphSlamStep(
-			action, observations, observation, rawlog_entry);
-
-	// notify of the neighbors
-}
-
-template<class GRAPH_t>
 void CGraphSlamEngine_ROS<GRAPH_t>::initClass() {
 	using namespace mrpt::graphslam;
 
@@ -69,7 +48,7 @@ void CGraphSlamEngine_ROS<GRAPH_t>::initClass() {
 	// set the NodeHandle
 	{
 	 	CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>* dec_opt_ros =
-	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_node_registrar);
+	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_node_reg);
 
 	 	if (dec_opt_ros) {
 	 	 	dec_opt_ros->setNodeHandle(m_nh);
@@ -77,7 +56,7 @@ void CGraphSlamEngine_ROS<GRAPH_t>::initClass() {
 	}
 	{
 		CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>* dec_opt_ros =
-	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_edge_registrar);
+	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_edge_reg);
 		if (dec_opt_ros) {
 	 		dec_opt_ros->setNodeHandle(m_nh);
 		}

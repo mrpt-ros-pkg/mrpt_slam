@@ -81,19 +81,34 @@ IF(${MRPT_VERSION} LESS 1.5.0)
     MESSAGE(WARNING ${WARN_MSG})
 else()
 
-  # sr-graphSLAM
     set(SR_GRAPHSLAM_SRC
         src/CGraphSlam_ROS.cpp
         src/TUserOptionsChecker_ROS.cpp
         src/CConnectionManager.cpp
         )
+
+    add_library(${PROJECT_NAME}
+        ${SR_GRAPHSLAM_SRC}
+        )
     add_executable(${PROJECT_NAME}_node
     	${SR_GRAPHSLAM_SRC}
-      src/${PROJECT_NAME}_node.cpp
+        src/${PROJECT_NAME}_node.cpp
+    	)
+    add_executable(${PROJECT_NAME}_cm_node
+    	${SR_GRAPHSLAM_SRC}
+        src/${PROJECT_NAME}_cm_node.cpp
     	)
 
     ## Specify libraries to link a library or executable target against
     target_link_libraries(${PROJECT_NAME}_node
+        ${MRPT_LIBS}
+        ${catkin_LIBRARIES}
+        )
+    target_link_libraries(${PROJECT_NAME}_cm_node
+        ${MRPT_LIBS}
+        ${catkin_LIBRARIES}
+        )
+    target_link_libraries(${PROJECT_NAME}
         ${MRPT_LIBS}
         ${catkin_LIBRARIES}
         )
@@ -103,7 +118,7 @@ else()
     #############
 
     # Mark executables and/or libraries for installation
-    install(TARGETS ${PROJECT_NAME}_node
+    install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

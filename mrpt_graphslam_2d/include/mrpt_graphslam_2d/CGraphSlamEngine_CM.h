@@ -29,6 +29,15 @@ public:
 
 	~CGraphSlamEngine_CM();
 
+	virtual bool execGraphSlamStep(
+			mrpt::obs::CObservationPtr& observation,
+			size_t& rawlog_entry);
+	virtual bool execGraphSlamStep(
+			mrpt::obs::CActionCollectionPtr& action,
+			mrpt::obs::CSensoryFramePtr& observations,
+			mrpt::obs::CObservationPtr& observation,
+			size_t& rawlog_entry);
+
 	void initClass();
 
 private:

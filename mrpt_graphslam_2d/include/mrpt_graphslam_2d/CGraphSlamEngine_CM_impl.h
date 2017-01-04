@@ -11,7 +11,6 @@ CGraphSlamEngine_CM<GRAPH_t>::CGraphSlamEngine_CM(
 		mrpt::graphslam::deciders::CNodeRegistrationDecider<GRAPH_t>* node_reg /* = NULL */,
 		mrpt::graphslam::deciders::CEdgeRegistrationDecider<GRAPH_t>* edge_reg /* = NULL */,
 		mrpt::graphslam::optimizers::CGraphSlamOptimizer<GRAPH_t>* optimizer /* = NULL */):
-	m_nh(nh),
 	parent::CGraphSlamEngine_ROS(
 			nh,
 			config_file,
@@ -69,7 +68,7 @@ void CGraphSlamEngine_CM<GRAPH_t>::initClass() {
 	// scheme)
 	{
 	 	CRegistrationDeciderOrOptimizer_CM<GRAPH_t>* dec_opt_cm =
-	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_CM<GRAPH_t>*>(this->m_node_registrar);
+	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_CM<GRAPH_t>*>(this->m_node_reg);
 
 	 	if (dec_opt_cm) {
 	 	 	dec_opt_cm->setCConnectionManagerPtr(&m_conn_manager);
@@ -77,7 +76,7 @@ void CGraphSlamEngine_CM<GRAPH_t>::initClass() {
 	}
 	{
 		CRegistrationDeciderOrOptimizer_CM<GRAPH_t>* dec_opt_cm =
-	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_CM<GRAPH_t>*>(this->m_edge_registrar);
+	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_CM<GRAPH_t>*>(this->m_edge_reg);
 		if (dec_opt_cm) {
 	 		dec_opt_cm->setCConnectionManagerPtr(&m_conn_manager);
 		}

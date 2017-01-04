@@ -14,7 +14,7 @@ namespace mrpt { namespace graphslam { namespace deciders {
 
 // Ctors, Dtors
 template<class GRAPH_t>
-CLoopCloserERD_MR<GRAPH_t>::CLoopCloserERD_MR() {
+CLoopCloserERD_CM<GRAPH_t>::CLoopCloserERD_CM() {
 	// CLoopCloser Ctor is automatically called.
 
 	this->is_mr_slam_class = true;
@@ -22,13 +22,13 @@ CLoopCloserERD_MR<GRAPH_t>::CLoopCloserERD_MR() {
 }
 
 template<class GRAPH_t>
-CLoopCloserERD_MR<GRAPH_t>::~CLoopCloserERD_MR() {
+CLoopCloserERD_CM<GRAPH_t>::~CLoopCloserERD_CM() {
 	// CLoopCloser Dtor is automatically called.
 }
 
 // Member methods implementations
 template<class GRAPH_t>
-bool CLoopCloserERD_MR<GRAPH_t>::updateState(
+bool CLoopCloserERD_CM<GRAPH_t>::updateState(
 		mrpt::obs::CActionCollectionPtr action,
 		mrpt::obs::CSensoryFramePtr observations,
 		mrpt::obs::CObservationPtr observation ) {
