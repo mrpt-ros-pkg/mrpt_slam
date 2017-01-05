@@ -28,7 +28,8 @@ namespace mrpt { namespace graphslam { namespace detail {
 struct TSlamAgent {
 	TSlamAgent():
 		agent_ID(INVALID_SLAM_AGENT_ID),
-		last_seen_time(INVALID_TIMESTAMP) { }
+		last_seen_time(INVALID_TIMESTAMP),
+		is_online(false) { }
 	~TSlamAgent() { }
 
 	bool operator==(const TSlamAgent& o) const {
@@ -72,6 +73,8 @@ struct TSlamAgent {
 		substrings.push_back(format("Name: %s", name.c_str()));
 		substrings.push_back(format("Hostname: %s", hostname.c_str()));
 		substrings.push_back(format("IP Addr: %s", ip_addr.c_str()));
+		substrings.push_back(format("Port: %d", port));
+
 		{
 			stringstream tmp;
 			tmp << "Agent ID: " << agent_ID;
@@ -101,12 +104,19 @@ struct TSlamAgent {
 	}
 	/**\}*/
 
+	/**\brief Clear the properties of the TSlamAgent property
+	 */
+	void clear();
+
 	/**\brief Agent name - This is a concatenation of the hostname and the port
 	 * that the corresponding ROS Master runs on
 	 */
 	std::string name;
 	std::string hostname;
 	std::string ip_addr;
+	/**\brief Port of the corresponding Agent
+	 */
+	unsigned short port;
 	// TODO - store the ROS topics namespace
 	/**\brief SLAM Agent ID
 	 *
@@ -114,7 +124,18 @@ struct TSlamAgent {
 	 * e.g. IP: 192.168.1.15 => agent_ID: 15
 	 */
 	size_t agent_ID;
+	/**\brief SLAM Agent ROS topics namespace
+	 *
+	 * Application assumes that the de facto namespace for each robot in a
+	 * multi-robot setup shall be ${name}_${agent_ID}.
+	 */
+	std::string topic_ns;
+	/**\brief Timestamp that the SLAM Agent was last seen
+	 */
 	mrpt::system::TTimeStamp last_seen_time;
+	/**\brief True if the SLAM Agent was last reported to be online
+	 */
+	bool is_online;
 
 
 };
@@ -125,6 +146,9 @@ struct TSlamAgent {
 class CConnectionManager
 {
 public:
+	typedef std::vector<TSlamAgent>::iterator agents_it;
+	typedef std::vector<TSlamAgent>::const_iterator agents_cit;
+
 	/**\brief Constructor */
 	CConnectionManager(
 			mrpt::utils::COutputLogger* logger,
@@ -167,8 +191,21 @@ private:
 	void setupSrvs();
 	/**\}*/
 
-	/**\brief Convert the ROSMaster instance to the corresponding TSlamAgent. */
-	void convert(const multimaster_msgs_fkie::ROSMaster& ros_master, TSlamAgent* slam_agent);
+	/**\brief TSlamAgent ==> ROSMaster. */
+	static void convert(
+			const multimaster_msgs_fkie::ROSMaster& ros_master,
+			TSlamAgent* slam_agent);
+	/**\brief ROSMaster ==> TSlamAgent */
+	static void convert(
+			const TSlamAgent& slam_agent,
+			multimaster_msgs_fkie::ROSMaster* ros_master);
+	/**\brief Remove http:// prefix and port suffix from the string and return result
+	 *
+	 * \param[out] agent_port Port that the agent is running on. Extracted from
+	 * the overall string
+	 */
+	static std::string extractHostnameOrIP(const std::string& str,
+			unsigned short* agent_port=NULL);
 
 	/**\brief Pointer to the logging instance */
 	mrpt::utils::COutputLogger* m_logger;
@@ -183,13 +220,17 @@ private:
 
 	bool has_setup_comm;
 
-	static std::string extractHostnameOrIP(const std::string& str);
-
 
 };
 
 } } } // end of namespaces
 
-std::ostream& operator<<(std::ostream& os, const mrpt::graphslam::detail::TSlamAgent& agent);
+std::ostream& operator<<(std::ostream& os,
+		const mrpt::graphslam::detail::TSlamAgent& agent);
+/**\brief ROSMaster instances are considered the same if the "uri" field is the
+ * same
+ */
+bool operator==(const multimaster_msgs_fkie::ROSMaster& master1,
+		const multimaster_msgs_fkie::ROSMaster& master2);
 
 #endif /* end of include guard: CCONNECTIONMANAGER_H */

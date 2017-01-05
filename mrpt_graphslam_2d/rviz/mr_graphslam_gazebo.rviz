@@ -8,7 +8,6 @@ Panels:
         - /Status1
         - /img_11
         - /img_21
-        - /robot_model_11
       Splitter Ratio: 0.5
     Tree Height: 328
   - Class: rviz/Selection
@@ -74,7 +73,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /pioneer_3at_1/ar_sys/result
+      Image Topic: /csl_desktop_142/ar_sys/result
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -86,7 +85,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /pioneer_3at_2/ar_sys/result
+      Image Topic: /csl_desktop_11312_142/ar_sys/result
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -106,9 +105,99 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        back_sonar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_sonar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hokuyo_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_left_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_left_hub:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_right_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_right_hub:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_left_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_left_hub:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_right_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_right_hub:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        top_plate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: robot_model_1
       Robot Description: robot_description
-      TF Prefix: pioneer_3at_1
+      TF Prefix: csl_desktop_142
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -122,9 +211,99 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        back_sonar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_sonar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hokuyo_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_left_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_left_hub:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_right_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_right_hub:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_back_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_left_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_left_hub:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_right_axle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_right_hub:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        p3at_front_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        top_plate:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: robot_model_2
       Robot Description: robot_description
-      TF Prefix: pioneer_3at_2
+      TF Prefix: csl_desktop_11312_142
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -153,7 +332,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /pioneer_3at_1/input/laser_scan
+      Topic: /csl_desktop_142/input/laser_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -183,7 +362,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /pioneer_3at_2/input/laser_scan
+      Topic: /csl_desktop_11312_142/input/laser_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -191,23 +370,23 @@ Visualization Manager:
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Keep: 100
       Length: 1
       Name: odom_1
       Position Tolerance: 0.1
-      Topic: /pioneer_3at_1/input/odom
-      Value: true
+      Topic: /csl_desktop_142/input/odom
+      Value: false
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Keep: 100
       Length: 1
       Name: odom_2
       Position Tolerance: 0.1
-      Topic: /pioneer_3at_2/input/odom
-      Value: true
+      Topic: /csl_desktop_11312_142/input/odom
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -232,22 +411,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 25.2702
+      Distance: 19.7362
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.67029
-        Y: -1.0078
-        Z: 0.531877
+        X: -0.0952728
+        Y: -2.98441
+        Z: 2.88975
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.1004
+      Pitch: 0.9404
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.3954
+      Yaw: 2.6104
     Saved: ~
 Window Geometry:
   Displays:
