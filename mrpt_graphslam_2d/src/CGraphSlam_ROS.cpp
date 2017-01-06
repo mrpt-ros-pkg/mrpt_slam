@@ -33,6 +33,10 @@ CGraphSlam_ROS::CGraphSlam_ROS(
 	m_graphslam_handler = new CGraphSlamHandler();
 	m_graphslam_handler->setOutputLoggerPtr(m_logger);
 
+	// TODO - does this affect?
+	// Previous value = 0;
+	m_queue_size = 1;
+
 	// variables initialization/assignment
 	m_has_read_config = false;
 	m_pub_seq = 0;
@@ -544,7 +548,8 @@ bool CGraphSlam_ROS::usePublishersBroadcasters() {
 	{
 		std_msgs::Header h;
 		mrpt::system::TTimeStamp mrpt_time;
-		mrpt::maps::COccupancyGridMap2DPtr mrpt_gridmap = mrpt::maps::COccupancyGridMap2D::Create();
+		mrpt::maps::COccupancyGridMap2DPtr mrpt_gridmap =
+			mrpt::maps::COccupancyGridMap2D::Create();
 		m_graphslam_engine->getMap(mrpt_gridmap, &mrpt_time);
 
 		// timestamp

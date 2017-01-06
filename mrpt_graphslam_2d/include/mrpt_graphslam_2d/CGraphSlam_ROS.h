@@ -338,6 +338,7 @@ private:
 	 */
 	size_t m_measurement_cnt;
 
+	/**\brief ROS topic publisher standard queue size */
 	int m_queue_size;
 };
 

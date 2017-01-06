@@ -44,6 +44,16 @@ template<class GRAPH_t>
 void CGraphSlamEngine_ROS<GRAPH_t>::initClass() {
 	using namespace mrpt::graphslam;
 
+	ASSERT_(m_nh);
+
+	this->m_class_name = "CGraphSlamEngine_ROS";
+	this->setLoggerName(this->m_class_name);
+
+	// http://wiki.ros.org/rospy/Overview/Publishers%20and%20Subscribers#queue_size:_publish.28.29_behavior_and_queuing
+	m_queue_size = 1;
+
+	this->setupComm();
+
 	// in case of ROS specific deciders/optimizers (they inherit from the CDeciderOrOptimizer_ROS interface)
 	// set the NodeHandle
 	{
@@ -71,6 +81,38 @@ void CGraphSlamEngine_ROS<GRAPH_t>::initClass() {
 	
 }
 
+template<class GRAPH_t>
+void CGraphSlamEngine_ROS<GRAPH_t>::usePublishersBroadcasters() { }
+
+template<class GRAPH_t>
+void CGraphSlamEngine_ROS<GRAPH_t>::setupComm() {
+	MRPT_LOG_INFO_STREAM <<
+		"Setting up subscribers, publishers, services...";
+
+	// setup subscribers, publishers, services...
+	this->setupSubs();
+	this->setupPubs();
+	this->setupSrvs();
+
+}
+
+template<class GRAPH_t>
+void CGraphSlamEngine_ROS<GRAPH_t>::setupSubs() {
+	MRPT_LOG_DEBUG_STREAM << "Setting up subscribers...";
+
+}
+
+template<class GRAPH_t>
+void CGraphSlamEngine_ROS<GRAPH_t>::setupPubs() {
+	MRPT_LOG_DEBUG_STREAM << "Setting up publishers...";
+
+}
+
+template<class GRAPH_t>
+void CGraphSlamEngine_ROS<GRAPH_t>::setupSrvs() {
+	MRPT_LOG_DEBUG_STREAM << "Setting up services...";
+
+}
 
 
 } } // end of namespaces

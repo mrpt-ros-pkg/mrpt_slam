@@ -39,13 +39,38 @@ public:
 			mrpt::graphslam::optimizers::CGraphSlamOptimizer<GRAPH_t>* optimizer=NULL
 			);
 	virtual ~CGraphSlamEngine_ROS();
+	/**\brief Wrapper method around the protected setup* class methods.
+	 *
+	 * Handy for setting up publishers, subscribers, services
+	 * all at once.
+	 *
+	 */
+	void setupComm();
 
 	void initClass();
-
-protected:
 	ros::NodeHandle* m_nh;
+protected:
+	/**\brief Provide feedback about the SLAM operation
+	 *
+	 * Method makes the necessary calls to all the publishers of the class and
+	 * broadcaster instances
+	 */
+	virtual void usePublishersBroadcasters();
+
+	/**\name setup* ROS-related methods
+	 *\brief Methods for setting up topic subscribers, publishers, and
+	 * corresponding services
+	 *
+	 * \sa setupComm
+	 */
+	/**\{*/
+	virtual void setupSubs();
+	virtual void setupPubs();
+	virtual void setupSrvs();
+	/**\}*/
 
 
+	int m_queue_size;
 };
 
 } } // end of namespaces

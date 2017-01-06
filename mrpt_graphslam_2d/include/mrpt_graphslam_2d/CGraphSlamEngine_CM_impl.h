@@ -37,6 +37,8 @@ bool CGraphSlamEngine_CM<GRAPH_t>::execGraphSlamStep(
 		mrpt::obs::CObservationPtr& observation,
 		size_t& rawlog_entry) { 
 	parent::execGraphSlamStep(observation, rawlog_entry);
+
+
 }
 
 template<class GRAPH_t>
@@ -50,12 +52,28 @@ bool CGraphSlamEngine_CM<GRAPH_t>::execGraphSlamStep(
 	parent::execGraphSlamStep(
 			action, observations, observation, rawlog_entry);
 
-	// notify of the neighbors
+	this->usePublishersBroadcasters();
+
+
 }
 
 template<class GRAPH_t>
 void CGraphSlamEngine_CM<GRAPH_t>::initClass() {
 	using namespace mrpt::graphslam;
+
+	// initialization of topic namespace names
+	// TODO - put these into seperate method
+	m_cm_ns = "cm_info";
+
+	// initialization of topic names
+	// TODO - put these into seperate method
+	m_list_neighbors_topic = m_cm_ns + "/" = "neighbors";
+	m_cm_graph_service = "get_cm_graph";
+
+
+	this->m_class_name = "CGraphSlamEngine_CM";
+	this->setLoggerName(this->m_class_name);
+	this->setupComm();
 
 	// in case of CondensedMeasurements specific deciders/optimizers (they
 	// inherit from the CDeciderOrOptimizer_ROS interface) set the
@@ -89,6 +107,46 @@ void CGraphSlamEngine_CM<GRAPH_t>::initClass() {
 		}
 	}
 	
+}
+
+
+template<class GRAPH_t>
+void CGraphSlamEngine_CM<GRAPH_t>::usePublishersBroadcasters() {
+	// update list of neighbors
+	m_list_neighbors_pub.publish(m_conn_manager.getNearbySlamAgents());
+
+}
+
+template<class GRAPH_t>
+void CGraphSlamEngine_CM<GRAPH_t>::setupSubs() { }
+
+template<class GRAPH_t>
+void CGraphSlamEngine_CM<GRAPH_t>::setupPubs() {
+	using namespace mrpt_msgs;
+
+	m_list_neighbors_pub = this->m_nh->template advertise<mrpt_msgs::GraphSlamAgents>(
+			m_list_neighbors_topic,
+			this->m_queue_size);
+
+
+}
+
+template<class GRAPH_t>
+void CGraphSlamEngine_CM<GRAPH_t>::setupSrvs() {
+
+	m_cm_graph_srvserver = this->m_nh->template advertiseService(
+			m_cm_graph_service,
+			&CGraphSlamEngine_CM<GRAPH_t>::getCMGraph, this);
+
+	// service for asking for others' cm graphs?
+}
+
+template<class GRAPH_t>
+bool CGraphSlamEngine_CM<GRAPH_t>::getCMGraph(
+		mrpt_msgs::GetCMGraph::Request& req,
+		mrpt_msgs::GetCMGraph::Response& res) {
+	MRPT_LOG_INFO_STREAM << "Called the GetCMGraph service.";
+
 }
 
 #endif /* end of include guard: CGRAPHSLAMENGINE_CM_IMPL_H */

@@ -5,20 +5,32 @@ using namespace std;
 using namespace mrpt::utils;
 using namespace multimaster_msgs_fkie;
 
-// this should be on top...
-std::ostream& operator<<(
-		std::ostream& os, 
-		const mrpt::graphslam::detail::TSlamAgent& agent) {
-	os << agent.getAsString() << std::endl;
-	return os;
+bool operator==(const multimaster_msgs_fkie::ROSMaster& master1,
+		const multimaster_msgs_fkie::ROSMaster& master2) {
+	return master1.uri == master2.uri;
 }
+bool operator!=(const multimaster_msgs_fkie::ROSMaster& master1,
+		const multimaster_msgs_fkie::ROSMaster& master2) {
+	return !(master1 == master2);
+}
+
+bool operator==(const mrpt_msgs::GraphSlamAgent& agent1,
+		const mrpt_msgs::GraphSlamAgent& agent2) {
+	return agent1.agent_ID == agent2.agent_ID;
+
+}
+
+bool operator!=(const mrpt_msgs::GraphSlamAgent& agent1,
+		const mrpt_msgs::GraphSlamAgent& agent2) {
+	return !(agent1 == agent2);
+}
+
 
 CConnectionManager::CConnectionManager(
 		mrpt::utils::COutputLogger* logger,
 		ros::NodeHandle* nh_in):
 	m_logger(logger),
 	m_nh(nh_in),
-	m_nearby_slam_agents_is_cached(false),
 	has_setup_comm(false)
 {
 
@@ -26,31 +38,28 @@ CConnectionManager::CConnectionManager(
 	ASSERT_(m_logger);
 	ASSERT_(m_nh);
 
+	// keep this call below the topic names initializations
+	this->setupComm();
+
 }
 
 CConnectionManager::~CConnectionManager() { }
 
 void CConnectionManager::getNearbySlamAgents(
-		std::vector<TSlamAgent>* agents_vec) {
+		mrpt_msgs::GraphSlamAgents* agents_vec) {
 
 	ASSERTMSG_(agents_vec, "Invalid pointer to vector of SLAM Agents.");
 	ASSERT_(has_setup_comm);
-
-	// TODO - when should I use the cached version and when I shouldn't?
-	if (!m_nearby_slam_agents_is_cached) {
-		this->updateNearbySlamAgents();
-	}
+	this->updateNearbySlamAgents();
 
 	*agents_vec = m_nearby_slam_agents;
 
 
 }
 
-const std::vector<mrpt::graphslam::detail::TSlamAgent>&  CConnectionManager::getNearbySlamAgents() {
-	if (!m_nearby_slam_agents_is_cached) {
-		this->updateNearbySlamAgents();
-	}
-
+const mrpt_msgs::GraphSlamAgents&  CConnectionManager::getNearbySlamAgents() {
+	ASSERT_(has_setup_comm);
+	this->updateNearbySlamAgents();
 	return m_nearby_slam_agents;
 }
 
@@ -59,12 +68,10 @@ void CConnectionManager::updateNearbySlamAgents() {
 		DiscoverMasters srv;
 
 		// ask for the agents in the neighborhood
-		m_DiscoverMasters_querier.call(srv);
+		m_DiscoverMasters_client.call(srv);
 		std::vector<ROSMaster>* masters = &(srv.response.masters);
 
-		cout << "Found [" << masters->size() << "] slam agents nearby" << endl;
-
-		// convert RosMaster(s) to TSlamAgent(s)
+		// convert RosMaster(s) to mrpt_msgs::GraphSlamAgent(s)
 		for (std::vector<ROSMaster>::const_iterator masters_it = masters->begin();
 				masters_it != masters->end(); ++masters_it) {
 
@@ -78,46 +85,44 @@ void CConnectionManager::updateNearbySlamAgents() {
 			//cout << "monitoruri: " << masters_it->monitoruri << endl;
 			//cout << "---------------" << endl << endl;
 
-			
 			// 3 cases:
-			// In RosMasters - In TSlamAgents => update relevant fields
-			// In RosMasters - NOT In TSlamAgents => add it to TSlamAgents
-			// NOT In RosMasters - In TSlamAgents => remove it from TSlamAgents
+			// In RosMasters - In mrpt_msgs::GraphSlamAgents => update relevant fields
+			// In RosMasters - NOT In mrpt_msgs::GraphSlamAgents => add it to mrpt_msgs::GraphSlamAgents
+			// NOT In RosMasters - In mrpt_msgs::GraphSlamAgents => remove it from mrpt_msgs::GraphSlamAgents
 
 			// have I already registered the current node?
-			auto search = [&masters_it](const TSlamAgent& agent) {
-				return agent.name == masters_it->name;
+			auto search = [&masters_it](const mrpt_msgs::GraphSlamAgent& agent) {
+				return agent.name.data == masters_it->name;
 			};
-			vector<TSlamAgent>::iterator agents_it = find_if(
-					m_nearby_slam_agents.begin(),
-					m_nearby_slam_agents.end(), search);
+			agents_it it = find_if(
+					m_nearby_slam_agents.list.begin(),
+					m_nearby_slam_agents.list.end(), search);
 
-			if (agents_it != m_nearby_slam_agents.end()) { // found, update fields
-				//ASSERTMSG_(agents_it->hostname == hostname,
-						//mrpt::format("TSlamAgent hostname [%s] doesn't match [%s]",
-							//agents_it->hostname.c_str(), hostname.c_str()));
-				//ASSERTMSG_(agents_it->ip_addr == ip_addr,
-						//mrpt::format("TSlamAgent IP address [%s] doesn't match [%s]",
-							//agents_it->ip_addr.c_str(), ip_addr.c_str()));
+			if (it != m_nearby_slam_agents.list.end()) { // found, update fields
+				//ASSERTMSG_(it->hostname == hostname,
+						//mrpt::format("mrpt_msgs::GraphSlamAgent hostname [%s] doesn't match [%s]",
+							//it->hostname.c_str(), hostname.c_str()));
+				//ASSERTMSG_(it->ip_addr == ip_addr,
+						//mrpt::format("mrpt_msgs::GraphSlamAgent IP address [%s] doesn't match [%s]",
+							//it->ip_addr.c_str(), ip_addr.c_str()));
 
 				// update the timestamp
-				mrpt_bridge::convert(ros::Time(masters_it->timestamp),
-						agents_it->last_seen_time);
+				it->last_seen_time.data = ros::Time(masters_it->timestamp);
 						
 			}
 			else { // not found, insert it.
-				TSlamAgent new_agent;
+				mrpt_msgs::GraphSlamAgent new_agent;
 				this->convert(*masters_it, &new_agent);
 
 				cout << new_agent << endl;
-				m_nearby_slam_agents.push_back(new_agent);
+				m_nearby_slam_agents.list.push_back(new_agent);
 			}
 
 		}
 
-		// if not found in RosMasters but found in TSlamAgents, remove it.
-		for (agents_cit cit = m_nearby_slam_agents.begin(); cit !=
-				m_nearby_slam_agents.end(); ++cit) {
+		// if not found in RosMasters but found in mrpt_msgs::GraphSlamAgents, remove it.
+		for (agents_cit cit = m_nearby_slam_agents.list.begin(); cit !=
+				m_nearby_slam_agents.list.end(); ++cit) {
 
 
 			// TODO
@@ -128,10 +133,8 @@ void CConnectionManager::updateNearbySlamAgents() {
 
 }
 
-void CConnectionManager::setupComm() { 
 
-	m_logger->logFmt(LVL_INFO,
-			"Setting up ROS-related subscribers, publishers, services...");
+void CConnectionManager::setupComm() { 
 
 	this->setupSubs();
 	this->setupPubs();
@@ -145,26 +148,26 @@ void CConnectionManager::setupPubs() { }
 void CConnectionManager::setupSrvs() {
 	// call to the querier should be made after the
 	// multimaster_msgs_fkie::DiscoverMaster service is up and running
-	m_DiscoverMasters_querier =
+	m_DiscoverMasters_client =
 		m_nh->serviceClient<multimaster_msgs_fkie::DiscoverMasters>(
-				"master_discovery/list_masters");
+				"/master_discovery/list_masters");
 
-	//ASSERT_(m_DiscoverMasters_querier.isValid());
+	//ASSERT_(m_DiscoverMasters_client.isValid());
 }
 
 void CConnectionManager::convert(const multimaster_msgs_fkie::ROSMaster& ros_master,
-		TSlamAgent* slam_agent) {
+		mrpt_msgs::GraphSlamAgent* slam_agent) {
 	ASSERT_(slam_agent);
 
-	slam_agent->name = ros_master.name;
-	slam_agent->is_online = ros_master.online;
+	slam_agent->name.data = ros_master.name;
+	slam_agent->is_online.data = static_cast<bool>(ros_master.online);
 
 	// ip_address, hostname, port
 	std::string ip_addr = CConnectionManager::extractHostnameOrIP(ros_master.monitoruri);
-	slam_agent->ip_addr = ip_addr;
+	slam_agent->ip_addr.data = ip_addr;
 	std::string hostname = CConnectionManager::extractHostnameOrIP(
 			ros_master.uri, &slam_agent->port);
-	slam_agent->hostname = hostname;
+	slam_agent->hostname.data = hostname;
 
 	// agent_ID
 	vector<string> tokens;
@@ -173,30 +176,30 @@ void CConnectionManager::convert(const multimaster_msgs_fkie::ROSMaster& ros_mas
 
 	// robot topic namespace
 	{
-		stringstream ss;
-		ss << slam_agent->name  << "_" + slam_agent->agent_ID;
-		slam_agent->topic_ns = ss.str();
+		stringstream ss("");
+		ss << slam_agent->name.data  << "_" << slam_agent->agent_ID;
+		slam_agent->topic_namespace.data = ss.str().c_str();
 	}
 
 	// timestamp
-	mrpt_bridge::convert(ros::Time(ros_master.timestamp),
-			slam_agent->last_seen_time);
+	slam_agent->last_seen_time.data = ros::Time(ros_master.timestamp);
 
 }
 
 void CConnectionManager::convert(
-		const TSlamAgent& slam_agent,
+		const mrpt_msgs::GraphSlamAgent& slam_agent,
 		multimaster_msgs_fkie::ROSMaster* ros_master) {
+
 	using namespace std;
 	ASSERT_(ros_master);
 
-	ros_master->name = slam_agent.name;
+	ros_master->name = slam_agent.name.data;
 	{
-		stringstream ss;
+		stringstream ss("");
 		ss << "http://" << slam_agent.ip_addr <<  ":" << slam_agent.port;
 		ros_master->uri = ss.str();
 	}
-	ros_master->online = slam_agent.is_online;
+	ros_master->online = slam_agent.is_online.data;
 	ros_master->discoverer_name = "/master_discovery";
 
 	// TODO - timestamp

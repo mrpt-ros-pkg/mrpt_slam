@@ -4,6 +4,10 @@
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS.h"
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
+#include <std_msgs/String.h>
+
+#include <mrpt_msgs/NetworkOfPoses.h>
+#include <mrpt_msgs/GetCMGraph.h>
 
 namespace mrpt { namespace graphslam {
 
@@ -29,10 +33,10 @@ public:
 
 	~CGraphSlamEngine_CM();
 
-	virtual bool execGraphSlamStep(
+	bool execGraphSlamStep(
 			mrpt::obs::CObservationPtr& observation,
 			size_t& rawlog_entry);
-	virtual bool execGraphSlamStep(
+	bool execGraphSlamStep(
 			mrpt::obs::CActionCollectionPtr& action,
 			mrpt::obs::CSensoryFramePtr& observations,
 			mrpt::obs::CObservationPtr& observation,
@@ -41,7 +45,52 @@ public:
 	void initClass();
 
 private:
+	void usePublishersBroadcasters();
+
+	void setupSubs();
+	void setupPubs();
+	void setupSrvs();
+
+	/**\brief Compute and fill the Condensed Measurements Graph
+	 */
+	bool getCMGraph(
+			mrpt_msgs::GetCMGraph::Request& req,
+			mrpt_msgs::GetCMGraph::Response& res);
+	/**\brief ROS Topic namespaces related variables
+	 */
+	/**\{*/
+	/**\brief Condensed Measurements topic namespace */
+	std::string m_cm_ns;
+	/**\}*/
+
+	/**\name Subscribers - Publishers
+	 *
+	 * ROS Topic Subscriber/Publisher/Service instances
+	 * */
+	/**\{*/
+
+	ros::Publisher m_list_neighbors_pub;
+
+	ros::ServiceServer m_cm_graph_srvserver;
+	/**\}*/
+
+	/**\name Topic Names
+	 *
+	 * Names of the topics that the class instance subscribes or publishes to
+	 */
+	/**\{*/
+	std::string m_list_neighbors_topic;
+	/**\name of the server which is to be called when other agent wants to have a
+	 * subgraph of certain nodes returned.
+	 */
+	std::string m_cm_graph_service;
+
+	/**\}*/
+
+
+	/**\brief CConnectionManager instance */
 	mrpt::graphslam::detail::CConnectionManager m_conn_manager;
+
 };
 
 
