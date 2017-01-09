@@ -1,3 +1,12 @@
+/* +---------------------------------------------------------------------------+
+	 |                     Mobile Robot Programming Toolkit (MRPT)               |
+	 |                          http://www.mrpt.org/                             |
+	 |                                                                           |
+	 | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
+	 | See: http://www.mrpt.org/Authors - All rights reserved.                   |
+	 | Released under BSD License. See details in http://www.mrpt.org/License    |
+	 +---------------------------------------------------------------------------+ */
+
 #ifndef CCONNECTIONMANAGER_H
 #define CCONNECTIONMANAGER_H
 
@@ -74,7 +83,7 @@ private:
 	/**\}*/
 
 
-	/**\brief TSlamAgent ==> ROSMaster. */
+	/**\brief GraphSlamAgent ==> ROSMaster. */
 	static void convert(
 			const multimaster_msgs_fkie::ROSMaster& ros_master,
 			mrpt_msgs::GraphSlamAgent* slam_agent);
