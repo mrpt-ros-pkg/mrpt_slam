@@ -9,7 +9,7 @@ IF($ENV{VERBOSE})
 endif()
 
 #find catkin packages
-find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs sensor_msgs visualization_msgs mrpt_bridge dynamic_reconfigure)
+find_package(catkin REQUIRED COMPONENTS cmake_modules roslib roscpp tf std_msgs nav_msgs sensor_msgs visualization_msgs mrpt_bridge dynamic_reconfigure)
 
 #find mrpt packages
 find_package(MRPT REQUIRED base gui obs slam)
@@ -26,7 +26,7 @@ INCLUDE_DIRECTORIES(
 
 catkin_package(
     CATKIN_DEPENDS
-#    DEPENDS Eigen 
+		nav_msgs sensor_msgs std_msgs 
 #    INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS}
     )
 

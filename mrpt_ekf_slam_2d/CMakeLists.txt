@@ -24,7 +24,10 @@ INCLUDE_DIRECTORIES(
    ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-catkin_package( CATKIN_DEPENDS )
+catkin_package(
+	CATKIN_DEPENDS
+	nav_msgs sensor_msgs std_msgs 
+)
 
 ###########
 ## Build ##

@@ -1,7 +1,6 @@
 # Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
 # Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
 cmake_minimum_required(VERSION 2.8.3)
-set(PROJECT_NAME mrpt_graphslam_2d)
 project(${PROJECT_NAME})
 
 #c++ 11 standard

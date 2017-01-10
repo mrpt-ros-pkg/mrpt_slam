@@ -20,7 +20,10 @@ INCLUDE_DIRECTORIES(
 )
 
 
-catkin_package( CATKIN_DEPENDS )
+catkin_package(
+	CATKIN_DEPENDS
+	nav_msgs sensor_msgs std_msgs
+)
 
 ###########
 ## Build ##
@@ -64,5 +67,3 @@ install(DIRECTORY
 #############
 ## Testing ##
 #############
-
-
