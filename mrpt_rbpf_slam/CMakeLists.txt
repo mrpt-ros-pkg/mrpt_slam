@@ -1,11 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(mrpt_rbpf_slam)
 
-#c++ 11 standard
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-IF($ENV{VERBOSE})
-	MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-endif()
+add_definitions(-std=c++11) # Use C++11
 
 #find catkin packages
 find_package(catkin REQUIRED COMPONENTS roslib roscpp tf std_msgs nav_msgs sensor_msgs visualization_msgs mrpt_bridge dynamic_reconfigure)

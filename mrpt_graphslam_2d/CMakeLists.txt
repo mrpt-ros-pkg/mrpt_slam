@@ -3,11 +3,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(${PROJECT_NAME})
 
-#c++ 11 standard
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-IF($ENV{VERBOSE})
-	MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-endif()
+add_definitions(-std=c++11) # Use C++11
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
