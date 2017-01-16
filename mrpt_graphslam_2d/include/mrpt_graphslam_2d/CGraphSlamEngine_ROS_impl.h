@@ -78,7 +78,29 @@ void CGraphSlamEngine_ROS<GRAPH_t>::initClass() {
 	 		dec_opt_ros->setNodeHandle(m_nh);
 		}
 	}
-	
+
+	this->readParams();
+}
+
+template<class GRAPH_t>
+void CGraphSlamEngine_ROS<GRAPH_t>::readParams() {
+
+	this->readROSParameters();
+}
+
+template<class GRAPH_t>
+void CGraphSlamEngine_ROS<GRAPH_t>::readROSParameters() { }
+
+template<class GRAPH_t>
+bool CGraphSlamEngine_ROS<GRAPH_t>::_execGraphSlamStep(
+		mrpt::obs::CActionCollectionPtr& action,
+		mrpt::obs::CSensoryFramePtr& observations,
+		mrpt::obs::CObservationPtr& observation,
+		size_t& rawlog_entry) {
+
+	parent::_execGraphSlamStep(
+			action, observations, observation, rawlog_entry);
+	this->usePublishersBroadcasters();
 }
 
 template<class GRAPH_t>

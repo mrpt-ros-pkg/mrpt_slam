@@ -14,26 +14,37 @@ using namespace std;
 using namespace mrpt::utils;
 using namespace multimaster_msgs_fkie;
 
-bool operator==(const multimaster_msgs_fkie::ROSMaster& master1,
+bool operator==(
+		const multimaster_msgs_fkie::ROSMaster& master1,
 		const multimaster_msgs_fkie::ROSMaster& master2) {
 	return master1.uri == master2.uri;
 }
-bool operator!=(const multimaster_msgs_fkie::ROSMaster& master1,
+bool operator!=(
+		const multimaster_msgs_fkie::ROSMaster& master1,
 		const multimaster_msgs_fkie::ROSMaster& master2) {
 	return !(master1 == master2);
 }
 
-bool operator==(const mrpt_msgs::GraphSlamAgent& agent1,
+bool operator==(
+		const mrpt_msgs::GraphSlamAgent& agent1,
 		const mrpt_msgs::GraphSlamAgent& agent2) {
-	return agent1.agent_ID == agent2.agent_ID;
 
+	return (
+			agent1.agent_ID == agent2.agent_ID &&
+			agent1.topic_namespace.data == agent2.topic_namespace.data);
 }
 
-bool operator!=(const mrpt_msgs::GraphSlamAgent& agent1,
+bool operator!=(
+		const mrpt_msgs::GraphSlamAgent& agent1,
 		const mrpt_msgs::GraphSlamAgent& agent2) {
 	return !(agent1 == agent2);
 }
 
+bool operator<(
+		const mrpt_msgs::GraphSlamAgent& agent1,
+		const mrpt_msgs::GraphSlamAgent& agent2) {
+	return agent1.agent_ID < agent2.agent_ID;
+}
 
 CConnectionManager::CConnectionManager(
 		mrpt::utils::COutputLogger* logger,
@@ -47,6 +58,14 @@ CConnectionManager::CConnectionManager(
 	ASSERT_(m_logger);
 	ASSERT_(m_nh);
 
+	{
+		std::string own_ns_tmp = m_nh->getNamespace();
+		// ignore starting "/" characters
+		own_ns = std::string(
+				own_ns_tmp.begin() + own_ns_tmp.find_first_not_of(" /"),
+				own_ns_tmp.end());
+	}
+
 	// keep this call below the topic names initializations
 	this->setupComm();
 
@@ -54,91 +73,121 @@ CConnectionManager::CConnectionManager(
 
 CConnectionManager::~CConnectionManager() { }
 
+const std::string& CConnectionManager::getTrimmedNs() const {
+	return own_ns;
+}
+
 void CConnectionManager::getNearbySlamAgents(
-		mrpt_msgs::GraphSlamAgents* agents_vec) {
+		mrpt_msgs::GraphSlamAgents* agents_vec,
+		bool ignore_self/*= true */) {
 
-	ASSERTMSG_(agents_vec, "Invalid pointer to vector of SLAM Agents.");
-	ASSERT_(has_setup_comm);
+	using namespace mrpt::math;
+	using namespace std;
+
+	ASSERTMSG_(agents_vec, "Invalid pointer to vector of GraphSlam Agents.");
 	this->updateNearbySlamAgents();
-
 	*agents_vec = m_nearby_slam_agents;
 
+	if (ignore_self) {
+		// remove the GraphSlamAgent instance whose topic namespace coincedes with
+		// the namespace that the CConnectionManager instance is running under.
+
+		auto search = [this](const mrpt_msgs::GraphSlamAgent& agent) {
+			return (agent.topic_namespace.data == this->own_ns);
+		};
+		agents_it it = find_if(
+				agents_vec->list.begin(),
+				agents_vec->list.end(), search);
+
+		// this agent should always exist
+		// TODO - well, sometimes it doesn't, investigate this
+		// UPDATE: Even when /master_discovery node is up the agents vector might
+		// be empty.
+		//ASSERT_(it != agents_vec->list.end());
+		if (it != agents_vec->list.end()) {
+			// TODO - remove these
+			//cout << "agents_vec prior to erasing own agent" << *agents_vec << endl;
+			agents_vec->list.erase(it);
+			//cout << "agents_vec after erasing own agent" << *agents_vec << endl;
+		}
+		else {
+			//cout << "Own agent not found! " << endl;
+			//cout << getSTLContainerAsString(agents_vec->list) << endl;
+			//cout << "Own namespace: " << m_nh->getNamespace() << endl;
+		}
+			//cout << "Nodes that are up: " << endl;
+			//std::vector<string> nodes_up;
+			//ros::master::getNodes(nodes_up);
+			//printSTLContainer(nodes_up);
+			//mrpt::system::pause();
+	}
 
 }
 
 const mrpt_msgs::GraphSlamAgents&  CConnectionManager::getNearbySlamAgents() {
-	ASSERT_(has_setup_comm);
+
 	this->updateNearbySlamAgents();
 	return m_nearby_slam_agents;
 }
 
 void CConnectionManager::updateNearbySlamAgents() {
+	ASSERT_(has_setup_comm);
 
-		DiscoverMasters srv;
+	DiscoverMasters srv;
 
-		// ask for the agents in the neighborhood
-		m_DiscoverMasters_client.call(srv);
-		std::vector<ROSMaster>* masters = &(srv.response.masters);
+	// ask for the agents in the neighborhood
+	m_DiscoverMasters_client.call(srv);
+	std::vector<ROSMaster>* masters = &(srv.response.masters);
 
-		// convert RosMaster(s) to mrpt_msgs::GraphSlamAgent(s)
-		for (std::vector<ROSMaster>::const_iterator masters_it = masters->begin();
-				masters_it != masters->end(); ++masters_it) {
+	// convert RosMaster(s) to mrpt_msgs::GraphSlamAgent(s)
+	for (std::vector<ROSMaster>::const_iterator masters_it = masters->begin();
+			masters_it != masters->end(); ++masters_it) {
 
-			// resize the m_nearby_slam_agents list
+		// resize the m_nearby_slam_agents list
 
-			//// TODO - remove these.
-			//cout << "name: " << masters_it->name << endl;
-			//cout << "uri: " << masters_it->uri << endl;
-			//cout << "ROS timestamp: " << masters_it->timestamp << endl;
-			//cout << "online? : " << masters_it->online << endl;
-			//cout << "monitoruri: " << masters_it->monitoruri << endl;
-			//cout << "---------------" << endl << endl;
+		//// TODO - remove these.
+		//cout << "name: " << masters_it->name << endl;
+		//cout << "uri: " << masters_it->uri << endl;
+		//cout << "ROS timestamp: " << masters_it->timestamp << endl;
+		//cout << "online? : " << masters_it->online << endl;
+		//cout << "monitoruri: " << masters_it->monitoruri << endl;
+		//cout << "---------------" << endl << endl;
 
-			// 3 cases:
-			// In RosMasters - In mrpt_msgs::GraphSlamAgents => update relevant fields
-			// In RosMasters - NOT In mrpt_msgs::GraphSlamAgents => add it to mrpt_msgs::GraphSlamAgents
-			// NOT In RosMasters - In mrpt_msgs::GraphSlamAgents => remove it from mrpt_msgs::GraphSlamAgents
+		// 3 cases:
+		// In RosMasters     AND     In mrpt_msgs::GraphSlamAgents => update relevant fields
+		// In RosMasters     BUT NOT In mrpt_msgs::GraphSlamAgents => add it to mrpt_msgs::GraphSlamAgents
+		// NOT In RosMasters BUT     In mrpt_msgs::GraphSlamAgents => remove it from mrpt_msgs::GraphSlamAgents
 
-			// have I already registered the current node?
-			auto search = [&masters_it](const mrpt_msgs::GraphSlamAgent& agent) {
-				return agent.name.data == masters_it->name;
-			};
-			agents_it it = find_if(
-					m_nearby_slam_agents.list.begin(),
-					m_nearby_slam_agents.list.end(), search);
+		// have I already registered the current agent?
+		auto search = [&masters_it](const mrpt_msgs::GraphSlamAgent& agent) {
+			return agent.name.data == masters_it->name;
+		};
+		agents_it it = find_if(
+				m_nearby_slam_agents.list.begin(),
+				m_nearby_slam_agents.list.end(), search);
 
-			if (it != m_nearby_slam_agents.list.end()) { // found, update fields
-				//ASSERTMSG_(it->hostname == hostname,
-						//mrpt::format("mrpt_msgs::GraphSlamAgent hostname [%s] doesn't match [%s]",
-							//it->hostname.c_str(), hostname.c_str()));
-				//ASSERTMSG_(it->ip_addr == ip_addr,
-						//mrpt::format("mrpt_msgs::GraphSlamAgent IP address [%s] doesn't match [%s]",
-							//it->ip_addr.c_str(), ip_addr.c_str()));
+		if (it != m_nearby_slam_agents.list.end()) { // found, update fields
 
-				// update the timestamp
-				it->last_seen_time.data = ros::Time(masters_it->timestamp);
-						
-			}
-			else { // not found, insert it.
-				mrpt_msgs::GraphSlamAgent new_agent;
-				this->convert(*masters_it, &new_agent);
-
-				cout << new_agent << endl;
-				m_nearby_slam_agents.list.push_back(new_agent);
-			}
+			// update the timestamp
+			it->last_seen_time.data = ros::Time(masters_it->timestamp);
 
 		}
-
-		// if not found in RosMasters but found in mrpt_msgs::GraphSlamAgents, remove it.
-		for (agents_cit cit = m_nearby_slam_agents.list.begin(); cit !=
-				m_nearby_slam_agents.list.end(); ++cit) {
-
-
-			// TODO
-
+		else { // not found, insert it.
+			mrpt_msgs::GraphSlamAgent new_agent;
+			this->convert(*masters_it, &new_agent);
+			m_nearby_slam_agents.list.push_back(new_agent);
 		}
 
-		//m_nearby_slam_agents = true;
+	}
+
+	// if not found in RosMasters but found in mrpt_msgs::GraphSlamAgents, remove it.
+	for (agents_cit cit = m_nearby_slam_agents.list.begin(); cit !=
+			m_nearby_slam_agents.list.end(); ++cit) {
+
+
+		// TODO
+
+	}
 
 }
 

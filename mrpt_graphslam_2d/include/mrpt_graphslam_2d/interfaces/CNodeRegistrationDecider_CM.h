@@ -10,12 +10,12 @@
 #ifndef CNODEREGISTRATIONDECIDER_CM_H
 #define CNODEREGISTRATIONDECIDER_CM_H
 
-#include <mrpt/utils/COutputLogger.h>
-#include <string>
+#include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM.h"
+#include <mrpt/graphslam/interfaces/CNodeRegistrationDecider.h>
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
-/**\brief Node Registration Decider virtual method.
+/**\brief Node Registration Decider Interface Class.
  *
  * \b Node Registration Decider classes that are to be used in a multi-robot
  * SLAM scheme according to the Condensed Measurements multi-robot strategy by
@@ -31,10 +31,13 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * SLAM using Condensed Measurements</a> - M.T. Lazaro, L.M. Paz, P. Pinies,
  * J.A. Castellanos, G. Grisetti
  */
-template<class GRAPH_t>
-class CNodeRegistrationDecider_CM : public CRegistrationDeciderOrOptimizer_CM
+template<class GRAPH_T>
+class CNodeRegistrationDecider_CM :
+	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_T>
 {
 public:
+	typedef typename GRAPH_T::global_pose_t global_pose_t;
+
 	CNodeRegistrationDecider_CM ();
 	~CNodeRegistrationDecider_CM ();
 

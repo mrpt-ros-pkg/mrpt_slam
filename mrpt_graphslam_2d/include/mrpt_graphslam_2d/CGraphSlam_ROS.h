@@ -56,19 +56,23 @@
 /**\brief Manage variables, ROS parameters and everything else related to the
  * graphslam-engine ROS wrapper.
  */
+template<class GRAPH_T=mrpt::graphs::CNetworkOfPoses2DInf>
 class CGraphSlam_ROS
 {
 public:
 	/**\brief type of graph constraints */
-	typedef typename mrpt::graphs::CNetworkOfPoses2DInf::constraint_t constraint_t;
+	typedef typename GRAPH_T::constraint_t constraint_t;
 	/**\brief type of underlying poses (2D/3D). */
-	typedef typename mrpt::graphs::CNetworkOfPoses2DInf::constraint_t::type_value pose_t;
+	typedef typename GRAPH_T::constraint_t::type_value pose_t;
+
+	/**\brief Handy self type */
+	typedef CGraphSlam_ROS<GRAPH_T> self_t;
 
 	CGraphSlam_ROS(
 			mrpt::utils::COutputLogger* logger_in,
 			ros::NodeHandle* nh_in
 			);
-	CGraphSlam_ROS() { }
+	inline CGraphSlam_ROS() { }
 	~CGraphSlam_ROS();
 
 
@@ -131,7 +135,7 @@ public:
 	void setupComm();
 
 	/**\brief Initialize the CGraphslamEngine_* object
-	 * 
+	 *
 	 * The CGraphSlamEngine instance is to be instaniated depending on the user
 	 * application at hand. User should call this method just after reading the
 	 * problem parameters.
@@ -226,7 +230,7 @@ private:
 	/**\brief Struct instance holding the available deciders/optimizers that the
 	 * user can issue
 	 */
-	mrpt::graphslam::detail::TUserOptionsChecker_ROS m_options_checker;
+	mrpt::graphslam::detail::TUserOptionsChecker_ROS<GRAPH_T> m_options_checker;
 	CGraphSlamHandler* m_graphslam_handler;
 
 	bool m_has_read_config;
@@ -254,7 +258,7 @@ private:
 	mrpt::obs::CObservation2DRangeScanPtr m_mrpt_laser_scan;
 	/**\}*/
 
-	mrpt::graphslam::CGraphSlamEngine_ROS<mrpt::graphs::CNetworkOfPoses2DInf>*
+	mrpt::graphslam::CGraphSlamEngine_ROS<GRAPH_T>*
 		m_graphslam_engine;
 
 	/**\name Subscribers - Publishers
@@ -340,6 +344,15 @@ private:
 
 	/**\brief ROS topic publisher standard queue size */
 	int m_queue_size;
+
+	/**\brief Initial offset of the received odometry.
+	 * 
+	 * Assumption is that in the beginning I have 0 position, thus the incoming
+	 * odometry for the algorithm has to be 0 */
+	bool m_first_time_in_sniff_odom;
+	pose_t m_input_odometry_offset;
 };
+
+#include "mrpt_graphslam_2d/CGraphSlam_ROS_impl.h"
 
 #endif /* end of include guard: CGRAPHSLAM_ROS_H */

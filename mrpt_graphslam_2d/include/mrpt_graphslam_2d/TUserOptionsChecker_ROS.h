@@ -14,12 +14,14 @@
 
 #include <mrpt/graphslam/apps_related/TUserOptionsChecker.h>
 #include <mrpt/graphs/CNetworkOfPoses.h>
+#include "mrpt_graphslam_2d/NRD/CICPCriteriaNRD_CM.h"
 #include "mrpt_graphslam_2d/ERD/CLoopCloserERD_CM.h"
 
 namespace mrpt { namespace graphslam { namespace detail {
 
-struct TUserOptionsChecker_ROS :
-	public mrpt::graphslam::detail::TUserOptionsChecker<mrpt::graphs::CNetworkOfPoses2DInf> {
+template<class GRAPH_T>
+struct TUserOptionsChecker_ROS:
+	public mrpt::graphslam::detail::TUserOptionsChecker<GRAPH_T> {
 
 	/**\name handy typedefs for the creation of deciders/optimzer instances from
 	 * the corresponding strings
@@ -29,18 +31,18 @@ struct TUserOptionsChecker_ROS :
 	/**\{*/
 	typedef std::map<
 		std::string,
-		mrpt::graphslam::deciders::CNodeRegistrationDecider<
-			mrpt::graphs::CNetworkOfPoses2DInf>*(*)()> node_regs_t;
+		mrpt::graphslam::deciders::CNodeRegistrationDecider<GRAPH_T>*(*)()>
+			node_regs_t;
 	typedef std::map<
 		std::string,
-		mrpt::graphslam::deciders::CEdgeRegistrationDecider<
-			mrpt::graphs::CNetworkOfPoses2DInf>*(*)()> edge_regs_t;
+		mrpt::graphslam::deciders::CEdgeRegistrationDecider<GRAPH_T>*(*)()>
+			edge_regs_t;
 	typedef std::map<
 		std::string,
-		mrpt::graphslam::optimizers::CGraphSlamOptimizer<
-			mrpt::graphs::CNetworkOfPoses2DInf>*(*)()> optimizers_t;
+		mrpt::graphslam::optimizers::CGraphSlamOptimizer<GRAPH_T>*(*)()>
+			optimizers_t;
 	/**\brief Parent class */
-	typedef mrpt::graphslam::detail::TUserOptionsChecker<mrpt::graphs::CNetworkOfPoses2DInf> parent;
+	typedef mrpt::graphslam::detail::TUserOptionsChecker<GRAPH_T> parent;
 	/**\}*/
 
 	TUserOptionsChecker_ROS();
@@ -52,5 +54,6 @@ struct TUserOptionsChecker_ROS :
 
 
 } } } // end of namespaces
+#include "mrpt_graphslam_2d/TUserOptionsChecker_ROS_impl.h"
 
 #endif /* end of include guard: TUSEROPTIONSCHECKER_ROS_H */

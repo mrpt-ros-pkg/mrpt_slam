@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
     mrpt_bridge
     mrpt_msgs
     tf
+    tf2
     multimaster_msgs_fkie
     )
 ## System dependencies are found with CMake's conventions
@@ -82,8 +83,6 @@ IF(${MRPT_VERSION} LESS 1.5.0)
 else()
 
     set(SR_GRAPHSLAM_SRC
-        src/CGraphSlam_ROS.cpp
-        src/TUserOptionsChecker_ROS.cpp
         src/CConnectionManager.cpp
         )
 

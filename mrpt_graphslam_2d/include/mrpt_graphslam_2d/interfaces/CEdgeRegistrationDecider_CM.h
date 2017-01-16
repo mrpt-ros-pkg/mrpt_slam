@@ -33,7 +33,8 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * J.A. Castellanos, G. Grisetti
  */
 template<class GRAPH_t>
-class CEdgeRegistrationDecider_CM : public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_t>
+class CEdgeRegistrationDecider_CM :
+	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_t>
 {
 public:
 	CEdgeRegistrationDecider_CM ();

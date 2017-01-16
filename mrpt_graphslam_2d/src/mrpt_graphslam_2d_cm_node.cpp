@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 	try {
 
 		// Initialization
-		CGraphSlam_ROS graph_slam(&logger, &nh);
+		CGraphSlam_ROS<CNetworkOfPoses2DInf_NA> graph_slam(&logger, &nh);
 		graph_slam.readParams();
 		graph_slam.initEngine_CM();
 		graph_slam.setupComm();

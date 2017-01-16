@@ -18,9 +18,12 @@
 
 #include <mrpt/utils/COutputLogger.h>
 #include <mrpt/system/datetime.h>
+#include <mrpt/system/os.h>
 #include <mrpt/system/string_utils.h>
+#include <mrpt/math/utils.h>
 
 #include <algorithm>
+#include <iterator>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -49,10 +52,16 @@ public:
 	/**\brief Fill the given vector with the SLAM Agents that the current manager
 	 * can see and communicate with
 	 *
+	 * \param[in] ignore_self If true the GraphSlamAgent instance that is under
+	 * the same  namespace as the CConnectionManager is not going to be inserted
+	 * in the agents_vec
+	 *
 	 * \sa updateNearbySlamAgents
 	 */
-	void getNearbySlamAgents(mrpt_msgs::GraphSlamAgents* agents_vec);
+	void getNearbySlamAgents(mrpt_msgs::GraphSlamAgents* agents_vec,
+			bool ignore_self=true);
 	/**\brief Read-only method for accessing list of nearby agents
+	 *
 	 */
 	const mrpt_msgs::GraphSlamAgents&  getNearbySlamAgents();
 
@@ -63,8 +72,14 @@ public:
 	 *
 	 */
 	void setupComm();
+	/**\brief Get the agent ROS namespace */
+	const std::string& getTrimmedNs() const;
 
 private:
+	/**\brief Namespace under which we are running. Corresponds to the
+	 * agent_ID_str with which the nodes are going to be registered in the graph
+	 */
+	std::string own_ns;
 	/**\brief Update the internal list of nearby SLAM agents
 	 *
 	 * \sa getNearbySlamAgents
@@ -105,11 +120,14 @@ private:
 	ros::NodeHandle* m_nh;
 
 	ros::ServiceClient m_DiscoverMasters_client;
-	/**\brief List of slam agents in the current agent's neighborhood */
+	/**\brief List of slam agents in the current agent's neighborhood
+	 *
+	 * \note vector includes the GraphSlamAgent that is at the same namespace as
+	 * the current CConnectionManager instance
+	 */
 	mrpt_msgs::GraphSlamAgents m_nearby_slam_agents;
 
 	bool has_setup_comm;
-
 
 };
 
@@ -119,9 +137,11 @@ private:
  * same
  */
 /**\{*/
-bool operator==(const multimaster_msgs_fkie::ROSMaster& master1,
+bool operator==(
+		const multimaster_msgs_fkie::ROSMaster& master1,
 		const multimaster_msgs_fkie::ROSMaster& master2);
-bool operator!=(const multimaster_msgs_fkie::ROSMaster& master1,
+bool operator!=(
+		const multimaster_msgs_fkie::ROSMaster& master1,
 		const multimaster_msgs_fkie::ROSMaster& master2);
 /**\{*/
 
@@ -129,11 +149,17 @@ bool operator!=(const multimaster_msgs_fkie::ROSMaster& master1,
  * same
  */
 /**\{*/
-bool operator==(const mrpt_msgs::GraphSlamAgent& agent1,
+bool operator==(
+		const mrpt_msgs::GraphSlamAgent& agent1,
 		const mrpt_msgs::GraphSlamAgent& agent2);
 
-bool operator!=(const mrpt_msgs::GraphSlamAgent& agent1,
+bool operator!=(
+		const mrpt_msgs::GraphSlamAgent& agent1,
 		const mrpt_msgs::GraphSlamAgent& agent2);
+bool operator<(
+		const mrpt_msgs::GraphSlamAgent& agent1,
+		const mrpt_msgs::GraphSlamAgent& agent2);
+
 /**\}*/
 
 #endif /* end of include guard: CCONNECTIONMANAGER_H */

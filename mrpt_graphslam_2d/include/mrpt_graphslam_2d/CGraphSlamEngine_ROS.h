@@ -47,15 +47,33 @@ public:
 	 */
 	void setupComm();
 
+	/**\brief Initialize object instance. */
 	void initClass();
 	ros::NodeHandle* m_nh;
 protected:
+	/**\brief Read the problem configuration parameters
+	 *
+	 * \sa readROSParameters
+	 */
+	void readParams();
 	/**\brief Provide feedback about the SLAM operation
 	 *
 	 * Method makes the necessary calls to all the publishers of the class and
 	 * broadcaster instances
 	 */
 	virtual void usePublishersBroadcasters();
+	/**\brief Read configuration parameters from the ROS parameter server.
+	 *
+	 * \note Method is automatically called on object construction.
+	 *
+	 * \sa readParams, initClass
+	 */
+	void readROSParameters();
+	virtual bool _execGraphSlamStep(
+			mrpt::obs::CActionCollectionPtr& action,
+			mrpt::obs::CSensoryFramePtr& observations,
+			mrpt::obs::CObservationPtr& observation,
+			size_t& rawlog_entry);
 
 	/**\name setup* ROS-related methods
 	 *\brief Methods for setting up topic subscribers, publishers, and

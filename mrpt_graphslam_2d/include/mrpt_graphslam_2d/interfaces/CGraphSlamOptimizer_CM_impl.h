@@ -7,9 +7,17 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CICPCRITERIANRD_MR_IMPL_H
-#define CICPCRITERIANRD_MR_IMPL_H
+#ifndef CGRAPHSLAMOPTIMIZER_CM_IMPL_H
+#define CGRAPHSLAMOPTIMIZER_CM_IMPL_H
 
+namespace mrpt { namespace graphslam { namespace optimizers {
 
+template<class GRAPH_t>
+CGraphSlamOptimizer_CM<GRAPH_t>::CGraphSlamOptimizer_CM() {}
 
-#endif /* end of include guard: CICPCRITERIANRD_MR_IMPL_H */
+template<class GRAPH_t>
+CGraphSlamOptimizer_CM<GRAPH_t>::~CGraphSlamOptimizer_CM() {}
+
+} } } // end of namespaces
+
+#endif /* end of include guard: CGRAPHSLAMOPTIMIZER_CM_IMPL_H */

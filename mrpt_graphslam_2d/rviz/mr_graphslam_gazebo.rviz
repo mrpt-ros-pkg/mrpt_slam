@@ -6,8 +6,16 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /img_11
+        - /anchor_frame_11
+        - /anchor_frame_21
         - /img_21
+        - /map_21
+        - /odom_traj_21
+        - /estim_pose_21
+        - /estim_traj_21
+        - /odom_traj_11
+        - /estim_pose_11
+        - /estim_traj_11
       Splitter Ratio: 0.5
     Tree Height: 328
   - Class: rviz/Selection
@@ -28,7 +36,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: img_1
+    SyncSource: img_2
 Visualization Manager:
   Class: ""
   Displays:
@@ -60,16 +68,16 @@ Visualization Manager:
     - Class: rviz/Axes
       Enabled: true
       Length: 1
-      Name: axes_1
+      Name: anchor_frame_1
       Radius: 0.1
-      Reference Frame: <Fixed Frame>
+      Reference Frame: csl_desktop_142_anchor
       Value: true
     - Class: rviz/Axes
       Enabled: true
       Length: 1
-      Name: axes_2
+      Name: anchor_frame_2
       Radius: 0.1
-      Reference Frame: <Fixed Frame>
+      Reference Frame: csl_desktop_11312_142_anchor
       Value: true
     - Class: rviz/Image
       Enabled: true
@@ -387,6 +395,142 @@ Visualization Manager:
       Position Tolerance: 0.1
       Topic: /csl_desktop_11312_142/input/odom
       Value: false
+    - Alpha: 0.7
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: map_2
+      Topic: /csl_desktop_11312_142/feedback/gridmap
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 0; 0; 255
+      Enabled: true
+      Head Diameter: 0.3
+      Head Length: 0.2
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: odom_traj_2
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Style: None
+      Radius: 0.03
+      Shaft Diameter: 0.1
+      Shaft Length: 0.1
+      Topic: /csl_desktop_11312_142/feedback/odom_trajectory
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.1
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: estim_pose_2
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Arrow
+      Topic: /csl_desktop_11312_142/feedback/robot_position
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 255; 85; 0
+      Enabled: true
+      Head Diameter: 0.3
+      Head Length: 0.2
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: estim_traj_2
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Style: None
+      Radius: 0.03
+      Shaft Diameter: 0.1
+      Shaft Length: 0.1
+      Topic: /csl_desktop_11312_142/feedback/robot_trajectory
+      Unreliable: false
+      Value: true
+    - Alpha: 0.7
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: map_1
+      Topic: /csl_desktop_142/feedback/gridmap
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 0; 0; 255
+      Enabled: true
+      Head Diameter: 0.3
+      Head Length: 0.2
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: odom_traj_1
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Style: None
+      Radius: 0.03
+      Shaft Diameter: 0.1
+      Shaft Length: 0.1
+      Topic: /csl_desktop_142/feedback/odom_trajectory
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.1
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: estim_pose_1
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Arrow
+      Topic: /csl_desktop_142/feedback/robot_position
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 255; 85; 0
+      Enabled: true
+      Head Diameter: 0.3
+      Head Length: 0.2
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: estim_traj_1
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Style: None
+      Radius: 0.03
+      Shaft Diameter: 0.1
+      Shaft Length: 0.1
+      Topic: /csl_desktop_142/feedback/robot_trajectory
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -411,22 +555,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 19.7362
+      Distance: 20.7017
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.0952728
-        Y: -2.98441
-        Z: 2.88975
+        X: 3.048
+        Y: -4.8197
+        Z: -4.44887
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.9404
+      Pitch: 0.9848
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.6104
+      Yaw: 2.5954
     Saved: ~
 Window Geometry:
   Displays:

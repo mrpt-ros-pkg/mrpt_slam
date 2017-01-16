@@ -5,20 +5,22 @@
    | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
-r  +---------------------------------------------------------------------------+ */
+   +---------------------------------------------------------------------------+ */
+#ifndef TUSEROPTIONSCHECKER_ROS_IMPL_H
+#define TUSEROPTIONSCHECKER_ROS_IMPL_H
 
-#include "mrpt_graphslam_2d/TUserOptionsChecker_ROS.h"
+namespace mrpt { namespace graphslam { namespace detail {
 
-using namespace mrpt::graphslam::detail;
-
-TUserOptionsChecker_ROS::TUserOptionsChecker_ROS() {
+template<class GRAPH_T>
+TUserOptionsChecker_ROS<GRAPH_T>::TUserOptionsChecker_ROS() {
 }
 
-TUserOptionsChecker_ROS::~TUserOptionsChecker_ROS() {
+template<class GRAPH_T>
+TUserOptionsChecker_ROS<GRAPH_T>::~TUserOptionsChecker_ROS() {
 }
 
-void TUserOptionsChecker_ROS::createDeciderOptimizerMappings() {
-	MRPT_START;
+template<class GRAPH_T>
+void TUserOptionsChecker_ROS<GRAPH_T>::createDeciderOptimizerMappings() {
 	using namespace std;
 	using namespace mrpt::graphs;
 	using namespace mrpt::graphslam::detail;
@@ -26,32 +28,28 @@ void TUserOptionsChecker_ROS::createDeciderOptimizerMappings() {
 	parent::createDeciderOptimizerMappings();
 
 	// node registration deciders
-	this->node_regs_map["CFixedIntervalsNRD_MR"] =
-		&createNodeRegistrationDecider<CFixedIntervalsNRD<CNetworkOfPoses2DInf> >;
-	this->node_regs_map["CICPCriteriaNRD_MR"] =
-		&createNodeRegistrationDecider<CICPCriteriaNRD<CNetworkOfPoses2DInf> >;
+	this->node_regs_map["CICPCriteriaNRD_CM"] =
+		parent::template createNodeRegistrationDecider<CICPCriteriaNRD_CM<GRAPH_T>>;
 
 	// edge registration deciders
 	this->edge_regs_map["CLoopCloserERD_CM"] =
-		this->createEdgeRegistrationDecider<CLoopCloserERD_CM<CNetworkOfPoses2DInf> >;
+		parent::template createEdgeRegistrationDecider<CLoopCloserERD_CM<GRAPH_T>>;
 
 	// optimizers
 
-	MRPT_END;
 }
 
-void TUserOptionsChecker_ROS::populateDeciderOptimizerProperties() {
-	MRPT_START;
+template<class GRAPH_T>
+void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties() {
 	using namespace mrpt::graphslam::detail;
 	using namespace std;
 
 	parent::populateDeciderOptimizerProperties();
-
-	{ // CFixedIntervalsNRD_MR
+	{ // CICPCriteriaNRD_CM
 		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
-		dec->name = "CFixedIntervalsNRD_MR";
+		dec->name = "CICPCriteriaNRD_CM";
 		dec->description =
-			"Multi-robot SLAM implementation of the CFixedIntervalsNRD class based on \"Condensed Measurements\"";
+			"Multi-robot SLAM implementation of the CICPCriteriaNRD_CM class based on \"Condensed Measurements\"";
 		dec->type = "Node";
 		dec->rawlog_format = "Both";
 		dec->observations_used.push_back("CObservation2DRangeScan - Format #1, #2");
@@ -59,18 +57,7 @@ void TUserOptionsChecker_ROS::populateDeciderOptimizerProperties() {
 
 		this->regs_descriptions.push_back(dec);
 	}
-	{ // CICPCriteriaNRD_MR
-		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
-		dec->name = "CICPCriteriaNRD_MR";
-		dec->description =
-			"Multi-robot SLAM implementation of the CICPCriteriaNRD class based on \"Condensed Measurements\"";
-		dec->type = "Node";
-		dec->rawlog_format = "Both";
-		dec->observations_used.push_back("CObservation2DRangeScan - Format #1, #2");
-		dec->is_mr_slam_class = "true";
 
-		this->regs_descriptions.push_back(dec);
-	}
 	{ // CLoopCloserERD_CM
 		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
 		dec->name = "CLoopCloserERD_CM";
@@ -84,5 +71,8 @@ void TUserOptionsChecker_ROS::populateDeciderOptimizerProperties() {
 		this->regs_descriptions.push_back(dec);
 	}
 
-	MRPT_END;
 }
+
+} } } //end namespaces
+
+#endif /* end of include guard: TUSEROPTIONSCHECKER_ROS_IMPL_H */
