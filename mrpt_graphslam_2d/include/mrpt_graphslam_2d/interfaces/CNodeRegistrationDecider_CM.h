@@ -12,6 +12,7 @@
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM.h"
 #include <mrpt/graphslam/interfaces/CNodeRegistrationDecider.h>
+#include <mrpt/graphs/CNetworkOfPoses.h>
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
@@ -33,15 +34,22 @@ namespace mrpt { namespace graphslam { namespace deciders {
  */
 template<class GRAPH_T>
 class CNodeRegistrationDecider_CM :
-	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_T>
+	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_T>,
+	public virtual CNodeRegistrationDecider<GRAPH_T>
 {
 public:
 	typedef typename GRAPH_T::global_pose_t global_pose_t;
 
 	CNodeRegistrationDecider_CM ();
 	~CNodeRegistrationDecider_CM ();
-
 protected:
+	/**\brief Decorate a pose according to the TMRSlamNodeAnnotation fields
+	 *
+	 * \note Do this only for the nodes that are initially registered in the graph by
+	 * the current CGraphSlamEngine_t class. Nodes of other graphSLAM-agents that
+	 * are to be integrated must have already filled these fields.
+	 */
+	void addNodeAnnotsToPose(global_pose_t* pose) const;
 };
 
 } } } // end of namespaces

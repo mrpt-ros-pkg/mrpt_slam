@@ -14,14 +14,15 @@
 
 #include <mrpt/graphslam/apps_related/TUserOptionsChecker.h>
 #include <mrpt/graphs/CNetworkOfPoses.h>
+#include "mrpt_graphslam_2d/NRD/CFixedIntervalsNRD_CM.h"
 #include "mrpt_graphslam_2d/NRD/CICPCriteriaNRD_CM.h"
 #include "mrpt_graphslam_2d/ERD/CLoopCloserERD_CM.h"
 
-namespace mrpt { namespace graphslam { namespace detail {
+namespace mrpt { namespace graphslam { namespace apps {
 
 template<class GRAPH_T>
 struct TUserOptionsChecker_ROS:
-	public mrpt::graphslam::detail::TUserOptionsChecker<GRAPH_T> {
+	public mrpt::graphslam::apps::TUserOptionsChecker<GRAPH_T> {
 
 	/**\name handy typedefs for the creation of deciders/optimzer instances from
 	 * the corresponding strings
@@ -42,7 +43,7 @@ struct TUserOptionsChecker_ROS:
 		mrpt::graphslam::optimizers::CGraphSlamOptimizer<GRAPH_T>*(*)()>
 			optimizers_t;
 	/**\brief Parent class */
-	typedef mrpt::graphslam::detail::TUserOptionsChecker<GRAPH_T> parent;
+	typedef mrpt::graphslam::apps::TUserOptionsChecker<GRAPH_T> parent;
 	/**\}*/
 
 	TUserOptionsChecker_ROS();

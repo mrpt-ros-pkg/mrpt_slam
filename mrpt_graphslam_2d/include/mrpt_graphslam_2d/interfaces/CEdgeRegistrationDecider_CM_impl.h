@@ -12,11 +12,11 @@
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
-template<class GRAPH_t>
-CEdgeRegistrationDecider_CM<GRAPH_t>::CEdgeRegistrationDecider_CM() {}
+template<class GRAPH_T>
+CEdgeRegistrationDecider_CM<GRAPH_T>::CEdgeRegistrationDecider_CM() {}
 
-template<class GRAPH_t>
-CEdgeRegistrationDecider_CM<GRAPH_t>::~CEdgeRegistrationDecider_CM() {}
+template<class GRAPH_T>
+CEdgeRegistrationDecider_CM<GRAPH_T>::~CEdgeRegistrationDecider_CM() {}
 
 } } } // end of namespaces
 

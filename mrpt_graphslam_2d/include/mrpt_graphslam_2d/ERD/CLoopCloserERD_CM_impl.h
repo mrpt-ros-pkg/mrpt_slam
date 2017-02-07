@@ -27,6 +27,40 @@ CLoopCloserERD_CM<GRAPH_T>::CLoopCloserERD_CM() {
 }
 
 template<class GRAPH_T>
+void CLoopCloserERD_CM<GRAPH_T>::addBatchOfNodeIDsAndScans(
+		const std::map<
+			mrpt::utils::TNodeID,
+			mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D) {
+
+	this->m_nodes_to_laser_scans2D.insert(
+			nodeIDs_to_scans2D.begin(),
+			nodeIDs_to_scans2D.end());
+
+	// update the last known number of nodeIDs
+	this->m_last_total_num_nodes = this->m_graph->nodeCount();
+
+	this->updateMapPartitions(/*full update=*/ true,
+			/* is_first_time_node_reg = */ false);
+	
+}
+
+template<class GRAPH_T>
+void CLoopCloserERD_CM<GRAPH_T>::addScanMatchingEdges(
+		mrpt::utils::TNodeID curr_nodeID) {
+	MRPT_START;
+
+	// Do scan-matching only if I have initially registered curr_nodeID in the
+	// graph.
+	bool is_own = this->m_engine.isOwnNodeID(curr_nodeID);
+	if (is_own) {
+		lc_parent_t::addScanMatchingEdges(curr_nodeID);
+	}
+
+	MRPT_END;
+}
+		
+
+template<class GRAPH_T>
 CLoopCloserERD_CM<GRAPH_T>::~CLoopCloserERD_CM() {
 	// CLoopCloser Dtor is automatically called.
 }
@@ -45,63 +79,6 @@ bool CLoopCloserERD_CM<GRAPH_T>::updateState(
 
 }
 
-template<class GRAPH_T>
-bool CLoopCloserERD_CM<GRAPH_T>::queryEngineForScan(
-		const global_pose_t& p,
-		mrpt::obs::CObservation2DRangeScanPtr mrpt_scan) {
-	THROW_EXCEPTION("Generic template method is not implemented.");
-}
-
-template<>
-bool CLoopCloserERD_CM<mrpt::graphs::CNetworkOfPoses2DInf_NA>::queryEngineForScan(
-		const global_pose_t& p,
-		mrpt::obs::CObservation2DRangeScanPtr mrpt_scan) {
-	using namespace mrpt;
-	using namespace std;
-	using namespace mrpt::graphslam;
-	using namespace mrpt_msgs;
-	using namespace mrpt_bridge;
-	using namespace mrpt::poses;
-
-	ASSERTMSG_(this->m_engine,
-			"CGraphSlamEngine_CM instance doesn't contain a valid pointer. Exiting.");
-	ASSERTMSG_(mrpt_scan,
-			"\nCObservation2DRangeScanPtr provided does not contain a valid object. Exiting.\n");
-
-	// find the TNeighborAgentProps instance
-	auto agent_search = [p](const engine_t::TNeighborAgentProps& neighbor) {
-		return (neighbor.agent.topic_namespace.data == p.agent_ID_str);
-	};
-	std::vector<typename engine_t::TNeighborAgentProps>::const_iterator
-		neighbor_it = find_if(
-			m_engine->getVecOfNeighborAgentProps().begin(),
-			m_engine->getVecOfNeighborAgentProps().end(), agent_search);
-
-	ASSERTMSG_(neighbor_it != m_engine->getVecOfNeighborAgentProps().end(),
-			format(
-				"Could not find CGraphSlamEngine::NeighborAgentProps instance"
-				"with GraphSlamAgent.agent_ID_str \"%s\"", p.agent_ID_str.c_str()));
-
-	// find the ros LaserScan specific to the nodeID that I am looking for
-	const std::vector<NodeIDWithLaserScan>& ros_scans =
-		neighbor_it->ros_scans;
-	auto scan_search = [p](const NodeIDWithLaserScan& nodeID_with_scan) {
-		return nodeID_with_scan.nodeID == p.nodeID_loc;
-	};
-	std::vector<NodeIDWithLaserScan>::const_iterator
-		nodeID_with_scan_it = find_if(
-			ros_scans.begin(),
-			ros_scans.end(), scan_search);
-
-	bool found_scan = nodeID_with_scan_it != ros_scans.end();
-	if (!found_scan) {
-		return false;
-	}
-
-	// fill up the mrpt_scan pointer
-	convert(nodeID_with_scan_it->scan, CPose3D(p), *mrpt_scan);
-	return true;
-}
 
 } } } // end of namespaces
 

@@ -12,7 +12,6 @@
 
 #include "mrpt_graphslam_2d/interfaces/CNodeRegistrationDecider_CM.h"
 #include <mrpt/graphslam/NRD/CICPCriteriaNRD.h>
-#include <mrpt/graphs/CNetworkOfPoses.h>
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
@@ -28,16 +27,7 @@ class CICPCriteriaNRD_CM :
 
 		CICPCriteriaNRD_CM();
 
-
 	private:
-
-	/**\brief Decorate the class according to the TMRSlamNodeAnnotation  fields
-	 *
-	 * \note Do this only for the nodes that are initially registered in the graph by
-	 * the current CGraphSlamEngine_t class. Nodes of other graphSLAM-agents that
-	 * are to be integrated must have already filled these fields.
-	 */
-	global_pose_t addNodeAnnotsToPose(const global_pose_t& pose) const;
 
 
 };

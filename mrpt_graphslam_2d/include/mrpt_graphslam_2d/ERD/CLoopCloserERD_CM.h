@@ -30,8 +30,8 @@ namespace mrpt { namespace graphslam { namespace deciders {
  */
 template<class GRAPH_T>
 class CLoopCloserERD_CM :
-	public CLoopCloserERD<GRAPH_T>,
-	public CEdgeRegistrationDecider_CM<GRAPH_T>
+	public virtual CLoopCloserERD<GRAPH_T>,
+	public virtual CEdgeRegistrationDecider_CM<GRAPH_T>
 {
 public:
 	/**\brief Handy typedefs */
@@ -42,7 +42,7 @@ public:
 	typedef CLoopCloserERD_CM<GRAPH_T> decider_t; /**< handy self type */
 	typedef typename lc_parent_t::constraint_t constraint_t;
 	typedef typename lc_parent_t::pose_t pose_t;
-	typedef typename lc_parent_t::range_scanner_t range_scanner_t;
+	typedef typename lc_parent_t::range_ops_t range_ops_t;
 	typedef typename lc_parent_t::partitions_t partitions_t;
 	typedef typename lc_parent_t::nodes_to_scans2D_t nodes_to_scans2D_t;
 	typedef mrpt::graphslam::CGraphSlamEngine_CM<GRAPH_T> engine_t;
@@ -58,20 +58,11 @@ public:
 			mrpt::obs::CActionCollectionPtr action,
 			mrpt::obs::CSensoryFramePtr observations,
 			mrpt::obs::CObservationPtr observation );
-
-	/**\brief Ask the CGraphSlamEngine instance of the Laser Scan recorded at a
-	 * specific nodeID. If found fill the mrpt_scan Ptr object provided.
-	 *
-	 * \param[in] nodeID nodeID whose LaserScan we querry the CGraphSlamEngine
-	 * \param[out] mrpt_scan CObservation2DRangeScanPtr object to be filled
-	 *
-	 * \return true if found, false otherwise.
-	 *
-	 */
-	// TODO - Check this
-	bool queryEngineForScan(
-			const global_pose_t& p,
-			mrpt::obs::CObservation2DRangeScanPtr mrpt_scan);
+	void addBatchOfNodeIDsAndScans(
+			const std::map<
+				mrpt::utils::TNodeID,
+				mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D);
+	void addScanMatchingEdges(mrpt::utils::TNodeID curr_nodeID);
 
 protected:
 

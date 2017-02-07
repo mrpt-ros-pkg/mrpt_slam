@@ -11,6 +11,7 @@
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
+#include <mrpt/graphslam/interfaces/CEdgeRegistrationDecider.h>
 
 #include <string>
 
@@ -32,9 +33,10 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * SLAM using Condensed Measurements</a> - M.T. Lazaro, L.M. Paz, P. Pinies,
  * J.A. Castellanos, G. Grisetti
  */
-template<class GRAPH_t>
+template<class GRAPH_T>
 class CEdgeRegistrationDecider_CM :
-	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_t>
+	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_T>,
+	public virtual mrpt::graphslam::deciders::CEdgeRegistrationDecider<GRAPH_T>
 {
 public:
 	CEdgeRegistrationDecider_CM ();

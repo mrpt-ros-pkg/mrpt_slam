@@ -86,6 +86,17 @@ protected:
 	virtual void setupPubs();
 	virtual void setupSrvs();
 	/**\}*/
+	/**\brief Custom Callback queue for processing requests for the
+	 * services outside the standard CallbackQueue.
+	 *
+	 * \note Logical thing would be to define it in CGraphSlamEngine_CM, but that
+	 * results in an segfault with the following error message:
+	 * ```
+	 * pure virtual method called
+	 * terminate called without an active exception
+	 * ```
+	 */
+	ros::CallbackQueue custom_service_queue;
 
 
 	int m_queue_size;

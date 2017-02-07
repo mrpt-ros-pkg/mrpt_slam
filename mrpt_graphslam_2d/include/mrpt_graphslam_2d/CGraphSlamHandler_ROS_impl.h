@@ -6,37 +6,35 @@
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
-#ifndef CGRAPHSLAM_ROS_IMPL_H
-#define CGRAPHSLAM_ROS_IMPL_H
+#ifndef CGRAPHSLAMHANDLER_ROS_IMPL_H
+#define CGRAPHSLAMHANDLER_ROS_IMPL_H
 
-// TODO - Remove these.
-using namespace mrpt;
-using namespace mrpt::utils;
-using namespace mrpt::obs;
-using namespace mrpt::graphs;
-using namespace mrpt::graphslam;
-using namespace std;
-using namespace mrpt::poses;
+namespace mrpt { namespace graphslam { namespace apps {
+
+using mrpt::utils::LVL_DEBUG;
+using mrpt::utils::LVL_INFO;
+using mrpt::utils::LVL_WARN;
+using mrpt::utils::LVL_ERROR;
 
 // static member variables
 template<class GRAPH_T>
-const std::string CGraphSlam_ROS<GRAPH_T>::sep_header(40, '=');
+const std::string CGraphSlamHandler_ROS<GRAPH_T>::sep_header(40, '=');
 
 template<class GRAPH_T>
-const std::string CGraphSlam_ROS<GRAPH_T>::sep_subheader(20, '-');
+const std::string CGraphSlamHandler_ROS<GRAPH_T>::sep_subheader(20, '-');
 
 // Ctor
 template<class GRAPH_T>
-CGraphSlam_ROS<GRAPH_T>::CGraphSlam_ROS(
-		mrpt::utils::COutputLogger* logger_in,
+CGraphSlamHandler_ROS<GRAPH_T>::CGraphSlamHandler_ROS(
+		mrpt::utils::COutputLogger* logger,
+		TUserOptionsChecker<GRAPH_T>* options_checker,
 		ros::NodeHandle* nh_in):
-	m_logger(logger_in),
-	m_nh(nh_in) {
-	ASSERT_(m_logger);
-	ASSERT_(m_nh);
+	m_nh(nh_in),
+	parent_t(logger, options_checker, /*enable_visuals=*/ false)
+{
+	using namespace mrpt::obs;
 
-	m_graphslam_handler = new CGraphSlamHandler();
-	m_graphslam_handler->setOutputLoggerPtr(m_logger);
+	ASSERT_(m_nh);
 
 	// TODO - does this affect?
 	// Previous value = 0;
@@ -54,8 +52,6 @@ CGraphSlam_ROS<GRAPH_T>::CGraphSlam_ROS(
 	m_mrpt_odom->hasVelocities = false;
 	m_first_time_in_sniff_odom = true;
 
-	m_graphslam_engine = NULL;
-
 	m_measurement_cnt = 0;
 
 	// Thu Nov 3 23:36:49 EET 2016, Nikos Koukis
@@ -64,35 +60,30 @@ CGraphSlam_ROS<GRAPH_T>::CGraphSlam_ROS(
 }
 
 template<class GRAPH_T>
-CGraphSlam_ROS<GRAPH_T>::~CGraphSlam_ROS() {
-
-
-	// cleaning heap...
-	m_logger->logFmt(LVL_DEBUG, "Releasing CGraphSlamEngine_ROS instance...");
-	delete m_graphslam_engine;
-	m_logger->logFmt(LVL_DEBUG, "Released CGraphSlamHandler instance...");
-	delete m_graphslam_handler;
-
-}
+CGraphSlamHandler_ROS<GRAPH_T>::~CGraphSlamHandler_ROS() { }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::readParams() {
+void CGraphSlamHandler_ROS<GRAPH_T>::readParams() {
 	this->readROSParameters();
-	m_graphslam_handler->readConfigFname(m_ini_fname);
 
+	ASSERT_(!this->m_ini_fname.empty());
+	parent_t::readConfigFname(this->m_ini_fname);
 
 	m_has_read_config = true;
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::readROSParameters() {
+void CGraphSlamHandler_ROS<GRAPH_T>::readROSParameters() {
+	using namespace mrpt::utils;
 
 	// misc
 	{
 		std::string ns = "misc/";
 
 		// enable/disable visuals
+		bool m_disable_MRPT_visuals;
 		m_nh->param<bool>(ns + "disable_MRPT_visuals", m_disable_MRPT_visuals, false);
+		this->m_enable_visuals = !m_disable_MRPT_visuals;
 
 		// verbosity level
 		int lvl;
@@ -115,13 +106,14 @@ void CGraphSlam_ROS<GRAPH_T>::readROSParameters() {
 
 		// configuration file - mandatory
 		std::string config_param_path = ns + "config";
-		bool found_config = m_nh->getParam(ns + "config", m_ini_fname);
+		bool found_config = m_nh->getParam(ns + "config", this->m_ini_fname);
 		ASSERTMSG_(found_config,
-				mrpt::format("Configuration file was not set. Set %s and try again.\nExiting...",
+				mrpt::format(
+					"Configuration file was not set. Set %s and try again.\nExiting...",
 					config_param_path.c_str()));
 
 		// ground-truth file
-		m_nh->getParam(ns + "ground_truth", m_gt_fname);
+		m_nh->getParam(ns + "ground_truth", this->m_gt_fname);
 	}
 
 	// TF Frame IDs
@@ -129,10 +121,10 @@ void CGraphSlam_ROS<GRAPH_T>::readROSParameters() {
 	{
 		std::string ns = "frame_IDs/";
 
-		m_nh->param<std::string>(ns + "anchor_frame"    , m_anchor_frame_id    , "map");
-		m_nh->param<std::string>(ns + "base_link_frame" , m_base_link_frame_id , "base_link");
-		m_nh->param<std::string>(ns + "odometry_frame"  , m_odom_frame_id      , "odom");
-		m_nh->param<std::string>(ns + "laser_frame"     , m_laser_frame_id     , "laser");
+		m_nh->param<std::string>(ns + "anchor_frame" , m_anchor_frame_id, "map");
+		m_nh->param<std::string>(ns + "base_link_frame" , m_base_link_frame_id, "base_link");
+		m_nh->param<std::string>(ns + "odometry_frame" , m_odom_frame_id, "odom");
+		m_nh->param<std::string>(ns + "laser_frame" , m_laser_frame_id, "laser");
 
 		// take action based on the above frames
 		//
@@ -141,28 +133,25 @@ void CGraphSlam_ROS<GRAPH_T>::readROSParameters() {
 
 	// ASSERT that the given user options are valid
 	// Fill the TuserOptionsChecker related structures
-	m_options_checker.createDeciderOptimizerMappings();
-	m_options_checker.populateDeciderOptimizerProperties();
+	this->m_options_checker->createDeciderOptimizerMappings();
+	this->m_options_checker->populateDeciderOptimizerProperties();
 	this->verifyUserInput();
 
-	m_logger->logFmt(LVL_DEBUG,
+	this->m_logger->logFmt(LVL_DEBUG,
 			"Successfully read parameters from ROS Parameter Server");
 
-	std::string rawlog_fname("");
-	m_graphslam_handler->setRawlogFname(rawlog_fname);
-
 	// Visuals initialization
-	if (!m_disable_MRPT_visuals) {
-		m_graphslam_handler->initVisualization();
+	if (this->m_enable_visuals) {
+		this->initVisualization();
 	}
+} // end of readROSParameters
 
-
-}
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::readStaticTFs() {
+void CGraphSlamHandler_ROS<GRAPH_T>::readStaticTFs() {
 
 	// base_link => laser
-	m_logger->logFmt(LVL_WARN, "Looking up static transform...%s => %s",
+	this->m_logger->logFmt(LVL_WARN,
+			"Looking up static transform...%s => %s",
 			m_laser_frame_id.c_str(),
 			m_base_link_frame_id.c_str());
 	try {
@@ -170,10 +159,11 @@ void CGraphSlam_ROS<GRAPH_T>::readStaticTFs() {
 				/* target_fname = */ m_laser_frame_id,
 				/* source_fname = */ m_base_link_frame_id,
 				/* transform time = */ ros::Time(0));
-		m_logger->logFmt(LVL_INFO, "OK.");
+		this->m_logger->logFmt(LVL_INFO, "OK.");
 	}
 	catch (tf2::LookupException &ex) {
-		m_logger->logFmt(LVL_WARN, "Transformation not found, using default...");
+		this->m_logger->logFmt(LVL_WARN,
+				"Transformation not found, using default...");
 
 		m_base_laser_transform.header.stamp = ros::Time::now();
 		m_base_laser_transform.transform.translation.x = 0.0;
@@ -188,49 +178,53 @@ void CGraphSlam_ROS<GRAPH_T>::readStaticTFs() {
   	m_base_laser_transform.child_frame_id = m_laser_frame_id;
 	}
 
-
-
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::initEngine_ROS() { 
+void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_ROS() { 
 
-	m_logger->logFmt(LVL_WARN, "Initializing CGraphSlamEngine_ROS instance...");
-	m_graphslam_engine = new CGraphSlamEngine_ROS<GRAPH_T>(
+	this->m_logger->logFmt(LVL_WARN,
+			"Initializing CGraphSlamEngine_ROS instance...");
+	this->m_engine = new CGraphSlamEngine_ROS<GRAPH_T>(
 			m_nh,
-			m_ini_fname,
+			this->m_ini_fname,
 			/*rawlog_fname=*/ "",
-			m_gt_fname,
-			m_graphslam_handler->win_manager,
-			m_options_checker.node_regs_map[m_node_reg](),
-			m_options_checker.edge_regs_map[m_edge_reg](),
-			m_options_checker.optimizers_map[m_optimizer]());
-	m_logger->logFmt(LVL_WARN, "Successfully initialized CGraphSlamEngine_ROS instance.");
+			this->m_gt_fname,
+			this->m_win_manager,
+			this->m_options_checker->node_regs_map[m_node_reg](),
+			this->m_options_checker->edge_regs_map[m_edge_reg](),
+			this->m_options_checker->optimizers_map[m_optimizer]());
+	this->m_logger->logFmt(LVL_WARN,
+			"Successfully initialized CGraphSlamEngine_ROS instance.");
 
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::initEngine_CM() { 
+void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_CM() { 
 
-	// TODO - remove these
+	this->m_options_checker->node_regs_map[m_node_reg]();
+	this->m_options_checker->edge_regs_map[m_edge_reg]();
+	this->m_options_checker->optimizers_map[m_optimizer]();
 
-	m_logger->logFmt(LVL_WARN, "Initializing CGraphSlamEngine_CM instance...");
-	m_graphslam_engine = new CGraphSlamEngine_CM<GRAPH_T>(
+	this->m_logger->logFmt(LVL_WARN,
+			"Initializing CGraphSlamEngine_CM instance...");
+	this->m_engine = new CGraphSlamEngine_CM<GRAPH_T>(
 			m_nh,
-			m_ini_fname,
+			this->m_ini_fname,
 			/*rawlog_fname=*/ "",
-			m_gt_fname,
-			m_graphslam_handler->win_manager,
-			m_options_checker.node_regs_map[m_node_reg](),
-			m_options_checker.edge_regs_map[m_edge_reg](),
-			m_options_checker.optimizers_map[m_optimizer]());
-	m_logger->logFmt(LVL_WARN, "Successfully initialized CGraphSlamEngine_CM instance.");
-std::cout << "TODO - Remove me. Kalimera ==> " << 8 << std::endl;
+			this->m_gt_fname,
+			this->m_win_manager,
+			this->m_options_checker->node_regs_map[m_node_reg](),
+			this->m_options_checker->edge_regs_map[m_edge_reg](),
+			this->m_options_checker->optimizers_map[m_optimizer]());
+	this->m_logger->logFmt(LVL_WARN,
+			"Successfully initialized CGraphSlamEngine_CM instance.");
 
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::getROSParameters(std::string* str_out) {
+void CGraphSlamHandler_ROS<GRAPH_T>::getROSParameters(std::string* str_out) {
+	using namespace mrpt::utils;
 
 	ASSERT_(str_out);
 
@@ -250,14 +244,16 @@ void CGraphSlam_ROS<GRAPH_T>::getROSParameters(std::string* str_out) {
 
 	ss << "Filenames: " << endl;
 	ss << sep_subheader << endl;
-	ss << "Configuration .ini file   = " << m_ini_fname << endl;
-	ss << "Ground truth filename     = " << (!m_gt_fname.empty() ? m_gt_fname : "NONE")
+	ss << "Configuration .ini file   = " << this->m_ini_fname << endl;
+	ss << "Ground truth filename     = " << (!this->m_gt_fname.empty()
+			? this->m_gt_fname : "NONE")
 		<< endl;
 	ss << endl;
 
 	ss << "Miscellaneous: " << endl;
 	ss << sep_subheader << endl;
-	ss << "Enable MRPT visuals?      = " << (m_disable_MRPT_visuals? "FALSE" : "TRUE")
+	ss << "Enable MRPT visuals?      = " <<
+		(this->m_enable_visuals? "TRUE" : "FALSE")
 		<< endl;
 	ss << "Logging verbosity Level   = " << 
 		COutputLogger::logging_levels_to_names[m_min_logging_level] << endl;;
@@ -267,92 +263,102 @@ void CGraphSlam_ROS<GRAPH_T>::getROSParameters(std::string* str_out) {
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::getParamsAsString(std::string* str_out) {
+void CGraphSlamHandler_ROS<GRAPH_T>::getParamsAsString(std::string* str_out) {
 	ASSERT_(str_out);
 
 	// ros parameters
 	std::string ros_params("");
 	this->getROSParameters(&ros_params);
+	std::string mrpt_params("");
+	parent_t::getParamsAsString(&mrpt_params);
+
 	*str_out += ros_params;
+	*str_out += "\n\n";
+	*str_out += mrpt_params;
 
 	// various parameters
 }
 
 template<class GRAPH_T>
-std::string CGraphSlam_ROS<GRAPH_T>::getParamsAsString() {
+std::string CGraphSlamHandler_ROS<GRAPH_T>::getParamsAsString() {
 	std::string params;
 	this->getParamsAsString(&params);
 	return params;
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::printParams() {
-	// print the problem parameters
+void CGraphSlamHandler_ROS<GRAPH_T>::printParams() {
+	parent_t::printParams();
 	cout << this->getParamsAsString() << endl;
-
-	m_graphslam_handler->printParams();
-	m_graphslam_engine->printParams();
-
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::verifyUserInput() {
-	m_logger->logFmt(LVL_DEBUG, "Verifying user input...");
+void CGraphSlamHandler_ROS<GRAPH_T>::verifyUserInput() {
+	this->m_logger->logFmt(LVL_DEBUG, "Verifying user input...");
 
 
 	// verify the NRD, ERD, GSO parameters
 	bool node_success, edge_success, optimizer_success;
 	bool failed = false;
 
-	node_success = m_options_checker.checkRegistrationDeciderExists(m_node_reg, "node");
-	edge_success = m_options_checker.checkRegistrationDeciderExists(m_edge_reg, "edge");
-	optimizer_success = m_options_checker.checkOptimizerExists(m_optimizer);
+	node_success =
+		this->m_options_checker->checkRegistrationDeciderExists(
+				m_node_reg, "node");
+	edge_success =
+		this->m_options_checker->checkRegistrationDeciderExists(
+				m_edge_reg, "edge");
+	optimizer_success =
+		this->m_options_checker->checkOptimizerExists(
+				m_optimizer);
 
 	if (!node_success) {
-		m_logger->logFmt(LVL_ERROR,
+		this->m_logger->logFmt(LVL_ERROR,
 				"\nNode Registration Decider \"%s\" is not available",
 				m_node_reg.c_str());
-		m_options_checker.dumpRegistrarsToConsole("node");
+		this->m_options_checker->dumpRegistrarsToConsole("node");
 		failed = true;
 	}
 	if (!edge_success) {
-		m_logger->logFmt(LVL_ERROR,
+		this->m_logger->logFmt(LVL_ERROR,
 				"\nEdge Registration Decider \"%s\" is not available.",
 				m_edge_reg.c_str());
-		m_options_checker.dumpRegistrarsToConsole("edge");
+		this->m_options_checker->dumpRegistrarsToConsole("edge");
 		failed = true;
 	}
 	if (!optimizer_success) {
-		m_logger->logFmt(LVL_ERROR,
+		this->m_logger->logFmt(LVL_ERROR,
 				"\ngraphSLAM Optimizser \"%s\" is not available.",
 				m_optimizer.c_str());
-		m_options_checker.dumpOptimizersToConsole();
+		this->m_options_checker->dumpOptimizersToConsole();
 		failed = true;
 	}
 	ASSERT_(!failed)
 
 	// verify that the path to the files is correct
 	// .ini file
-	bool ini_exists = system::fileExists(m_ini_fname);
+	bool ini_exists = system::fileExists(this->m_ini_fname);
 	ASSERTMSG_(ini_exists,
 			format(
-				"\n.ini configuration file \"%s\"doesn't exist. Please specify a valid pathname.\nExiting...\n",
-				m_ini_fname.c_str()));
+				"\n.ini configuration file \"%s\"doesn't exist. "
+				"Please specify a valid pathname.\nExiting...\n",
+				this->m_ini_fname.c_str()));
 	// ground-truth file
-	if (!m_gt_fname.empty()) {
-		bool gt_exists = system::fileExists(m_gt_fname);
+	if (!this->m_gt_fname.empty()) {
+		bool gt_exists = system::fileExists(this->m_gt_fname);
 		ASSERTMSG_(gt_exists,
 				format(
-					"\nGround truth file \"%s\"doesn't exist. Either unset the corresponding ROS parameter or specify a valid pathname.\nExiting...\n",
-					m_gt_fname.c_str()));
+					"\nGround truth file \"%s\"doesn't exist."
+					"Either unset the corresponding ROS parameter or specify a valid pathname.\n"
+					"Exiting...\n",
+					this->m_gt_fname.c_str()));
 	}
 
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::setupComm() {
+void CGraphSlamHandler_ROS<GRAPH_T>::setupComm() {
 
-	m_logger->logFmt(LVL_INFO,
+	this->m_logger->logFmt(LVL_INFO,
 			"Setting up ROS-related subscribers, publishers, services...");
 
 	// setup subscribers, publishers, services...
@@ -366,8 +372,8 @@ void CGraphSlam_ROS<GRAPH_T>::setupComm() {
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::setupSubs() {
-	m_logger->logFmt(LVL_INFO, "Setting up the subscribers...");
+void CGraphSlamHandler_ROS<GRAPH_T>::setupSubs() {
+	this->m_logger->logFmt(LVL_INFO, "Setting up the subscribers...");
 	
 	// setup the names
 	std::string ns = "input/";
@@ -396,8 +402,8 @@ void CGraphSlam_ROS<GRAPH_T>::setupSubs() {
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::setupPubs() {
-	m_logger->logFmt(LVL_INFO, "Setting up the publishers...");
+void CGraphSlamHandler_ROS<GRAPH_T>::setupPubs() {
+	this->m_logger->logFmt(LVL_INFO, "Setting up the publishers...");
 
 	// setup the names
 	std::string ns = "feedback/";
@@ -442,13 +448,11 @@ void CGraphSlam_ROS<GRAPH_T>::setupPubs() {
 	 		 m_queue_size,
 	 		 /*latch=*/true);
 
-
-
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::setupSrvs() {
-	m_logger->logFmt(LVL_INFO, "Setting up the services...");
+void CGraphSlamHandler_ROS<GRAPH_T>::setupSrvs() {
+	this->m_logger->logFmt(LVL_INFO, "Setting up the services...");
 
 	// SLAM statistics
 	// Error statistics
@@ -456,13 +460,15 @@ void CGraphSlam_ROS<GRAPH_T>::setupSrvs() {
 }
 
 template<class GRAPH_T>
-bool CGraphSlam_ROS<GRAPH_T>::usePublishersBroadcasters() {
+bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
+	using namespace mrpt::utils;
 
 
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 29);
 	ros::Time timestamp = ros::Time::now();
 
 	// current MRPT robot pose
-	pose_t mrpt_pose = m_graphslam_engine->getCurrentRobotPosEstimation();
+	pose_t mrpt_pose = this->m_engine->getCurrentRobotPosEstimation();
 
 	// anchor frame <=> base_link
   {
@@ -488,6 +494,7 @@ bool CGraphSlam_ROS<GRAPH_T>::usePublishersBroadcasters() {
 		m_broadcaster.sendTransform(transform_stamped);
   }
 
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 30);
   // anchor frame <=> odom frame
   //
   // make sure that we have received odometry information in the first
@@ -496,6 +503,7 @@ bool CGraphSlam_ROS<GRAPH_T>::usePublishersBroadcasters() {
   if (!m_anchor_odom_transform.child_frame_id.empty()) {
   	m_broadcaster.sendTransform(m_anchor_odom_transform);
   }
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 31);
 
   // set an arrow indicating clearly the current orientation of the robot
 	{
@@ -519,13 +527,15 @@ bool CGraphSlam_ROS<GRAPH_T>::usePublishersBroadcasters() {
 		geom_pose.pose.orientation = quat;
 		m_curr_robot_pos_pub.publish(geom_pose);
 	}
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 32);
 
 	// robot trajectory
 	// publish the trajectory of the robot
 	{
-		m_logger->logFmt(LVL_DEBUG, "Publishing the current robot trajectory");
+		this->m_logger->logFmt(LVL_DEBUG,
+				"Publishing the current robot trajectory");
 		typename GRAPH_T::global_poses_t graph_poses;
-		m_graphslam_engine->getRobotEstimatedTrajectory(&graph_poses);
+		this->m_engine->getRobotEstimatedTrajectory(&graph_poses);
 
 		nav_msgs::Path path;
 
@@ -566,6 +576,7 @@ bool CGraphSlam_ROS<GRAPH_T>::usePublishersBroadcasters() {
 
 	// Odometry trajectory - nav_msgs::Path
 	m_odom_trajectory_pub.publish(m_odom_path);
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 33);
 
 	// generated gridmap
 	{
@@ -573,7 +584,7 @@ bool CGraphSlam_ROS<GRAPH_T>::usePublishersBroadcasters() {
 		mrpt::system::TTimeStamp mrpt_time;
 		mrpt::maps::COccupancyGridMap2DPtr mrpt_gridmap =
 			mrpt::maps::COccupancyGridMap2D::Create();
-		m_graphslam_engine->getMap(mrpt_gridmap, &mrpt_time);
+		this->m_engine->getMap(mrpt_gridmap, &mrpt_time);
 
 		// timestamp
 		mrpt_bridge::convert(mrpt_time, h.stamp);
@@ -596,7 +607,7 @@ bool CGraphSlam_ROS<GRAPH_T>::usePublishersBroadcasters() {
 		vector<double> def_energy_vec;
 		mrpt::system::TTimeStamp mrpt_time;
 
-		bool ret = m_graphslam_engine->getGraphSlamStats(&node_stats,
+		bool ret = this->m_engine->getGraphSlamStats(&node_stats,
 				&edge_stats,
 				&mrpt_time);
 
@@ -616,36 +627,41 @@ bool CGraphSlam_ROS<GRAPH_T>::usePublishersBroadcasters() {
 			stats.loop_closures = edge_stats["loop_closures"];
 
 			// SLAM evaluation metric
-			m_graphslam_engine->getDeformationEnergyVector(&stats.slam_evaluation_metric);
+			this->m_engine->getDeformationEnergyVector(
+					&stats.slam_evaluation_metric);
 
 			mrpt_bridge::convert(mrpt_time, stats.header.stamp);
 
 			m_stats_pub.publish(stats);
 		}
 		else {
-			m_logger->logFmt(LVL_ERROR, "Answer is False");
+			this->m_logger->logFmt(LVL_ERROR, "Answer is False");
 		}
 		
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 34);
 		
 
 	}
 
-
 	m_pub_seq++;
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 35);
 
-	if (!m_disable_MRPT_visuals) {
-		return this->continueExec();
+	if (this->m_enable_visuals) {
+		return this->queryObserverForEvents();
 	}
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 36);
 } // USEPUBLISHERSBROADCASTERS
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::sniffLaserScan(
+void CGraphSlamHandler_ROS<GRAPH_T>::sniffLaserScan(
 		const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan) {
 	using namespace std;
 	using namespace mrpt::utils;
 	using namespace mrpt::obs;
 
-	m_logger->logFmt(LVL_DEBUG, "sniffLaserScan: Received a LaserScan msg. Converting it to MRPT format...");
+	this->m_logger->logFmt(
+			LVL_DEBUG,
+			"sniffLaserScan: Received a LaserScan msg. Converting it to MRPT format...");
 
 	// build the CObservation2DRangeScan
 	m_mrpt_laser_scan = CObservation2DRangeScan::Create();
@@ -654,17 +670,20 @@ void CGraphSlam_ROS<GRAPH_T>::sniffLaserScan(
 
 	m_received_laser_scan = true;
 	this->processObservation(m_mrpt_laser_scan);
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 40);
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::sniffOdom(
+void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
 		const nav_msgs::Odometry::ConstPtr& ros_odom) {
 	using namespace std;
 	using namespace mrpt::utils;
 	using namespace mrpt::obs;
 	using namespace mrpt::poses;
 
-	m_logger->logFmt(LVL_DEBUG, "sniffOdom: Received an odometry msg. Converting it to MRPT format...");
+	this->m_logger->logFmt(
+			LVL_DEBUG,
+			"sniffOdom: Received an odometry msg. Converting it to MRPT format...");
 
 	// update the odometry frame with regards to the anchor
 	{
@@ -676,15 +695,22 @@ void CGraphSlam_ROS<GRAPH_T>::sniffOdom(
 		m_anchor_odom_transform.child_frame_id = m_odom_frame_id;
 
 		// translation
-		m_anchor_odom_transform.transform.translation.x = ros_odom->pose.pose.position.x;
-		m_anchor_odom_transform.transform.translation.y = ros_odom->pose.pose.position.y;
-		m_anchor_odom_transform.transform.translation.z = ros_odom->pose.pose.position.z;
+		m_anchor_odom_transform.transform.translation.x =
+			ros_odom->pose.pose.position.x;
+		m_anchor_odom_transform.transform.translation.y =
+			ros_odom->pose.pose.position.y;
+		m_anchor_odom_transform.transform.translation.z =
+			ros_odom->pose.pose.position.z;
 
 		// quaternion
-		m_anchor_odom_transform.transform.rotation.x = ros_odom->pose.pose.orientation.x;
-		m_anchor_odom_transform.transform.rotation.y = ros_odom->pose.pose.orientation.y;
-		m_anchor_odom_transform.transform.rotation.z = ros_odom->pose.pose.orientation.z;
-		m_anchor_odom_transform.transform.rotation.w = ros_odom->pose.pose.orientation.w;
+		m_anchor_odom_transform.transform.rotation.x =
+			ros_odom->pose.pose.orientation.x;
+		m_anchor_odom_transform.transform.rotation.y =
+			ros_odom->pose.pose.orientation.y;
+		m_anchor_odom_transform.transform.rotation.z =
+			ros_odom->pose.pose.orientation.z;
+		m_anchor_odom_transform.transform.rotation.w =
+			ros_odom->pose.pose.orientation.w;
 	}
 
 	// build and fill an MRPT CObservationOdometry instance for manipulation from
@@ -696,7 +722,8 @@ void CGraphSlam_ROS<GRAPH_T>::sniffOdom(
 			/* src = */ ros_odom->pose.pose,
 			/* dst = */ m_mrpt_odom->odometry);
 
-	// if this is the first call odometry should be 0. Decrement by the corresponding offset
+	// if this is the first call odometry should be 0. Decrement by the
+	// corresponding offset
 	if (m_first_time_in_sniff_odom) {
 		m_input_odometry_offset = m_mrpt_odom->odometry;
 		m_first_time_in_sniff_odom = false;
@@ -720,93 +747,59 @@ void CGraphSlam_ROS<GRAPH_T>::sniffOdom(
 	// print the odometry -  for debugging reasons...
 	stringstream ss;
 	ss << "Odometry - MRPT format:\t" << m_mrpt_odom->odometry << endl;
-	m_logger->logFmt(LVL_DEBUG, "%s", ss.str().c_str());
+	this->m_logger->logFmt(LVL_DEBUG, "%s", ss.str().c_str());
 
 	m_received_odom = true;
 	this->processObservation(m_mrpt_odom);
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 41);
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::sniffCameraImage() {
+void CGraphSlamHandler_ROS<GRAPH_T>::sniffCameraImage() {
 	THROW_EXCEPTION("Method is not implemented yet.");
 
 }
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::sniff3DPointCloud() {
+void CGraphSlamHandler_ROS<GRAPH_T>::sniff3DPointCloud() {
 	THROW_EXCEPTION("Method is not implemented yet.");
 
 }
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::processObservation(
+void CGraphSlamHandler_ROS<GRAPH_T>::processObservation(
 		mrpt::obs::CObservationPtr& observ) {
 	using namespace mrpt::utils;
 	using namespace std;
 
 	this->_process(observ);
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 42);
 	this->resetReceivedFlags();
-
-}
-template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::generateReport() {
-	using namespace std;
-	using namespace mrpt::utils;
-
-	m_logger->logFmt(LVL_INFO, "Generating overall report...");
-	m_graphslam_engine->generateReportFiles(m_graphslam_handler->output_dir_fname);
-	// save the graph and the 3DScene 
-	if (m_graphslam_handler->save_graph) {
-		m_logger->logFmt(LVL_INFO, "Saving the graph...");
-		std::string save_graph_fname = 
-			m_graphslam_handler->output_dir_fname +
-			"/" +
-			m_graphslam_handler->save_graph_fname;
-		m_graphslam_engine->saveGraph(&save_graph_fname);
-	}
-	if (!m_disable_MRPT_visuals && m_graphslam_handler->save_3DScene) {
-	m_logger->logFmt(LVL_INFO, "Saving the 3DScene object...");
-		std::string save_3DScene_fname = 
-			m_graphslam_handler->output_dir_fname +
-			"/" +
-			m_graphslam_handler->save_3DScene_fname;
-
-		m_graphslam_engine->save3DScene(&save_3DScene_fname);
-	}
-	// get the occupancy gridmap that was built
-	if (m_graphslam_handler->save_map) {
-		COccupancyGridMap2DPtr gridmap = COccupancyGridMap2D::Create();
-		m_graphslam_engine->getMap(gridmap);
-		gridmap->saveMetricMapRepresentationToFile(
-				m_graphslam_handler->output_dir_fname +
-				"/" +
-				m_graphslam_handler->save_map_fname);
-	}
-
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 43);
 
 }
 
 template<class GRAPH_T>
-bool CGraphSlam_ROS<GRAPH_T>::continueExec() {
-
-	m_logger->logFmt(LVL_DEBUG, "In continueExec check method");
-	return m_graphslam_handler->queryObserverForEvents();
-}
-
-template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::_process(
+void CGraphSlamHandler_ROS<GRAPH_T>::_process(
 		mrpt::obs::CObservationPtr& observ) {
+	using namespace mrpt::utils;
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 37);
 
-	m_logger->logFmt(LVL_DEBUG, "Calling execGraphSlamStep...");
+	//this->m_logger->logFmt(LVL_DEBUG, "Calling execGraphSlamStep...");
 
-	m_graphslam_engine->execGraphSlamStep(observ, m_measurement_cnt);
-	m_measurement_cnt++;
+	if (!this->m_engine->isPaused()) {
+		this->m_engine->execGraphSlamStep(observ, m_measurement_cnt);
+		m_measurement_cnt++;
+	}
+this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 38);
 }
 
 template<class GRAPH_T>
-void CGraphSlam_ROS<GRAPH_T>::resetReceivedFlags() {
+void CGraphSlamHandler_ROS<GRAPH_T>::resetReceivedFlags() {
 	m_received_odom = false;
 	m_received_laser_scan = false;
 	m_received_camera = false;
 	m_received_point_cloud = false;
 }
 
-#endif /* end of include guard: CGRAPHSLAM_ROS_IMPL_H */
+} } } // end of namespaces
+
+#endif /* end of include guard: CGRAPHSLAMHANDLER_ROS_IMPL_H */

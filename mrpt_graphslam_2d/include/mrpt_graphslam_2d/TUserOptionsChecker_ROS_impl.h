@@ -9,7 +9,7 @@
 #ifndef TUSEROPTIONSCHECKER_ROS_IMPL_H
 #define TUSEROPTIONSCHECKER_ROS_IMPL_H
 
-namespace mrpt { namespace graphslam { namespace detail {
+namespace mrpt { namespace graphslam { namespace apps {
 
 template<class GRAPH_T>
 TUserOptionsChecker_ROS<GRAPH_T>::TUserOptionsChecker_ROS() {
@@ -23,13 +23,16 @@ template<class GRAPH_T>
 void TUserOptionsChecker_ROS<GRAPH_T>::createDeciderOptimizerMappings() {
 	using namespace std;
 	using namespace mrpt::graphs;
-	using namespace mrpt::graphslam::detail;
+	using namespace mrpt::graphslam::apps;
 	using namespace mrpt::graphslam::deciders;
 	parent::createDeciderOptimizerMappings();
 
 	// node registration deciders
 	this->node_regs_map["CICPCriteriaNRD_CM"] =
 		parent::template createNodeRegistrationDecider<CICPCriteriaNRD_CM<GRAPH_T>>;
+	this->node_regs_map["CFixedIntervalsNRD_CM"] =
+		parent::template createNodeRegistrationDecider<CFixedIntervalsNRD_CM<GRAPH_T>>;
+
 
 	// edge registration deciders
 	this->edge_regs_map["CLoopCloserERD_CM"] =
@@ -41,7 +44,7 @@ void TUserOptionsChecker_ROS<GRAPH_T>::createDeciderOptimizerMappings() {
 
 template<class GRAPH_T>
 void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties() {
-	using namespace mrpt::graphslam::detail;
+	using namespace mrpt::graphslam::apps;
 	using namespace std;
 
 	parent::populateDeciderOptimizerProperties();
@@ -49,7 +52,19 @@ void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties() {
 		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
 		dec->name = "CICPCriteriaNRD_CM";
 		dec->description =
-			"Multi-robot SLAM implementation of the CICPCriteriaNRD_CM class based on \"Condensed Measurements\"";
+			"Multi-robot SLAM implementation of the CICPCriteriaNRD class based on \"Condensed Measurements\"";
+		dec->type = "Node";
+		dec->rawlog_format = "Both";
+		dec->observations_used.push_back("CObservation2DRangeScan - Format #1, #2");
+		dec->is_mr_slam_class = "true";
+
+		this->regs_descriptions.push_back(dec);
+	}
+	{ // CFixedIntervalsNRD_CM
+		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
+		dec->name = "CFixedIntervalsNRD_CM";
+		dec->description =
+			"Multi-robot SLAM implementation of the CFixedIntervalsNRD class based on \"Condensed Measurements\"";
 		dec->type = "Node";
 		dec->rawlog_format = "Both";
 		dec->observations_used.push_back("CObservation2DRangeScan - Format #1, #2");

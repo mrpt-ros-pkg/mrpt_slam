@@ -16,7 +16,7 @@
 #include <cstring>
 
 // ROS headers
-#include "mrpt_graphslam_2d/CGraphSlam_ROS.h"
+#include "mrpt_graphslam_2d/CGraphSlamHandler_ROS.h"
 
 using namespace mrpt;
 using namespace mrpt::utils;
@@ -30,7 +30,7 @@ using namespace mrpt::utils;
 using namespace mrpt::graphslam;
 using namespace mrpt::graphslam::deciders;
 using namespace mrpt::graphslam::optimizers;
-using namespace mrpt::graphslam::detail;
+using namespace mrpt::graphslam::apps;
 
 using namespace std;
 
@@ -52,28 +52,23 @@ int main(int argc, char **argv)
 	try {
 
 		// Initialization
-		CGraphSlam_ROS<CNetworkOfPoses2DInf> graph_slam(&logger, &nh);
-		graph_slam.readParams();
-		graph_slam.initEngine_ROS();
-		graph_slam.setupComm();
+		TUserOptionsChecker_ROS<CNetworkOfPoses2DInf> options_checker;
+		CGraphSlamHandler_ROS<CNetworkOfPoses2DInf> graphslam_handler(
+				&logger, &options_checker, &nh);
+		graphslam_handler.readParams();
+		graphslam_handler.initEngine_ROS();
+		graphslam_handler.setupComm();
 
 		// print the parameters just for verification
-		graph_slam.printParams();
+		graphslam_handler.printParams();
 
 		bool cont_exec = true;
 		while (ros::ok() && cont_exec) {
-			cont_exec = graph_slam.usePublishersBroadcasters();
+			cont_exec = graphslam_handler.usePublishersBroadcasters();
 
 			ros::spinOnce();
 			loop_rate.sleep();
 		}
-
-		//
-		// Postprocessing
-		//
-
-		graph_slam.generateReport();
-
 	}
 	catch (exception& e) {
 		ROS_ERROR_STREAM(

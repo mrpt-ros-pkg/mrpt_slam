@@ -31,13 +31,14 @@ CGraphSlamEngine_ROS<GRAPH_t>::CGraphSlamEngine_ROS(
 			edge_reg,
 			optimizer)
 {
-
 	this->initClass();
-
 }
 
 template<class GRAPH_t>
 CGraphSlamEngine_ROS<GRAPH_t>::~CGraphSlamEngine_ROS() {
+	MRPT_LOG_DEBUG_STREAM
+		<< "In Destructor: Deleting CGraphSlamEngine_ROS instance...";
+	ros::shutdown();
 }
 
 template<class GRAPH_t>
@@ -98,9 +99,12 @@ bool CGraphSlamEngine_ROS<GRAPH_t>::_execGraphSlamStep(
 		mrpt::obs::CObservationPtr& observation,
 		size_t& rawlog_entry) {
 
+this->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 69);
 	parent::_execGraphSlamStep(
 			action, observations, observation, rawlog_entry);
+this->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 70);
 	this->usePublishersBroadcasters();
+this->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 71);
 }
 
 template<class GRAPH_t>

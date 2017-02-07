@@ -16,7 +16,7 @@
 #include <cstring>
 
 // ROS headers
-#include "mrpt_graphslam_2d/CGraphSlam_ROS.h"
+#include "mrpt_graphslam_2d/CGraphSlamHandler_ROS.h"
 
 using namespace mrpt;
 using namespace mrpt::utils;
@@ -30,64 +30,60 @@ using namespace mrpt::utils;
 using namespace mrpt::graphslam;
 using namespace mrpt::graphslam::deciders;
 using namespace mrpt::graphslam::optimizers;
-using namespace mrpt::graphslam::detail;
+using namespace mrpt::graphslam::apps;
 
 using namespace std;
 
 /** Main function of the mrpt_graphslam condensed-measurements _application */
 int main(int argc, char **argv)
 {
-	std::string node_name = "mrpt_graphslam_2d_cm";
-
 	COutputLogger logger;
-	logger.setLoggerName(node_name);
-	logger.logFmt(LVL_WARN, "Initializing %s node...\n", node_name.c_str());
-
-  ros::init(argc, argv, node_name);
-	ros::NodeHandle nh;
-
-	ros::Rate loop_rate(10);
-
 
 	try {
+		std::string node_name = "mrpt_graphslam_2d_cm";
+
+  	ros::init(argc, argv, node_name);
+		ros::NodeHandle nh;
+
+		node_name = node_name + nh.getNamespace();
+		logger.setLoggerName(node_name);
+		logger.logFmt(LVL_WARN, "Initialized %s node...\n", node_name.c_str());
+
+		ros::Rate loop_rate(10);
 
 		// Initialization
-		CGraphSlam_ROS<CNetworkOfPoses2DInf_NA> graph_slam(&logger, &nh);
-		graph_slam.readParams();
-		graph_slam.initEngine_CM();
-		graph_slam.setupComm();
+		TUserOptionsChecker_ROS<CNetworkOfPoses2DInf_NA> options_checker;
+		CGraphSlamHandler_ROS<CNetworkOfPoses2DInf_NA> graphslam_handler(
+				&logger, &options_checker, &nh);
+		graphslam_handler.readParams();
+		graphslam_handler.initEngine_CM();
+		graphslam_handler.setupComm();
+
+		std::string ns = nh.getNamespace();
+		// overwite default results directory due to the multi-robot nature
+		graphslam_handler.setResultsDirName(std::string(ns.begin()+2, ns.end()));
 
 		// print the parameters just for verification
-		graph_slam.printParams();
+		graphslam_handler.printParams();
 
 		bool cont_exec = true;
 		while (ros::ok() && cont_exec) {
-			cont_exec = graph_slam.usePublishersBroadcasters();
+			cont_exec = graphslam_handler.usePublishersBroadcasters();
 
 			ros::spinOnce();
 			loop_rate.sleep();
+
 		}
-
-		//
-		// Postprocessing
-		//
-
-		graph_slam.generateReport();
-
 	}
 	catch (exception& e) {
-		ROS_ERROR_STREAM(
-				"Finished with a (known) exception!"
-				<< std::endl
-				<< e.what()
-				<< std::endl);
+		cout << "Known error!" << endl;
+		logger.logFmt(LVL_ERROR, "Caught exception: %s", e.what());
 		mrpt::system::pause();
 		return -1;
 	}
 	catch (...) {
-		ROS_ERROR_STREAM(
-				"Finished with a (unknown) exception!"
-				<< std::endl);
+		cout << "Unknown error!" << endl;
+		logger.logFmt(LVL_ERROR, "Finished with unknown exception. Exiting\n.");
 		mrpt::system::pause();
 		return -1;
 	}

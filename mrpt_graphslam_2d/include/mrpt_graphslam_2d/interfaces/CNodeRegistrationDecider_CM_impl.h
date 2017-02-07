@@ -18,7 +18,21 @@ CNodeRegistrationDecider_CM<GRAPH_T>::CNodeRegistrationDecider_CM() {}
 template<class GRAPH_T>
 CNodeRegistrationDecider_CM<GRAPH_T>::~CNodeRegistrationDecider_CM() {}
 
+template<class GRAPH_T>
+void CNodeRegistrationDecider_CM<GRAPH_T>::addNodeAnnotsToPose(
+		global_pose_t* pose) const { }
 
+template<>
+void CNodeRegistrationDecider_CM<mrpt::graphs::CNetworkOfPoses2DInf_NA>::addNodeAnnotsToPose(
+		global_pose_t* pose) const {
+	ASSERT_(pose);
+
+	pose->agent_ID_str = this->own_ns;
+	// ASSUMPTION: addNodeAnnotsToPose is going to be called right before the
+	// actual registration.
+	// Mark it with the nodeID that is up-next 
+	pose->nodeID_loc = this->m_graph->nodeCount();
+}
 
 } } } // end of namespaces
 
