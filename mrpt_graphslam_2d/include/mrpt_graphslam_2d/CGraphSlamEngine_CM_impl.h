@@ -302,7 +302,7 @@ bool CGraphSlamEngine_CM<GRAPH_T>::_execGraphSlamStep(
 			action, observations, observation, rawlog_entry);
 
 	// find matches between own nodes and those of the neighbors
-  m_registered_multiple_nodes = this->findMatchesWithNeighbors();
+  //m_registered_multiple_nodes = this->findMatchesWithNeighbors();
 
   return continue_exec;
   MRPT_END;
@@ -475,7 +475,7 @@ void CGraphSlamEngine_CM<GRAPH_T>::usePublishersBroadcasters() {
 				m_neighbors.push_back(TNeighborAgentProps(*this, gsa));
 				TNeighborAgentProps& latest_neighbor = m_neighbors.back();
 				latest_neighbor.setupComm();
-				MRPT_LOG_INFO_STREAM << ": Initialized NeighborAgentProps instance...";
+				MRPT_LOG_INFO_STREAM << "Initialized NeighborAgentProps instance...";
 			}
 
 		}

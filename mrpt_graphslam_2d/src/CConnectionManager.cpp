@@ -12,6 +12,8 @@
 using namespace mrpt::graphslam::detail;
 using namespace std;
 using namespace mrpt::utils;
+using namespace mrpt::system;
+using namespace mrpt::math;
 using namespace multimaster_msgs_fkie;
 
 bool operator==(
@@ -46,6 +48,8 @@ bool operator<(
 	return agent1.agent_ID < agent2.agent_ID;
 }
 
+////////////////////////////////////////////////////////////
+
 CConnectionManager::CConnectionManager(
 		mrpt::utils::COutputLogger* logger,
 		ros::NodeHandle* nh_in):
@@ -54,7 +58,6 @@ CConnectionManager::CConnectionManager(
 	has_setup_comm(false)
 {
 
-	using namespace mrpt::utils;
 	ASSERT_(m_logger);
 	ASSERT_(m_nh);
 
@@ -81,8 +84,6 @@ void CConnectionManager::getNearbySlamAgents(
 		mrpt_msgs::GraphSlamAgents* agents_vec,
 		bool ignore_self/*= true */) {
 
-	using namespace mrpt::math;
-	using namespace std;
 
 	ASSERTMSG_(agents_vec, "Invalid pointer to vector of GraphSlam Agents.");
 	this->updateNearbySlamAgents();
@@ -99,6 +100,7 @@ void CConnectionManager::getNearbySlamAgents(
 				agents_vec->list.begin(),
 				agents_vec->list.end(), search);
 
+		// TODO - fix the following
 		// this agent should always exist
 		// TODO - well, sometimes it doesn't, investigate this
 		// UPDATE: Even when /master_discovery node is up the agents vector might
@@ -119,16 +121,20 @@ void CConnectionManager::getNearbySlamAgents(
 			//std::vector<string> nodes_up;
 			//ros::master::getNodes(nodes_up);
 			//printSTLContainer(nodes_up);
-			//mrpt::system::pause();
 	}
 
 }
 
-const mrpt_msgs::GraphSlamAgents&  CConnectionManager::getNearbySlamAgents() {
-
-	this->updateNearbySlamAgents();
+const mrpt_msgs::GraphSlamAgents&
+CConnectionManager::getNearbySlamAgentsCached() const {
 	return m_nearby_slam_agents;
 }
+
+const mrpt_msgs::GraphSlamAgents&
+CConnectionManager::getNearbySlamAgents() {
+	this->updateNearbySlamAgents();
+	return this->getNearbySlamAgentsCached();
+} // end of getNearbySlamAgents
 
 void CConnectionManager::updateNearbySlamAgents() {
 	ASSERT_(has_setup_comm);
@@ -140,8 +146,10 @@ void CConnectionManager::updateNearbySlamAgents() {
 	std::vector<ROSMaster>* masters = &(srv.response.masters);
 
 	// convert RosMaster(s) to mrpt_msgs::GraphSlamAgent(s)
-	for (std::vector<ROSMaster>::const_iterator masters_it = masters->begin();
-			masters_it != masters->end(); ++masters_it) {
+	for (std::vector<ROSMaster>::const_iterator
+			masters_it = masters->begin();
+			masters_it != masters->end();
+			++masters_it) {
 
 		// resize the m_nearby_slam_agents list
 
@@ -167,29 +175,23 @@ void CConnectionManager::updateNearbySlamAgents() {
 				m_nearby_slam_agents.list.end(), search);
 
 		if (it != m_nearby_slam_agents.list.end()) { // found, update fields
-
 			// update the timestamp
 			it->last_seen_time.data = ros::Time(masters_it->timestamp);
-
 		}
-		else { // not found, insert it.
+		else { // not found, try to insert it.
 			mrpt_msgs::GraphSlamAgent new_agent;
-			this->convert(*masters_it, &new_agent);
-			m_nearby_slam_agents.list.push_back(new_agent);
+			bool is_agent = this->convert(*masters_it, &new_agent);
+			if (is_agent) m_nearby_slam_agents.list.push_back(new_agent);
 		}
 
-	}
+	} // for all ROSMaster(s)
 
-	// if not found in RosMasters but found in mrpt_msgs::GraphSlamAgents, remove it.
-	for (agents_cit cit = m_nearby_slam_agents.list.begin(); cit !=
-			m_nearby_slam_agents.list.end(); ++cit) {
+	// if not found in RosMasters but found in mrpt_msgs::GraphSlamAgents, remove
+	// it.
+	// TODO
+	
 
-
-		// TODO
-
-	}
-
-}
+} // end of updateNearbySlamAgents
 
 
 void CConnectionManager::setupComm() { 
@@ -213,9 +215,11 @@ void CConnectionManager::setupSrvs() {
 	//ASSERT_(m_DiscoverMasters_client.isValid());
 }
 
-void CConnectionManager::convert(const multimaster_msgs_fkie::ROSMaster& ros_master,
+bool CConnectionManager::convert(
+		const multimaster_msgs_fkie::ROSMaster& ros_master,
 		mrpt_msgs::GraphSlamAgent* slam_agent) {
 	ASSERT_(slam_agent);
+	bool agent_namespace_found = false;
 
 	slam_agent->name.data = ros_master.name;
 	slam_agent->is_online.data = static_cast<bool>(ros_master.online);
@@ -237,18 +241,54 @@ void CConnectionManager::convert(const multimaster_msgs_fkie::ROSMaster& ros_mas
 		stringstream ss("");
 		ss << slam_agent->name.data  << "_" << slam_agent->agent_ID;
 		slam_agent->topic_namespace.data = ss.str().c_str();
+
+		// check that there exists a subtopic namespace named feedback under this.
+		// TODO
+		ros::master::V_TopicInfo topics;
+		bool got_topics = ros::master::getTopics(topics);
+		ASSERTMSG_(got_topics, "Unable to fetch topics. Exiting.");
+
+		// get the namespaces under the current topic_namespace
+
+		const std::string& topic_ns = "/" + slam_agent->topic_namespace.data;
+		const std::string& feedback_ns =
+			"/" + slam_agent->topic_namespace.data + "/" + "feedback";
+
+		auto search = [&feedback_ns](
+				const ros::master::TopicInfo& topic) {
+			return (strStarts(topic.name, feedback_ns));
+		};
+		ros::master::V_TopicInfo::const_iterator cit = find_if(
+				topics.begin(), topics.end(), search);
+		if (cit != topics.end()) {
+			cout << "Found: " << cit->name << endl;
+			agent_namespace_found = true;
+		}
+
+		//cout << "Topics: " << endl;
+		//for (ros::master::V_TopicInfo::const_iterator
+				//it = topics.begin();
+				//it != topics.end();
+				//++it) {
+			//cout << "- " << it->name;
+			//cout << "| Starts with: \"" << topic_ns << "\" "
+				//<< (strStarts(it->name, topic_ns)? "TRUE" : "FALSE")
+				//<< "| Starts with: \"" << feedback_ns << "\" "
+				//<< (strStarts(it->name, feedback_ns)? "TRUE" : "FALSE")
+				//<< endl;
+		//}
+		//cout << "--------" << endl;
 	}
 
 	// timestamp
 	slam_agent->last_seen_time.data = ros::Time(ros_master.timestamp);
+	return agent_namespace_found;
 
-}
+} // end of convert
 
 void CConnectionManager::convert(
 		const mrpt_msgs::GraphSlamAgent& slam_agent,
 		multimaster_msgs_fkie::ROSMaster* ros_master) {
-
-	using namespace std;
 	ASSERT_(ros_master);
 
 	ros_master->name = slam_agent.name.data;

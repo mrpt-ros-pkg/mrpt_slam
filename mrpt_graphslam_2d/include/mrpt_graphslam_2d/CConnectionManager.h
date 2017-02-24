@@ -64,6 +64,11 @@ public:
 	 *
 	 */
 	const mrpt_msgs::GraphSlamAgents&  getNearbySlamAgents();
+	/**\brief Read-only method for accessing list of nearby agents.
+	 * This <b>doesn't update</b> the internal list of GraphSlamAgents but just
+	 * the returns its latest cached version
+	 */
+	const mrpt_msgs::GraphSlamAgents&  getNearbySlamAgentsCached() const;
 
 	/**\brief Wrapper method around the private setup* class methods.
 	 *
@@ -98,11 +103,20 @@ private:
 	/**\}*/
 
 
-	/**\brief GraphSlamAgent ==> ROSMaster. */
-	static void convert(
+	/**\brief ROSMaster ==> mrpt_msgs::GraphSlamAgent
+	 *
+	 * Assumption is that each ROSMaster instance holds exactly one
+	 * mrpt_graphslam_2d node which publshes at a specific toic namespace ->
+	 * /<hostname>_<last_IP_field>/...
+	 *
+	 * \return False if the ros_master specified doesn't correspond to a valid
+	 * GraphSlamAgent node. Should at least have a \b feedback topic
+	 * namespace under its main topic namespace
+	 */
+	static bool convert(
 			const multimaster_msgs_fkie::ROSMaster& ros_master,
 			mrpt_msgs::GraphSlamAgent* slam_agent);
-	/**\brief ROSMaster ==> mrpt_msgs::GraphSlamAgent */
+	/**\brief GraphSlamAgent ==> ROSMaster. */
 	static void convert(
 			const mrpt_msgs::GraphSlamAgent& slam_agent,
 			multimaster_msgs_fkie::ROSMaster* ros_master);
@@ -152,7 +166,6 @@ bool operator!=(
 bool operator==(
 		const mrpt_msgs::GraphSlamAgent& agent1,
 		const mrpt_msgs::GraphSlamAgent& agent2);
-
 bool operator!=(
 		const mrpt_msgs::GraphSlamAgent& agent1,
 		const mrpt_msgs::GraphSlamAgent& agent2);
