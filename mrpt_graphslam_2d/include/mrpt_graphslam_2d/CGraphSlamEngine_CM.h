@@ -205,11 +205,17 @@ public:
 		/**\brief NodeHandle passed by the calling CGraphSlamEngine_CM class
 		 */
 		ros::NodeHandle* nh;
-
 		bool has_setup_comm;
 
+		/**\brief Position of graphSLAM agent in global frame of reference.
+		 *
+		 * \note This is not always given but if it is, it will assist in the
+		 * mr-SLAM operation
+		 */
+		pose_t global_init_pos;
+
 	};
-	typedef std::vector<TNeighborAgentProps> neighbors_t;
+	typedef std::vector<TNeighborAgentProps*> neighbors_t;
 	
 	const neighbors_t& getVecOfNeighborAgentProps() const {
 		return m_neighbors;

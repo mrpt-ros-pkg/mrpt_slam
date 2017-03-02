@@ -47,8 +47,17 @@ template<class GRAPH_T>
 CGraphSlamEngine_CM<GRAPH_T>::~CGraphSlamEngine_CM() {
 	MRPT_LOG_DEBUG_STREAM <<
 		"In Destructor: Deleting CGraphSlamEngine_CM instance...";
-
 	cm_graph_async_spinner.stop();
+
+	for (typename neighbors_t::iterator
+			neighbors_it = m_neighbors.begin();
+			neighbors_it != m_neighbors.end();
+			++neighbors_it) {
+
+		delete *neighbors_it;
+
+	}
+
 }
 
 template<class GRAPH_T>
@@ -85,13 +94,13 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 		// remove all the nodeIDs that correspond to nodes registered by other
 		// agents.
 		//MRPT_LOG_WARN_STREAM << "groupA (prior to removal of cm-registered.): "
-			//<< getSTLContainerAsString(groupA);
+		//<< getSTLContainerAsString(groupA);
 		groupA.erase(
 				std::remove_if(
 					groupA.begin(), groupA.end(),
 					[this](const unsigned int& i){return !this->isOwnNodeID(i);}), groupA.end());
 		//MRPT_LOG_WARN_STREAM << "groupA (After to removal of cm-registered.): "
-			//<< getSTLContainerAsString(groupA);
+		//<< getSTLContainerAsString(groupA);
 
 		// continue only if the nodes in group exceed the indicated threshold
 		if (groupA.size() < m_intra_group_node_count_thresh) { return ret_val; }
@@ -102,6 +111,8 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 				neighbors_it != m_neighbors.end();
 				++neighbors_it) {
 
+			TNeighborAgentProps& curr_neigh = **neighbors_it;
+
 			// groupB => neighbor's cached registered nodes
 			// Ask only of the nodes that haven't been already integrated in the
 			// graph
@@ -111,15 +122,15 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 			typename loop_closer_t::TGenerateHypotsPoolAdParams gen_hypots_ad_params;
 			// TODO - bug here.
 			MRPT_LOG_DEBUG_STREAM << "Fetching list of cached nodes of TNeighborAgent: "
-				<< neighbors_it->getAgentNs();
-			neighbors_it->getCachedNodes(
+				<< curr_neigh.getAgentNs();
+			curr_neigh.getCachedNodes(
 					&groupB,
 					&gen_hypots_ad_params.groupB_params,
 					/*only_unused=*/true);
 			MRPT_LOG_DEBUG_STREAM << "Fetched list.";
 
 			if (groupB.size() < m_intra_group_node_count_thresh ||
-					!neighbors_it->hasNewData()) { continue; }
+					!curr_neigh.hasNewData()) { continue; }
 
 			//
 			// run matching proc between groupA and groupB
@@ -129,13 +140,13 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 			edge_reg->generateHypotsPool(
 					groupA, groupB, &hypots_pool, &gen_hypots_ad_params);
 			MRPT_LOG_WARN_STREAM << "Generated Hypotheses pool successfully ==> Hypotheses #"
-			    << hypots_pool.size();
+			  << hypots_pool.size();
 
 			// Generating Consistencies Matrix
 			// fill the vector of optimal paths for all combination of nodes in groupB.
 			paths_t groupB_opt_paths;
 			MRPT_LOG_WARN_STREAM << "Filling optimal paths for groupB";
-			neighbors_it->fillOptPaths(
+			curr_neigh.fillOptPaths(
 					set<TNodeID>(groupB.begin(), groupB.end()), &groupB_opt_paths);
 			MRPT_LOG_WARN_STREAM << "Filled optimal paths for groupB";
 
@@ -196,7 +207,7 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 				<< getSTLContainerAsString(this->m_graph.getAllNodes());
 
 			MRPT_LOG_DEBUG_STREAM << "Asking for the graph.";
-			bool res = neighbors_it->cm_graph_srvclient.call(cm_graph_srv); // blocking
+			bool res = curr_neigh.cm_graph_srvclient.call(cm_graph_srv); // blocking
 			if (!res) {
 				MRPT_LOG_ERROR_STREAM << "Service call for CM_Graph failed.";
 				continue; // skip this if failed to fetch other's graph
@@ -248,7 +259,7 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 				// This may mark them twice, but it doesn't affect anything.
 				//MRPT_LOG_DEBUG_STREAM << "Marking nodeID \""
 					//<< (*h_cit)->from << "\" as integrated.";
-				neighbors_it->nodeID_to_is_integrated.at((*h_cit)->from) = true;
+				curr_neigh.nodeID_to_is_integrated.at((*h_cit)->from) = true;
 
 				// Integrate LaserScans at the newly integrated nodeIDs in own
 				// nodes_to_laser_scans2D map
@@ -463,8 +474,8 @@ void CGraphSlamEngine_CM<GRAPH_T>::usePublishersBroadcasters() {
 			const GraphSlamAgent& gsa = *it;
 
 			// Is the current GraphSlamAgent already registered?
-			auto search = [gsa](const TNeighborAgentProps& neighbor) {
-				return (neighbor.agent == gsa);
+			auto search = [gsa](const TNeighborAgentProps* neighbor) {
+				return (neighbor->agent == gsa);
 			};
 			typename neighbors_t::iterator neighbor_it = find_if(
 					m_neighbors.begin(),
@@ -472,9 +483,9 @@ void CGraphSlamEngine_CM<GRAPH_T>::usePublishersBroadcasters() {
 
 			if (neighbor_it == m_neighbors.end()) { // current gsa not found, add it
 
-				m_neighbors.push_back(TNeighborAgentProps(*this, gsa));
-				TNeighborAgentProps& latest_neighbor = m_neighbors.back();
-				latest_neighbor.setupComm();
+				m_neighbors.push_back(new TNeighborAgentProps(*this, gsa));
+				TNeighborAgentProps* latest_neighbor = m_neighbors.back();
+				latest_neighbor->setupComm();
 				MRPT_LOG_INFO_STREAM << "Initialized NeighborAgentProps instance...";
 			}
 
@@ -542,7 +553,7 @@ bool CGraphSlamEngine_CM<GRAPH_T>::updateNodes() {
 	m_last_regd_nodes_pub.publish(ros_nodes);
 
 	// update the last known size
-	m_graph_nodes_last_size = this->m_graph.nodes.size();
+	m_graph_nodes_last_size = this->m_graph.nodeCount();
 
 	bool res = false;
 	if (poses_counter) {
@@ -763,7 +774,8 @@ CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
 	engine(engine_in),
 	agent(agent_in),
 	m_queue_size(1),
-	has_setup_comm(false)
+	has_setup_comm(false),
+	global_init_pos(mrpt::poses::UNINITIALIZED_POSE)
 {
     using namespace mrpt::utils;
 

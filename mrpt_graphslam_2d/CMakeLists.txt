@@ -86,6 +86,11 @@ else()
     src/CConnectionManager.cpp
     )
 
+  set(MR_GRAPHSLAM_MERGER_SRC
+  	src/CMapMerger.cpp
+  	src/TNeighborAgentMapProps.cpp
+  	)
+
   add_library(${PROJECT_NAME}
     ${SR_GRAPHSLAM_SRC}
     )
@@ -99,6 +104,7 @@ else()
     )
   add_executable(map_merger_node
   	${SR_GRAPHSLAM_SRC}
+  	${MR_GRAPHSLAM_MERGER_SRC}
   	src/map_merger_node.cpp
   	)
 

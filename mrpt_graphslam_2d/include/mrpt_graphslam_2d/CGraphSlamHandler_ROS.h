@@ -326,6 +326,8 @@ class CGraphSlamHandler_ROS :
 		/**\brief ROS topic publisher standard queue size */
 		int m_queue_size;
 
+		size_t m_graph_nodes_last_size;
+
 		/**\brief Initial offset of the received odometry.
 	 	 * 
 	 	 * Assumption is that in the beginning I have 0 position, thus the incoming

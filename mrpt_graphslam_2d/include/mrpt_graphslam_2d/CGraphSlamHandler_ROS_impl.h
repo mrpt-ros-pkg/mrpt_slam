@@ -464,7 +464,6 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
 	using namespace mrpt::utils;
 
 
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 29);
 	ros::Time timestamp = ros::Time::now();
 
 	// current MRPT robot pose
@@ -494,7 +493,6 @@ this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 2
 		m_broadcaster.sendTransform(transform_stamped);
   }
 
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 30);
   // anchor frame <=> odom frame
   //
   // make sure that we have received odometry information in the first
@@ -503,7 +501,6 @@ this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 3
   if (!m_anchor_odom_transform.child_frame_id.empty()) {
   	m_broadcaster.sendTransform(m_anchor_odom_transform);
   }
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 31);
 
   // set an arrow indicating clearly the current orientation of the robot
 	{
@@ -527,7 +524,6 @@ this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 3
 		geom_pose.pose.orientation = quat;
 		m_curr_robot_pos_pub.publish(geom_pose);
 	}
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 32);
 
 	// robot trajectory
 	// publish the trajectory of the robot
@@ -570,16 +566,19 @@ this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 3
 			path.poses.push_back(geom_pose_stamped);
 		}
 
-		m_robot_tr_poses_pub.publish(geom_poses);
-		m_robot_trajectory_pub.publish(path);
+		// publish only on new node addition
+		if (this->m_engine->getGraph().nodeCount() > m_graph_nodes_last_size) {
+			m_robot_tr_poses_pub.publish(geom_poses);
+			m_robot_trajectory_pub.publish(path);
+		}
 	}
 
 	// Odometry trajectory - nav_msgs::Path
 	m_odom_trajectory_pub.publish(m_odom_path);
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 33);
 
 	// generated gridmap
-	{
+	// publish only on new node addition
+	if (this->m_engine->getGraph().nodeCount() > m_graph_nodes_last_size) {
 		std_msgs::Header h;
 		mrpt::system::TTimeStamp mrpt_time;
 		mrpt::maps::COccupancyGridMap2DPtr mrpt_gridmap =
@@ -607,49 +606,43 @@ this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 3
 		vector<double> def_energy_vec;
 		mrpt::system::TTimeStamp mrpt_time;
 
-		bool ret = this->m_engine->getGraphSlamStats(&node_stats,
+		this->m_engine->getGraphSlamStats(&node_stats,
 				&edge_stats,
 				&mrpt_time);
 
-		if (ret) {
-			// node/edge count
-			stats.nodes_total = node_stats["nodes_total"];
-			stats.edges_total = edge_stats["edges_total"];
-			if (edge_stats.find("ICP2D") != edge_stats.end()) {
-				stats.edges_ICP2D = edge_stats["ICP2D"];
-			}
-			if (edge_stats.find("ICP3D") != edge_stats.end()) {
-				stats.edges_ICP3D = edge_stats["ICP3D"];
-			}
-			if (edge_stats.find("Odometry") != edge_stats.end()) {
-				stats.edges_odom = edge_stats["Odometry"];
-			}
-			stats.loop_closures = edge_stats["loop_closures"];
-
-			// SLAM evaluation metric
-			this->m_engine->getDeformationEnergyVector(
-					&stats.slam_evaluation_metric);
-
-			mrpt_bridge::convert(mrpt_time, stats.header.stamp);
-
-			m_stats_pub.publish(stats);
+		// node/edge count
+		stats.nodes_total = node_stats["nodes_total"];
+		stats.edges_total = edge_stats["edges_total"];
+		if (edge_stats.find("ICP2D") != edge_stats.end()) {
+			stats.edges_ICP2D = edge_stats["ICP2D"];
 		}
-		else {
-			this->m_logger->logFmt(LVL_ERROR, "Answer is False");
+		if (edge_stats.find("ICP3D") != edge_stats.end()) {
+			stats.edges_ICP3D = edge_stats["ICP3D"];
 		}
-		
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 34);
-		
+		if (edge_stats.find("Odometry") != edge_stats.end()) {
+			stats.edges_odom = edge_stats["Odometry"];
+		}
+		stats.loop_closures = edge_stats["loop_closures"];
+
+		// SLAM evaluation metric
+		this->m_engine->getDeformationEnergyVector(
+				&stats.slam_evaluation_metric);
+
+		mrpt_bridge::convert(mrpt_time, stats.header.stamp);
+
+		m_stats_pub.publish(stats);
 
 	}
 
+	
+
+	// update the last known size
+	m_graph_nodes_last_size = this->m_engine->getGraph().nodeCount();
 	m_pub_seq++;
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 35);
 
 	if (this->m_enable_visuals) {
 		return this->queryObserverForEvents();
 	}
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 36);
 } // USEPUBLISHERSBROADCASTERS
 
 template<class GRAPH_T>
@@ -670,7 +663,6 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffLaserScan(
 
 	m_received_laser_scan = true;
 	this->processObservation(m_mrpt_laser_scan);
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 40);
 }
 
 template<class GRAPH_T>
@@ -751,7 +743,6 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
 
 	m_received_odom = true;
 	this->processObservation(m_mrpt_odom);
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 41);
 }
 
 template<class GRAPH_T>
@@ -771,9 +762,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::processObservation(
 	using namespace std;
 
 	this->_process(observ);
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 42);
 	this->resetReceivedFlags();
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 43);
 
 }
 
@@ -781,7 +770,6 @@ template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::_process(
 		mrpt::obs::CObservationPtr& observ) {
 	using namespace mrpt::utils;
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 37);
 
 	//this->m_logger->logFmt(LVL_DEBUG, "Calling execGraphSlamStep...");
 
@@ -789,7 +777,6 @@ this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 3
 		this->m_engine->execGraphSlamStep(observ, m_measurement_cnt);
 		m_measurement_cnt++;
 	}
-this->m_logger->logFmt(mrpt::utils::LVL_INFO, "TODO - Remove me. Kalimera %d", 38);
 }
 
 template<class GRAPH_T>
