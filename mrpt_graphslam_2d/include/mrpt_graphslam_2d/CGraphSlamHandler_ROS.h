@@ -124,7 +124,8 @@ class CGraphSlamHandler_ROS :
 	 	 * broadcaster instances
 	 	 *
 	 	 * \sa continueExec
-	 	 * \return True if the graphSLAM execution is to continue normally
+	 	 * \return True if the graphSLAM execution is to continue normally, false
+	 	 * otherwise
 	 	 */
 		bool usePublishersBroadcasters();
 		/**\brief Wrapper method around the protected setup* class methods.

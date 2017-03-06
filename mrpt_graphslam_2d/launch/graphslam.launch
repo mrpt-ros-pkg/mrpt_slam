@@ -57,7 +57,7 @@ Refer to the README.md file for usage information
 
 	<group unless="$(arg is_mr_slam)"> <!-- Single robot graphSLAM -->
 		<group if="$(arg run_under_gdb)">
-	  	<node launch-prefix="xterm -e gdb --args" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
+	  	<node launch-prefix="nemiver" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
 	  </group>
 		<group unless="$(arg run_under_gdb)">
 	  	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
@@ -65,7 +65,7 @@ Refer to the README.md file for usage information
 	</group>
 	<group if="$(arg is_mr_slam)"> <!-- Condensed Measurements multi-robot SLAM -->
 		<group if="$(arg run_under_gdb)">
-	  	<node launch-prefix="xterm -e gdb --args" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_cm_node" name="mrpt_graphslam_2d_cm" output="$(arg output)" />
+	  	<node launch-prefix="nemiver" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_cm_node" name="mrpt_graphslam_2d_cm" output="$(arg output)" />
 	  </group>
 		<group unless="$(arg run_under_gdb)">
 	  	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_cm_node" name="mrpt_graphslam_2d_cm" output="$(arg output)" />

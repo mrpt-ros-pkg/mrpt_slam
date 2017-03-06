@@ -51,7 +51,7 @@ void CGraphSlamEngine_ROS<GRAPH_t>::initClass() {
 	this->setLoggerName(this->m_class_name);
 
 	// http://wiki.ros.org/rospy/Overview/Publishers%20and%20Subscribers#queue_size:_publish.28.29_behavior_and_queuing
-	m_queue_size = 1;
+	m_queue_size = 10;
 
 	this->setupComm();
 

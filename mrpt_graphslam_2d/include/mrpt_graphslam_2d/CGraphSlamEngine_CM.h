@@ -145,11 +145,11 @@ public:
 		std::string getAgentNs() const { return this->agent.topic_namespace.data; }
 		void resetFlags() const;
 		bool operator==(
-				const TNeighborAgentProps other) const {
+				const TNeighborAgentProps& other) const {
 			return (this->agent == other.agent);
 		}
 		bool operator<(
-				const TNeighborAgentProps other) const {
+				const TNeighborAgentProps& other) const {
 			return (this->agent < other.agent);
 		}
 		/**\brief Utility method for fetching the ROS LaserScan that corresponds to

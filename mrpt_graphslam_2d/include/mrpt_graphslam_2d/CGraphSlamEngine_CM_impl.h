@@ -1,8 +1,7 @@
 /* +---------------------------------------------------------------------------+
 	 |                     Mobile Robot Programming Toolkit (MRPT)               |
 	 |                          http://www.mrpt.org/                             |
-	 |                                                                           |
-	 | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
+	 |                                                                           | | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
 	 | See: http://www.mrpt.org/Authors - All rights reserved.                   |
 	 | Released under BSD License. See details in http://www.mrpt.org/License    |
 	 +---------------------------------------------------------------------------+ */
@@ -483,6 +482,7 @@ void CGraphSlamEngine_CM<GRAPH_T>::usePublishersBroadcasters() {
 
 			if (neighbor_it == m_neighbors.end()) { // current gsa not found, add it
 
+				cout << "Neighbor to be added for GSA: " << gsa << endl;
 				m_neighbors.push_back(new TNeighborAgentProps(*this, gsa));
 				TNeighborAgentProps* latest_neighbor = m_neighbors.back();
 				latest_neighbor->setupComm();
@@ -773,13 +773,13 @@ CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
 		const mrpt_msgs::GraphSlamAgent& agent_in):
 	engine(engine_in),
 	agent(agent_in),
-	m_queue_size(1),
 	has_setup_comm(false),
 	global_init_pos(mrpt::poses::UNINITIALIZED_POSE)
 {
     using namespace mrpt::utils;
 
 	nh = engine.m_nh;
+	m_queue_size = engine.m_queue_size;
 	this->resetFlags();
 
 	// fill the full paths of the topics to subscribe
@@ -847,9 +847,11 @@ void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::updateNodes(
 	using namespace mrpt_bridge;
 	using namespace std;
 	using namespace mrpt::utils;
+std::cout << "TODO - Remove me. Kalimera ==> " << 103 << std::endl;
 
 	typedef typename GRAPH_T::constraint_t::type_value pose_t;
     engine.logFmt(LVL_DEBUG, "In updateNodes method.");
+std::cout << "TODO - Remove me. Kalimera ==> " << 104 << std::endl;
 
 	for (NodeIDWithPose_vec::_vec_type::const_iterator
 			n_it = nodes->vec.begin();
@@ -874,25 +876,31 @@ void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::updateNodes(
 	}
   has_new_nodes = true;
 
-  //print nodeIDs just for verification
-  engine.logFmt(LVL_DEBUG,
-      "NodeIDs for topic namespace: %s -> [%s]",
-      agent.topic_namespace.data.c_str(),
-      mrpt::math::getSTLContainerAsString(vector<TNodeID>(
-          nodeIDs_set.begin(), nodeIDs_set.end())).c_str());
+	//// Mon Mar 6 17:11:23 EET 2017, Nikos Koukis
+	// TODO When using 3 graphSLAM agents GDB Shows that it crashes on
+	// engine.logFmt lines. Fix this.
+	//
+  //engine.logFmt(LVL_DEBUG, // THIS CRASHES - GDB WHERE
+      //"NodeIDs for topic namespace: %s -> [%s]",
+      //agent.topic_namespace.data.c_str(),
+      //mrpt::math::getSTLContainerAsString(vector<TNodeID>(
+          //nodeIDs_set.begin(), nodeIDs_set.end())).c_str());
   // print poses just for verification
-  engine.logFmt(LVL_DEBUG, "Poses for topic namespace: %s",
-      agent.topic_namespace.data.c_str());
-  for (typename GRAPH_T::global_poses_t::const_iterator
-      p_it = poses.begin();
-      p_it != poses.end();
-      ++p_it) {
-
-    std::string p_str; p_it->second.asString(p_str);
-    engine.logFmt(LVL_DEBUG, "nodeID: %lu | pose: %s",
-        static_cast<unsigned long>(p_it->first),
-        p_str.c_str());
-  }
+  //engine.logFmt(LVL_DEBUG, "Poses for topic namespace: %s",
+      //agent.topic_namespace.data.c_str());
+  //for (typename GRAPH_T::global_poses_t::const_iterator
+      //p_it = poses.begin();
+      //p_it != poses.end();
+      //++p_it) {
+    //std::string p_str; p_it->second.asString(p_str);
+    //engine.logFmt(LVL_DEBUG, "nodeID: %lu | pose: %s",
+        //static_cast<unsigned long>(p_it->first),
+        //p_str.c_str());
+  //}
+	// TODO - These also seem to crash sometimes
+	//cout << "Agent information: " << agent << endl;
+	//cout << "Nodes: " << mrpt::math::getSTLContainerAsString(vector<TNodeID>(nodeIDs_set.begin(), nodeIDs_set.end()));
+  //print nodeIDs just for verification
 
   MRPT_END;
 }
@@ -905,6 +913,7 @@ updateLastRegdIDScan(
 	using namespace std;
 	using namespace mrpt::utils;
 	ASSERT_(last_regd_id_scan);
+std::cout << "TODO - Remove me. Kalimera ==> " << 105 << std::endl;
   engine.logFmt(LVL_DEBUG, "In updateLastRegdIDScan method.");
 
 	// make sure I haven't received any LaserScan for the current nodeID

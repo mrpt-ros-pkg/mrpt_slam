@@ -462,7 +462,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::setupSrvs() {
 template<class GRAPH_T>
 bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
 	using namespace mrpt::utils;
-
+	bool ret_val = true;
 
 	ros::Time timestamp = ros::Time::now();
 
@@ -641,8 +641,10 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
 	m_pub_seq++;
 
 	if (this->m_enable_visuals) {
-		return this->queryObserverForEvents();
+		ret_val = this->queryObserverForEvents();
 	}
+
+	return ret_val;
 } // USEPUBLISHERSBROADCASTERS
 
 template<class GRAPH_T>
