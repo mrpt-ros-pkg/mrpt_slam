@@ -14,8 +14,9 @@
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS.h"
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM.h"
+#include "mrpt_graphslam_2d/interfaces/CEdgeRegistrationDecider_CM.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
-#include "mrpt_graphslam_2d/ERD/CLoopCloserERD_CM.h"
+#include "mrpt_graphslam_2d/misc/common.h"
 
 #include <mrpt_msgs/NodeIDWithLaserScan.h>
 #include <mrpt_msgs/NodeIDWithPose_vec.h>
@@ -25,9 +26,15 @@
 #include <mrpt_bridge/laser_scan.h>
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/String.h>
+#include <mrpt/poses/CPosePDFGaussian.h>
+#include <mrpt/poses/CPosePDFSOG.h>
 
 #include <mrpt/math/utils.h>
 #include <mrpt/system/os.h>
+#include <mrpt/slam/CGridMapAligner.h>
+#include <mrpt/graphs/TMRSlamNodeAnnotations.h>
+#include <mrpt/graphslam/misc/TUncertaintyPath.h>
+#include <mrpt/graphslam/misc/TNodeProps.h>
 
 #include <set>
 #include <iterator>
@@ -56,11 +63,11 @@ public:
 	typedef typename mrpt::graphs::detail::THypothesis<GRAPH_T> hypot_t;
 	typedef std::vector<hypot_t> hypots_t;
 	typedef std::vector<hypot_t*> hypotsp_t;
-	typedef mrpt::graphslam::deciders::CLoopCloserERD_CM<GRAPH_T> loop_closer_t;
-	typedef typename loop_closer_t::TNodeProps TNodeProps;
-	typedef typename loop_closer_t::path_t path_t;
-	typedef typename loop_closer_t::paths_t paths_t;
 	typedef typename GRAPH_T::global_pose_t global_pose_t;
+	typedef typename mrpt::graphslam::detail::TNodeProps<GRAPH_T> node_props_t;
+	typedef mrpt::graphslam::TUncertaintyPath<GRAPH_T> path_t;
+	typedef std::vector<path_t> paths_t;
+	typedef CEdgeRegistrationDecider_CM<GRAPH_T> edge_reg_cm_t;
 
 	CGraphSlamEngine_CM(
 			ros::NodeHandle* nh,
@@ -110,9 +117,10 @@ public:
 		 */
 		/**\{ */
 		/**\brief Update nodeIDs + corresponding estimated poses */
-		void updateNodes(const mrpt_msgs::NodeIDWithPose_vec::ConstPtr& nodes);
+		void fetchUpdatedNodesList(
+				const mrpt_msgs::NodeIDWithPose_vec::ConstPtr& nodes);
 		/**\brief Fill the LaserScan of the last registered nodeID */
-		void updateLastRegdIDScan(
+		void fetchLastRegdIDScan(
 				const mrpt_msgs::NodeIDWithLaserScan::ConstPtr& last_regd_id_scan);
 		/**\} */
 
@@ -134,13 +142,21 @@ public:
 				mrpt::vector_uint* nodeIDs=NULL,
 				std::map<
 					mrpt::utils::TNodeID,
-					TNodeProps>* nodes_params=NULL,
+					node_props_t>* nodes_params=NULL,
 				bool only_unused=true) const;
 		/**\brief Fill the optimal paths for each combination of the given nodeIDs.
 		 */
 		void fillOptPaths(
 				const std::set<mrpt::utils::TNodeID>& nodeIDs,
 				paths_t* opt_paths) const;
+		/**\brief Using the fetched LaserScans and nodeID positions, compute the
+		 * occupancy gridmap of the given neighbor
+		 */
+		void computeGridMap() const;
+		const mrpt::maps::COccupancyGridMap2DPtr& getGridMap() const;
+		/**\brief Fill the given occupancy gridmap object with the current neighbor's grdmap.
+		 */
+		void getGridMap(mrpt::maps::COccupancyGridMap2DPtr& map) const;
 		bool hasNewData() const;
 		std::string getAgentNs() const { return this->agent.topic_namespace.data; }
 		void resetFlags() const;
@@ -198,6 +214,10 @@ public:
 		std::string cm_graph_service;
 		/**\} */
 
+		/**\brief Pointer to the gridmap object of the neighbor
+		 */
+		mutable mrpt::maps::COccupancyGridMap2DPtr gridmap_cached;
+
 		mutable bool has_new_nodes;
 		mutable bool has_new_scans;
 
@@ -207,12 +227,9 @@ public:
 		ros::NodeHandle* nh;
 		bool has_setup_comm;
 
-		/**\brief Position of graphSLAM agent in global frame of reference.
-		 *
-		 * \note This is not always given but if it is, it will assist in the
-		 * mr-SLAM operation
+		/**\brief CPose2D connecting own graph origin to neighbor graph origin
 		 */
-		pose_t global_init_pos;
+		mrpt::poses::CPose2D tf_self_to_neighbor_origin;
 
 	};
 	typedef std::vector<TNeighborAgentProps*> neighbors_t;
@@ -220,16 +237,6 @@ public:
 	const neighbors_t& getVecOfNeighborAgentProps() const {
 		return m_neighbors;
 	}
-
-
-private:
-	/**\brief Find matches with neighboring SLAM agents
-	 * \note If valid matches are found, they are also registered in own graph.
-	 *
-	 * \return True on successful graph integration with any neighbor, false otherwise
-	 * TODO - Either use it or lose it.
-	 */
-	bool findMatchesWithNeighbors();
 	/**\brief Return true if current CGraphSlamEngine_CM object initially
 	 * registered this nodeID, false otherwise.
 	 * \param[in] nodeID nodeID for which the query is made.
@@ -239,6 +246,37 @@ private:
 	bool isOwnNodeID(
 			const mrpt::utils::TNodeID& nodeID,
 			const global_pose_t* pose_out=NULL) const;
+
+
+private:
+	/**\brief Using map-merging find a potentuial transofrmation between own
+	 * graph map to another agent's map and using that transformation add other
+	 * agent's nodes to own graph
+	 *
+	 * Method delegates task to the findMatchesWithNeighboor method.
+	 *
+	 * \return True on successful graph integration with any neighbor, false
+	 * otherwise
+	 */
+	bool findTFsWithAllNeighbors();
+	/**
+	 * Method is used only when I haven't found any transformation between mine
+	 * and the current neighbor's graph. When I do find one, I just add every new
+	 * nodeID + LS directly in own graph since I can now connect the new ones
+	 * with the already integrated nodes of the neighbor.
+	 *
+	 * \sa findTFsWithAllNeighbors
+	 */
+	bool findTFWithNeighbor(TNeighborAgentProps* neighbor);
+	/**\brief Fill the TneighborAgentProps instance based on the given agent_ID_str
+	 * string that is provided.
+	 *
+	 * \return False if the agent_ID_str doesn't correspond to any registered
+	 * TNeighborAgentProps
+	 */
+	bool getNeighborByAgentID(
+			const std::string& agent_ID_str,
+			TNeighborAgentProps*& neighbor) const;
 	/**\brief Update the last registered NodeIDs and corresponding positions of
 	 * the current agent.
 	 *
@@ -248,9 +286,9 @@ private:
 	 * this change anyway after a new node addition.
 	 *
 	 * \return true on publication to corresponding topics, false otherwise
-	 * \sa updateLastRegdIDScan
+	 * \sa pubLastRegdIDScan
 	 */
-	bool updateNodes();
+	bool pubUpdatedNodesList();
 	/**\brief Update the last registered NodeID and LaserScan of the current
 	 * agent.
 	 *
@@ -258,9 +296,9 @@ private:
 	 * it publishes to the corresponding topics only on new node/LS additions
 	 *
 	 * \return true on publication to corresponding topics, false otherwise
-	 * \sa lupdateNodes
+	 * \sa pubUpdatedNodesList
 	 */
-	bool updateLastRegdIDScan();
+	bool pubLastRegdIDScan();
 
 	void usePublishersBroadcasters();
 
@@ -275,7 +313,13 @@ private:
 			mrpt_msgs::GetCMGraph::Response& res);
 
 	void readParams();
+	/**\brief Read the parameters related to the map-matching operation
+	 */
+	void readGridMapAlignmentParams();
 	void readROSParameters();
+	void printParams();
+	mrpt::poses::CPose3D getLSPoseForGridMapVisualization(
+			const mrpt::utils::TNodeID& nodeID) const;
 
 	/**\brief Overriden method that takes in account registration of multiple
 	 * nodes of other running graphSLAM agents
@@ -291,6 +335,13 @@ private:
 	 * in range since they contain previous laser scans.
 	 */
 	neighbors_t m_neighbors;
+	/**\brief Map from neighbor instance to transformation from own to neighbor's graph
+	 *
+	 * As long as the corresponding variable for a specific agent is False
+	 * current engine keeps trying the map-matching proc to find a common
+	 * transformation between own and neighbor graphs.
+	 */
+	std::map<TNeighborAgentProps*, bool> m_neighbor_to_found_initial_tf;
 	/**\brief Class member version of the nearby SLAM agents */
 	mrpt_msgs::GraphSlamAgents m_nearby_slam_agents;
 
@@ -388,15 +439,8 @@ private:
 	 */
 	bool m_registered_multiple_nodes;
 
-	/**\brief Minimum number of valid hypotheses that have to exist in order for
-	 * the corresponding edges to be successfully integrated in the grpah
-	 */
-	int m_valid_hypotheses_min_thresh;
-	/**\brief Lowest number of nodes that should exist in a group of nodes for
+	/**\brief Lowest number of nodes that should exist in a group of nodes before
 	 * evaluating it.
-	 *
-	 * Limit is used in both groups of own partitions and in groups of nodes
-	 * fetched by other agents' graphs
 	 *
 	 * \note This should be set >= 3
 	 * \sa m_intra_group_node_count_thresh_minadv
@@ -412,12 +456,31 @@ private:
 	ros::AsyncSpinner cm_graph_async_spinner;
 
 	/**\brief Indicates if the program is going to pause on
-	 * condensed-measurements nodes registration
+	 * multiple-robot nodes registration
 	 *
 	 * \note For debugging reasons only, 
-	 * \todo Consider having this as a macro that is to be disabled on release code
+	 * \todo Consider having this as a macro that is to be disabled on release
+	 * code
 	 */
-	bool m_pause_exec_on_cm_registration;
+	bool m_pause_exec_on_mr_registration;
+
+	/**\brief How many new nodes should be registered after the previous successful
+	 * map matching before running map-matching again
+	 */
+	int m_rerun_map_matching_after_n_new_nodes;
+
+	/**\brief Parameters used during the alignment operation
+	 */
+	mrpt::slam::CGridMapAligner::TConfigParams m_alignment_options;
+
+	/**\brief Be conservative when it comes to deciding the initial
+	 * transformation of own graph with regards to graphs of the neighboring
+	 * agents. If true engine won't use map merging but instead will be waiting
+	 * for rendez-vous with other agents to determine the tf.
+	 *
+	 * \warning Rendez-vous behavior is not yet implemented.
+	 */
+	bool m_conservative_find_initial_tfs_to_neighbors;
 
 };
 

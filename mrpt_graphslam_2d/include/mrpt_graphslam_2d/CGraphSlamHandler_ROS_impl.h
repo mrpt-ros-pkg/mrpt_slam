@@ -660,7 +660,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffLaserScan(
 
 	// build the CObservation2DRangeScan
 	m_mrpt_laser_scan = CObservation2DRangeScan::Create();
-	mrpt::poses::CPose3D rel_pose;
+	mrpt::poses::CPose3D rel_pose; // pose is 0.
 	mrpt_bridge::convert(*ros_laser_scan, rel_pose, *m_mrpt_laser_scan);
 
 	m_received_laser_scan = true;

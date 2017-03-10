@@ -12,6 +12,7 @@
 
 #include "mrpt_graphslam_2d/CConnectionManager.h"
 #include "mrpt_graphslam_2d/TNeighborAgentMapProps.h"
+#include "mrpt_graphslam_2d/misc/common.h"
 
 #include <ros/ros.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -73,9 +74,6 @@ private:
 	void initWindowVisuals(mrpt::graphslam::CWindowManager* win_manager);
 	mrpt::graphslam::CWindowManager* initWindowVisuals();
 
-	std::string getGridMapAlignmentResultsAsString(
-			const mrpt::poses::CPosePDF& pdf,
-			const mrpt::slam::CGridMapAligner::TReturnInfo& ret_info);
 	/**\brief CConnectionManager instance for fetching the running graphSLAM
 	 * agents
 	 */
@@ -94,7 +92,7 @@ private:
 	std::string m_options_ns;
 	std::string m_feedback_ns;
 	size_t m_queue_size;
-	mrpt::slam::CGridMapAligner m_aligner;
+	mrpt::slam::CGridMapAligner::TConfigParams m_alignment_options;
 
 	std::string quit_keypress1;
 	std::string quit_keypress2;

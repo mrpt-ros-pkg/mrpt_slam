@@ -18,14 +18,15 @@ using namespace mrpt::math;
 using namespace mrpt::system;
 using namespace mrpt::poses;
 using namespace mrpt::opengl;
-using namespace ros;
 using namespace mrpt::utils;
+using namespace ros;
 using namespace nav_msgs;
 using namespace std;
 using namespace mrpt_bridge;
 
-////////////////////////////////////////////////////////////
+// helper methods
 
+////////////////////////////////////////////////////////////
 
 /**\return True if the object was actually removed. */
 bool removeObjectFrom3DScene(
@@ -140,17 +141,16 @@ CMapMerger::CMapMerger(
 
 	m_global_ns = "/map_merger";
 
-	// TODO - tinker with the following...
-	CGridMapAligner::TConfigParams& options = m_aligner.options;
-	options.methodSelection = CGridMapAligner::amModifiedRANSAC;
+	// GridMap Alignment options to be used in merging.
+	m_alignment_options.methodSelection = CGridMapAligner::amModifiedRANSAC;
 	////options.methodSelection = CGridMapAligner::amRobustMatch; // ASSERTION ERROR
-	options.min_ICP_goodness = 0.60;
-	options.maxKLd_for_merge = 0.90;
-	options.ransac_minSetSizeRatio = 0.40;
-	//options.loadFromConfigFileName(
+	m_alignment_options.min_ICP_goodness = 0.60;
+	m_alignment_options.maxKLd_for_merge = 0.90;
+	m_alignment_options.ransac_minSetSizeRatio = 0.40;
+	//m_alignment_options.loadFromConfigFileName(
 			//"/home/bergercookie/mrpt/share/mrpt/config_files/grid-matching/gridmatch_example.ini",
 			//"grid-match");
-	options.dumpToConsole();
+	m_alignment_options.dumpToConsole();
 
 	// initialize CDisplayWindow for fused map
 	m_fused_map_win_manager = this->initWindowVisuals();
@@ -267,7 +267,7 @@ bool CMapMerger::updateState() {
 			mergeMaps();
 		}
 		m_fused_map_win_manager->win->forceRepaint();
-		continue_exec = 
+		continue_exec =
 			m_fused_map_win_manager->isOpen() &&
 			!events_map.at(quit_keypress1) &&
 			!events_map.at(quit_keypress2);
@@ -282,6 +282,8 @@ void CMapMerger::mergeMaps() {
 	MRPT_START;
 	m_logger->logFmt(LVL_WARN, "In mergeMaps.");
 
+	CGridMapAligner gridmap_aligner;
+	gridmap_aligner.options = m_alignment_options;
 
 	// List of maps that is to be filled.
 	maps_t mrpt_gridmaps;
@@ -421,22 +423,24 @@ void CMapMerger::mergeMaps() {
 		// whether the COccupancyGridMap is correctly aligned can thus can be used.
 		neighbor_to_is_used_t neighbor_to_is_used;
 		// first gridmap frame coincedes with the global frame - used anyway
-		neighbor_to_is_used[*m_neighbors.begin()] = true;
 
 		// map from TNeighborAgentMapProps* to a corresponding  relative pose with
 		// regards to the global fused map
 		neighbor_to_rel_pose_t neighbor_to_rel_pose;
-		neighbor_to_rel_pose[*m_neighbors.begin()] = CPose2D();
 		for (neighbors_t::const_iterator
-				n_it = std::next(m_neighbors.begin());
+				n_it = m_neighbors.begin();
 				n_it != m_neighbors.end();
 				++n_it) {
 			neighbor_to_is_used[*n_it] = false;
 			neighbor_to_rel_pose[*n_it] = CPose2D();
 		}
 
+		// mark first as used - one trajectory should be there anyway
+		neighbor_to_is_used[*m_neighbors.begin()] = true;
+
 		// for all captured gridmaps - except the first
-		for (maps_t::iterator m_it = std::next(mrpt_gridmaps.begin());
+		for (maps_t::iterator
+				m_it = std::next(mrpt_gridmaps.begin());
 				m_it != mrpt_gridmaps.end();
 				++m_it, ++merge_counter) {
 
@@ -450,26 +454,32 @@ void CMapMerger::mergeMaps() {
 			m_logger->logFmt(LVL_INFO,
 					"Trying to align the maps, initial estimation: %s",
 					init_estim.mean.asString().c_str());
-			const CPosePDFPtr pdf_tmp = m_aligner.AlignPDF(
+			const CPosePDFPtr pdf_tmp = gridmap_aligner.AlignPDF(
 					fused_map.pointer(), curr_gridmap,
 					init_estim,
 					&run_time, &results);
 			m_logger->logFmt(LVL_INFO, "Elapsed Time: %f", run_time);
 
-			if (results.goodness > 0.999) { // dismiss this
-				continue;
-			}
 
 			CPosePDFSOGPtr pdf_out = CPosePDFSOG::Create();
 			pdf_out->copyFrom(*pdf_tmp);
 
 			CPose2D pose_out; CMatrixDouble33 cov_out;
 			pdf_out->getMostLikelyCovarianceAndMean(cov_out, pose_out);
+
+			// dismiss this?
+			if (results.goodness > 0.999 ||
+					(essentiallyEqual(pose_out.x(), 0, 0.001) && // all 0s
+					 essentiallyEqual(pose_out.y(), 0, 0.001) &&
+					 essentiallyEqual(pose_out.phi(), 0, 0.001))) {
+				continue;
+			}
+
 			neighbor_to_rel_pose.at(curr_neighbor) = pose_out;
 			neighbor_to_is_used.at(curr_neighbor) = true;
 
-			m_logger->logFmt(LVL_INFO, "%s\n", 
-					this->getGridMapAlignmentResultsAsString(*pdf_tmp, results).c_str());
+			m_logger->logFmt(LVL_INFO, "%s\n",
+					getGridMapAlignmentResultsAsString(*pdf_tmp, results).c_str());
 
 			// save current gridmap
 			if (save_map_merging_results) {
@@ -511,6 +521,8 @@ void CMapMerger::mergeMaps() {
 			// transformation
 
 		} // end for all gridmaps
+
+		cout << "neighbor_to_is_used: " << getMapAsString(neighbor_to_is_used) << endl;
 
 		TColorManager traj_color_mngr; // different color to each trajectory
 		// Traverse and add all the trajectories to the fused map visualization
@@ -555,31 +567,6 @@ void CMapMerger::mergeMaps() {
 
 	} // end if gridmap.size() >= 2
 	MRPT_END;
-}
-
-std::string CMapMerger::getGridMapAlignmentResultsAsString(
-			const mrpt::poses::CPosePDF& pdf,
-			const CGridMapAligner::TReturnInfo& ret_info) {
-
-			CPosePDFSOGPtr pdf_out = CPosePDFSOG::Create();
-			pdf_out->copyFrom(pdf);
-			CPose2D pose_out; CMatrixDouble33 cov_out;
-			pdf_out->getMostLikelyCovarianceAndMean(cov_out, pose_out);
-
-			stringstream ss;
-			ss << "--------------------" << endl;
-			ss << "Results: " << endl
-				<< "\tPDFPtr pose: " << pdf.getMeanVal() << endl
-				<< "\t# Correspondences: " << ret_info.correspondences.size() << endl
-				<< "\tAlignment goodness: " << ret_info.goodness << endl
-				<< "\tModes size: " << pdf_out->size() << endl
-				<< "\tModes: " << endl << getSTLContainerAsString(pdf_out->getSOGModes())
-				<< "\tMost likely pose: " << pose_out << endl
-				<< "\tCorresponding covariance matrix: " << endl
-				<< cov_out << endl;
-			ss << "--------------------" << endl;
-			return ss.str();
-
 }
 
 CWindowManager* CMapMerger::initWindowVisuals() {

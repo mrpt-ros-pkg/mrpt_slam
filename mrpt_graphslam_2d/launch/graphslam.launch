@@ -55,17 +55,19 @@ Refer to the README.md file for usage information
 		<param name="laser_frame" value="$(arg laser_frame_ID)"/>
 	</group>
 
+	<!--<arg name="dbg_prog" value="xterm -e cgdb args" />-->
+	<arg name="dbg_prog" value="nemiver" />
 	<group unless="$(arg is_mr_slam)"> <!-- Single robot graphSLAM -->
 		<group if="$(arg run_under_gdb)">
-	  	<node launch-prefix="nemiver" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
+	  	<node launch-prefix="$(arg dbg_prog)" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
 	  </group>
 		<group unless="$(arg run_under_gdb)">
 	  	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
 	  </group>
 	</group>
-	<group if="$(arg is_mr_slam)"> <!-- Condensed Measurements multi-robot SLAM -->
+	<group if="$(arg is_mr_slam)"> <!-- multi-robot SLAM -->
 		<group if="$(arg run_under_gdb)">
-	  	<node launch-prefix="nemiver" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_cm_node" name="mrpt_graphslam_2d_cm" output="$(arg output)" />
+	  	<node launch-prefix="$(arg dbg_prog)" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_cm_node" name="mrpt_graphslam_2d_cm" output="$(arg output)" />
 	  </group>
 		<group unless="$(arg run_under_gdb)">
 	  	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_cm_node" name="mrpt_graphslam_2d_cm" output="$(arg output)" />

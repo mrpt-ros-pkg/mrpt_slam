@@ -18,6 +18,21 @@ CEdgeRegistrationDecider_CM<GRAPH_T>::CEdgeRegistrationDecider_CM() {}
 template<class GRAPH_T>
 CEdgeRegistrationDecider_CM<GRAPH_T>::~CEdgeRegistrationDecider_CM() {}
 
+template<class GRAPH_T>
+void CEdgeRegistrationDecider_CM<GRAPH_T>::addBatchOfNodeIDsAndScans(
+		const std::map<
+			mrpt::utils::TNodeID,
+			mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D) {
+
+	this->m_nodes_to_laser_scans2D.insert(
+			nodeIDs_to_scans2D.begin(),
+			nodeIDs_to_scans2D.end());
+
+	this->m_last_total_num_nodes = this->m_graph->nodeCount();
+
+} // end of addBatchOfNodeIDsAndScans
+
+
 } } } // end of namespaces
 
 #endif /* end of include guard: CEDGEREGISTRATIONDECIDER_CM_IMPL_H */

@@ -11,7 +11,7 @@
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
-#include <mrpt/graphslam/interfaces/CEdgeRegistrationDecider.h>
+#include <mrpt/graphslam/interfaces/CRangeScanEdgeRegistrationDecider.h>
 
 #include <string>
 
@@ -36,11 +36,15 @@ namespace mrpt { namespace graphslam { namespace deciders {
 template<class GRAPH_T>
 class CEdgeRegistrationDecider_CM :
 	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_T>,
-	public virtual mrpt::graphslam::deciders::CEdgeRegistrationDecider<GRAPH_T>
+	public virtual mrpt::graphslam::deciders::CRangeScanEdgeRegistrationDecider<GRAPH_T>
 {
 public:
 	CEdgeRegistrationDecider_CM ();
 	~CEdgeRegistrationDecider_CM ();
+	void addBatchOfNodeIDsAndScans(
+			const std::map<
+				mrpt::utils::TNodeID,
+				mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D);
 
 protected:
 };

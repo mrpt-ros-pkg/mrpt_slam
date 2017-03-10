@@ -35,9 +35,9 @@ CGraphSlamEngine_CM<GRAPH_T>::CGraphSlamEngine_CM(
 	m_nh(nh),
 	m_graph_nodes_last_size(0),
 	m_registered_multiple_nodes(false),
-	m_intra_group_node_count_thresh_minadv(5),
+	m_intra_group_node_count_thresh_minadv(25),
 	cm_graph_async_spinner(/* threads_num: */ 1, &this->custom_service_queue),
-	m_pause_exec_on_cm_registration(true)
+	m_pause_exec_on_mr_registration(true)
 {
 	this->initClass();
 }
@@ -52,12 +52,244 @@ CGraphSlamEngine_CM<GRAPH_T>::~CGraphSlamEngine_CM() {
 			neighbors_it = m_neighbors.begin();
 			neighbors_it != m_neighbors.end();
 			++neighbors_it) {
-
 		delete *neighbors_it;
-
 	}
 
 }
+
+template<class GRAPH_T>
+bool CGraphSlamEngine_CM<GRAPH_T>::findTFsWithAllNeighbors() {
+	MRPT_START;
+	using namespace mrpt::utils;
+	using namespace mrpt::math;
+
+	if (this->m_graph.nodeCount() < m_intra_group_node_count_thresh) {
+		return false;
+	}
+
+
+	// cache the gridmap so that it is computed only once during all the
+	// findMatches*  calls
+	this->computeMap();
+
+	bool ret_val = false; // at *any* node registration, change to true
+
+	// iterate over all neighbors - run map-matching proc.
+	for (typename neighbors_t::iterator
+			neighbors_it = m_neighbors.begin();
+			neighbors_it != m_neighbors.end();
+			++neighbors_it) {
+
+		// run matching proc with neighbor only if I haven't found an initial
+		// inter-connecting graph transform
+		if (!m_neighbor_to_found_initial_tf.at(*neighbors_it)) {
+
+			bool loc_ret_val = findTFWithNeighbor(*neighbors_it);
+			if (loc_ret_val) {
+				MRPT_LOG_DEBUG_STREAM <<
+					"Updating own cached map after successful node registration...";
+				// update own map if new nodes have been added.
+				this->computeMap();
+
+				// mark current neighbor tf as found.
+				m_neighbor_to_found_initial_tf.at(*neighbors_it) = true;
+
+				ret_val = true;
+			}
+		}
+
+	}
+
+	return ret_val;
+	MRPT_END;
+} // end of findTFsWithAllNeighbors
+
+template<class GRAPH_T>
+bool CGraphSlamEngine_CM<GRAPH_T>::
+findTFWithNeighbor(TNeighborAgentProps* neighbor) {
+	MRPT_START;
+	using namespace mrpt::slam;
+	using namespace mrpt::math;
+	using namespace mrpt::poses;
+	using namespace mrpt::utils;
+	using namespace mrpt::maps;
+	using namespace mrpt::graphslam::detail;
+
+	bool ret_val = false;
+
+	vector_uint neighbor_nodes;
+	std::map<mrpt::utils::TNodeID, node_props_t> nodes_params;
+	neighbor->getCachedNodes(&neighbor_nodes, &nodes_params, /*only unused=*/ false);
+	// Run only if more than a certain number of new nodes have been added.
+	size_t old_size = 0;
+	for (std::map<mrpt::utils::TNodeID, bool>::const_iterator
+			it = neighbor->nodeID_to_is_integrated.begin();
+			it != neighbor->nodeID_to_is_integrated.end();
+			++it) {
+		if (it->second) { old_size++; }
+	}
+	const int new_nodes_num = neighbor_nodes.size() - old_size;
+
+	if (neighbor_nodes.size() < m_intra_group_node_count_thresh ||
+			!neighbor->hasNewData() ||
+			(new_nodes_num < m_rerun_map_matching_after_n_new_nodes)
+		 ) {
+		return false;
+	}
+
+	COccupancyGridMap2DPtr neighbor_gridmap = neighbor->getGridMap();
+	// run alignment procedure
+	CGridMapAligner gridmap_aligner;
+	gridmap_aligner.options = m_alignment_options;
+
+	CGridMapAligner::TReturnInfo results;
+	float run_time = 0;
+	// TODO - make use of agents' rendez-vous in the initial estimation
+	// TODO - make use of prior mr-registration in the initial estimation
+	CPosePDFGaussian init_estim;
+	init_estim.mean = neighbor->tf_self_to_neighbor_origin;
+	this->logFmt(LVL_INFO,
+			"Trying to align the maps, initial estimation: %s",
+			init_estim.mean.asString().c_str());
+	neighbor_gridmap->saveMetricMapRepresentationToFile(this->getLoggerName() + "_other");
+	this->m_gridmap_cached->saveMetricMapRepresentationToFile(this->getLoggerName() + "_self");
+	const CPosePDFPtr pdf_tmp = gridmap_aligner.AlignPDF(
+			this->m_gridmap_cached.pointer(), neighbor_gridmap.pointer(),
+			init_estim,
+			&run_time, &results);
+	this->logFmt(LVL_INFO, "Elapsed Time: %f", run_time);
+	CPosePDFSOGPtr pdf_out = CPosePDFSOG::Create();
+	pdf_out->copyFrom(*pdf_tmp);
+
+	CPose2D pose_out; CMatrixDouble33 cov_out;
+	pdf_out->getMostLikelyCovarianceAndMean(cov_out, pose_out);
+
+	this->logFmt(LVL_INFO, "%s\n",
+			getGridMapAlignmentResultsAsString(*pdf_tmp, results).c_str());
+
+	// dismiss this?
+	if (results.goodness > 0.999 ||
+			(essentiallyEqual(pose_out.x(), 0, 0.001) && // all 0s
+			 essentiallyEqual(pose_out.y(), 0, 0.001) &&
+			 essentiallyEqual(pose_out.phi(), 0, 0.001))) {
+		return false;
+	}
+
+	//
+	//
+	// Map-merging operation is successful. Integrate graph into own.
+	//////////////////////////////////////////////////////////////////
+
+	//
+	// ask for condensed measurements graph
+	//
+	mrpt_msgs::GetCMGraph cm_graph_srv;
+	typedef mrpt_msgs::GetCMGraphRequest::_nodeIDs_type nodeID_type;
+	nodeID_type& matched_nodeIDs =
+		cm_graph_srv.request.nodeIDs;
+
+	// which nodes to ask the condensed graph for
+	// I assume that no nodes of the other graph have been integrated yet.
+	for (typename vector_uint::const_iterator
+			n_cit = neighbor_nodes.begin();
+			n_cit != neighbor_nodes.end();
+			++n_cit) {
+		matched_nodeIDs.push_back(*n_cit); // all used nodes
+	}
+
+	MRPT_LOG_DEBUG_STREAM << "Asking for the graph.";
+	bool res = neighbor->cm_graph_srvclient.call(cm_graph_srv); // blocking
+	if (!res) {
+		MRPT_LOG_ERROR_STREAM << "Service call for CM_Graph failed.";
+		return false; // skip this if failed to fetch other's graph
+	}
+	MRPT_LOG_DEBUG_STREAM << "Fetched graph successfully.";
+	MRPT_LOG_DEBUG_STREAM << cm_graph_srv.response.cm_graph;
+
+	GRAPH_T other_graph;
+	mrpt_bridge::convert(cm_graph_srv.response.cm_graph, other_graph);
+
+	//
+	// merge graphs
+	//
+	MRPT_LOG_WARN_STREAM << "Merging graph of \"" << neighbor->getAgentNs() << "\"...";
+	hypots_t graph_conns;
+	{ // build the only hypothesis connecting graph with neighbor subgraph
+		hypot_t graph_conn;
+		constraint_t c;
+		c.mean = pose_out;
+		cov_out.inv(c.cov_inv);
+		graph_conn.setEdge(c);
+		// TODO - change this.
+		graph_conn.from = 0; // self
+		graph_conn.to = *neighbor_nodes.begin(); // other
+
+		graph_conn.goodness = results.goodness;
+		graph_conns.push_back(graph_conn);
+	}
+
+	std::map<TNodeID, TNodeID> old_to_new_mappings;
+	this->m_graph.mergeGraph(
+			other_graph, graph_conns, 
+			/*hypots_from_other_to_self=*/ false,
+			&old_to_new_mappings);
+
+	//
+	// Mark Nodes as integrated
+	// Integrated corresponding LSs
+	//
+	MRPT_LOG_WARN_STREAM << "Marking used nodes as integrated - Integrating LSs";
+	nodes_to_scans2D_t new_nodeIDs_to_scans_pairs;
+	for (typename vector_uint::const_iterator
+			n_cit = neighbor_nodes.begin();
+			n_cit != neighbor_nodes.end();
+			++n_cit) {
+
+		// Mark the neighbor's used nodes as integrated
+		neighbor->nodeID_to_is_integrated.at(*n_cit) = true;
+
+		// Integrate LaserScans at the newly integrated nodeIDs in own
+		// nodes_to_laser_scans2D map
+		new_nodeIDs_to_scans_pairs.insert(make_pair(
+					old_to_new_mappings.at(*n_cit),
+					nodes_params.at(*n_cit).scan));
+		MRPT_LOG_INFO_STREAM << "Adding nodeID-LS of nodeID: "
+			<< "\t[old:] " << *n_cit << endl
+			<< "| [new:] " << old_to_new_mappings.at(*n_cit);
+	}
+
+ 	this->m_nodes_to_laser_scans2D.insert(
+ 			new_nodeIDs_to_scans_pairs.begin(),
+ 			new_nodeIDs_to_scans_pairs.end());
+	edge_reg_cm_t* edge_reg_cm =
+		dynamic_cast<edge_reg_cm_t*>(this->m_edge_reg);
+ 	edge_reg_cm->addBatchOfNodeIDsAndScans(new_nodeIDs_to_scans_pairs);
+
+	// Call for a Full graph visualization update and Dijkstra update -
+	// CGraphSlamOptimizer
+	//MRPT_LOG_WARN_STREAM << "Optimizing graph..." << endl;
+	//this->m_optimizer->optimizeGraph();
+	MRPT_LOG_WARN_STREAM << "Executing Dijkstra..." << endl;
+	this->execDijkstraNodesEstimation();
+
+ 	this->m_optimizer->updateVisuals(); // TODO - Remove this!!!
+	this->updateMapVisualization(this->m_nodes_to_laser_scans2D, true); // TODO - Remove this!!!
+
+	neighbor->resetFlags();
+
+	// update the initial tf estimation
+	neighbor->tf_self_to_neighbor_origin = pose_out;
+	MRPT_LOG_WARN_STREAM << "Neighbor's [" << neighbor->getAgentNs()
+		<< "] nodes have been integrated successfully";
+
+	if (m_pause_exec_on_mr_registration) this->pauseExec();
+	ret_val = true;
+
+	return ret_val;
+	MRPT_END;
+} // end if findTFWithNeighbor
+
+/*
 
 template<class GRAPH_T>
 bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
@@ -125,7 +357,7 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 			curr_neigh.getCachedNodes(
 					&groupB,
 					&gen_hypots_ad_params.groupB_params,
-					/*only_unused=*/true);
+					true);
 			MRPT_LOG_DEBUG_STREAM << "Fetched list.";
 
 			if (groupB.size() < m_intra_group_node_count_thresh ||
@@ -156,7 +388,7 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 			edge_reg->generatePWConsistenciesMatrix(
 					groupA, groupB, hypots_pool,
 					&consist_matrix,
-					/*groupA_opt_paths=*/ NULL,
+					NULL,
 					&groupB_opt_paths);
 			MRPT_LOG_WARN_STREAM << "Returned from generatePWConsistenciesMatrix";
 
@@ -234,7 +466,7 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 			// keep map of renumbered nodeIDs
 			std::map<TNodeID, TNodeID> old_to_new_nodeID_mappings;
 			this->m_graph.mergeGraph(other_graph, valid_hypots_objects,
-					/*hypots_from_other_to_self=*/ true,
+					true,
 					&old_to_new_nodeID_mappings);
 			MRPT_LOG_DEBUG_STREAM << "Merged graphs.";
 
@@ -275,7 +507,7 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
  					new_nodeIDs_to_scans_pairs.end());
  			edge_reg->addBatchOfNodeIDsAndScans(new_nodeIDs_to_scans_pairs);
 
-			if (m_pause_exec_on_cm_registration) this->pauseExec();
+			if (m_pause_exec_on_mr_registration) this->pauseExec();
 
 			ret_val = true;
 
@@ -297,6 +529,8 @@ bool CGraphSlamEngine_CM<GRAPH_T>::findMatchesWithNeighbors() {
 	MRPT_END;
 }
 
+*/
+
 template<class GRAPH_T>
 bool CGraphSlamEngine_CM<GRAPH_T>::_execGraphSlamStep(
 		mrpt::obs::CActionCollectionPtr& action,
@@ -312,7 +546,9 @@ bool CGraphSlamEngine_CM<GRAPH_T>::_execGraphSlamStep(
 			action, observations, observation, rawlog_entry);
 
 	// find matches between own nodes and those of the neighbors
-  //m_registered_multiple_nodes = this->findMatchesWithNeighbors();
+  if (!m_conservative_find_initial_tfs_to_neighbors) {
+  	m_registered_multiple_nodes = this->findTFsWithAllNeighbors();
+  }
 
   return continue_exec;
   MRPT_END;
@@ -370,7 +606,7 @@ void CGraphSlamEngine_CM<GRAPH_T>::initClass() {
 	 	 	dec_opt_cm->setCConnectionManagerPtr(&m_conn_manager);
 	 	}
 	}
-	{ // ERD - CLoopCloserERD_CM in any case.
+	{ // ERD
 		CRegistrationDeciderOrOptimizer_CM<GRAPH_T>* dec_opt_cm =
 	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_CM<GRAPH_T>*>(this->m_edge_reg);
 		ASSERT_(dec_opt_cm);
@@ -428,19 +664,60 @@ void CGraphSlamEngine_CM<GRAPH_T>::initClass() {
 	}
 	this->readParams();
 
-	// set this after reading ROS parameters
-	{
-		loop_closer_t* edge_reg =
-			dynamic_cast<loop_closer_t*>(this->m_edge_reg);
-		ASSERTMSG_(edge_reg,
-				"Only the CLoopCloserERD classes and its derivatives can be used.");
-		edge_reg->setDijkstraExecutionThresh(m_intra_group_node_count_thresh);
-	}
-
 	// start the spinner for asynchronously servicing cm_graph requests
 	cm_graph_async_spinner.start();
 }
 
+template<class GRAPH_T>
+mrpt::poses::CPose3D CGraphSlamEngine_CM<GRAPH_T>::
+getLSPoseForGridMapVisualization(
+		const mrpt::utils::TNodeID& nodeID) const {
+	MRPT_START;
+	using namespace mrpt::graphs::detail;
+
+	// if this is my own node ID return the corresponding CPose2D, otherwise
+	// return the pose connecting own graph with the neighbor's graph
+
+	const TMRSlamNodeAnnotations* node_annots = dynamic_cast<const TMRSlamNodeAnnotations*>(
+			&this->m_graph.nodes.at(nodeID));
+
+	// Is the current ndoeID registered by a neighboring agent or is it my own?
+	TNeighborAgentProps* neighbor = NULL;
+	this->getNeighborByAgentID(node_annots->agent_ID_str, neighbor);
+
+	CPose3D laser_pose;
+	if (!neighbor) { // own node
+		laser_pose = parent_t::getLSPoseForGridMapVisualization(nodeID);
+	}
+	else { // not by me - return TF to neighbor graph
+		laser_pose = CPose3D(neighbor->tf_self_to_neighbor_origin);
+	}
+	return laser_pose;
+
+	MRPT_END;
+}
+
+template<class GRAPH_T>
+bool CGraphSlamEngine_CM<GRAPH_T>::
+getNeighborByAgentID(const std::string& agent_ID_str,
+		TNeighborAgentProps*& neighbor) const {
+	MRPT_START;
+
+	bool ret= false;
+	for (auto neighbors_it = m_neighbors.begin();
+			neighbors_it != m_neighbors.end();
+			++neighbors_it) {
+
+		if ((*neighbors_it)->getAgentNs() == agent_ID_str) {
+			ret = true;
+			neighbor = *neighbors_it;
+			break;
+		}
+	}
+
+	return ret;
+	MRPT_END;
+}
 
 template<class GRAPH_T>
 void CGraphSlamEngine_CM<GRAPH_T>::usePublishersBroadcasters() {
@@ -482,9 +759,10 @@ void CGraphSlamEngine_CM<GRAPH_T>::usePublishersBroadcasters() {
 
 			if (neighbor_it == m_neighbors.end()) { // current gsa not found, add it
 
-				cout << "Neighbor to be added for GSA: " << gsa << endl;
 				m_neighbors.push_back(new TNeighborAgentProps(*this, gsa));
 				TNeighborAgentProps* latest_neighbor = m_neighbors.back();
+				m_neighbor_to_found_initial_tf.insert(make_pair(
+							latest_neighbor, false));
 				latest_neighbor->setupComm();
 				MRPT_LOG_INFO_STREAM << "Initialized NeighborAgentProps instance...";
 			}
@@ -492,15 +770,15 @@ void CGraphSlamEngine_CM<GRAPH_T>::usePublishersBroadcasters() {
 		}
 	}
 
-	this->updateNodes();
-	this->updateLastRegdIDScan();
+	this->pubUpdatedNodesList();
+	this->pubLastRegdIDScan();
 
 
 	MRPT_END;
 } // end of usePublishersBroadcasters
 
 template<class GRAPH_T>
-bool CGraphSlamEngine_CM<GRAPH_T>::updateNodes() {
+bool CGraphSlamEngine_CM<GRAPH_T>::pubUpdatedNodesList() {
 	MRPT_START;
 	using namespace mrpt_msgs;
 
@@ -509,8 +787,6 @@ bool CGraphSlamEngine_CM<GRAPH_T>::updateNodes() {
 	if (this->m_graph_nodes_last_size == this->m_graph.nodes.size()) {
 		return false;
 	}
-
-
 	MRPT_LOG_DEBUG_STREAM << "Updating list of node poses";
 
 	// send at most m_num_last_rgd_nodes
@@ -531,12 +807,8 @@ bool CGraphSlamEngine_CM<GRAPH_T>::updateNodes() {
 		curr_node_w_pose.nodeID = cit->first;
 		mrpt_bridge::convert(cit->second, curr_node_w_pose.pose);
 
-		// send current node only if I have initially inserted it.
+		// Do not resend nodes of others, registered in own graph.
 		if (cit->second.agent_ID_str != m_conn_manager.getTrimmedNs()) {
-			// TODO - remove this.
-			MRPT_LOG_WARN_STREAM <<
-				"updateNodes - Skipping nodeID \""
-				<< cit->first << "\" => " << cit->second << endl;
 			continue; // skip this.
 		}
 
@@ -562,10 +834,10 @@ bool CGraphSlamEngine_CM<GRAPH_T>::updateNodes() {
 
 	return res;
 	MRPT_END;
-} // end of updateNodes
+} // end of pubUpdatedNodesList
 
 template<class GRAPH_T>
-bool CGraphSlamEngine_CM<GRAPH_T>::updateLastRegdIDScan() {
+bool CGraphSlamEngine_CM<GRAPH_T>::pubLastRegdIDScan() {
 	MRPT_START;
 	using namespace mrpt_msgs;
 	using namespace mrpt_bridge;
@@ -584,14 +856,13 @@ bool CGraphSlamEngine_CM<GRAPH_T>::updateLastRegdIDScan() {
 
 
 		// if this is a cm-registered nodeID+LS, skip it.
-		const global_pose_t* corresp_pose;
-		if (!this->isOwnNodeID(mrpt_last_regd_id_scan.first, corresp_pose)) {
+		if (!this->isOwnNodeID(mrpt_last_regd_id_scan.first)) {
 			return false;
 		}
 
-		MRPT_LOG_DEBUG_STREAM
-			<< "Publishing LaserScan of nodeID \""
-			<< mrpt_last_regd_id_scan.first << "\"";
+		//MRPT_LOG_DEBUG_STREAM
+			//<< "Publishing LaserScan of nodeID \""
+			//<< mrpt_last_regd_id_scan.first << "\"";
 		ASSERT_(mrpt_last_regd_id_scan.second);
 
 		// convert to ROS msg
@@ -613,13 +884,15 @@ bool CGraphSlamEngine_CM<GRAPH_T>::updateLastRegdIDScan() {
 
 
 	MRPT_END;
-} // end of updateLastRegdIDScan
+} // end of pubLastRegdIDScan
 
 
 template<class GRAPH_T>
 bool CGraphSlamEngine_CM<GRAPH_T>::isOwnNodeID(
 		const mrpt::utils::TNodeID& nodeID,
 		const global_pose_t* pose_out/*=NULL*/) const {
+	MRPT_START;
+	using namespace mrpt::graphs::detail;
 
 	// make sure give node is in the graph
 	typename GRAPH_T::global_poses_t::const_iterator global_pose_search =
@@ -634,15 +907,48 @@ bool CGraphSlamEngine_CM<GRAPH_T>::isOwnNodeID(
 		pose_out = &global_pose_search->second;
 	}
 
-	bool res =
-		global_pose_search->second.agent_ID_str == m_conn_manager.getTrimmedNs()? true : false;
+	bool res = false;
+	const TMRSlamNodeAnnotations* node_annots = dynamic_cast<const TMRSlamNodeAnnotations*>(
+			&global_pose_search->second);
+	if ((node_annots && node_annots->agent_ID_str == m_conn_manager.getTrimmedNs()) ||
+			(!node_annots)) {
+		res = true;
+	}
+
 	return res;
 
+	MRPT_END;
 } // end of isOwnNodeID
 
 template<class GRAPH_T>
 void CGraphSlamEngine_CM<GRAPH_T>::readParams() {
 	this->readROSParameters();
+	this->readGridMapAlignmentParams();
+}
+
+template<class GRAPH_T>
+void CGraphSlamEngine_CM<GRAPH_T>::readGridMapAlignmentParams() {
+	using namespace mrpt::slam;
+
+	std::string alignment_opts_ns = "alignment_opts";
+
+	m_nh->param<float>(alignment_opts_ns + "/" +  "min_ICP_goodness",
+			m_alignment_options.min_ICP_goodness, 0.60);
+	m_nh->param<double>(alignment_opts_ns + "/" + "maxKLd_for_merge",
+			m_alignment_options.maxKLd_for_merge, 0.90);
+	m_nh->param<float>(alignment_opts_ns + "/" +  "ransac_minSetSizeRatio",
+			m_alignment_options.ransac_minSetSizeRatio, 0.40);
+	m_nh->param<int>(alignment_opts_ns + "/" +  "rerun_map_matching_after_n_new_nodes",
+			m_rerun_map_matching_after_n_new_nodes, 10);
+
+	// GridMap Alignment options to be used in merging.
+	m_alignment_options.methodSelection = CGridMapAligner::amModifiedRANSAC;
+	////options.methodSelection = CGridMapAligner::amRobustMatch; // ASSERTION ERROR
+
+	//m_alignment_options.loadFromConfigFileName(
+			//"/home/bergercookie/mrpt/share/mrpt/config_files/grid-matching/gridmatch_example.ini",
+			//"grid-match");
+
 }
 
 template<class GRAPH_T>
@@ -650,6 +956,11 @@ void CGraphSlamEngine_CM<GRAPH_T>::readROSParameters() {
 	// call parent method first in case the parent wants to ask for any ROS
 	// parameters
 	parent_t::readROSParameters();
+
+	m_nh->param<bool>(m_cm_ns + "/" + "conservative_find_initial_tfs_to_neighbors",
+			m_conservative_find_initial_tfs_to_neighbors, false);
+	ASSERTMSG_(!m_conservative_find_initial_tfs_to_neighbors,
+			"Conservative behavior is not yet implemented.");
 
 	m_nh->param<int>(m_cm_ns + "/" + "num_last_registered_nodes",
 			m_num_last_regd_nodes, 10);
@@ -664,11 +975,12 @@ void CGraphSlamEngine_CM<GRAPH_T>::readROSParameters() {
 			<< m_intra_group_node_count_thresh_minadv
 			<< "]";
 	}
-	m_nh->param<int>(m_cm_ns + "/" + "valid_hypotheses_min_thresh",
-			m_valid_hypotheses_min_thresh, 2);
+}
 
-
-
+template<class GRAPH_T>
+void CGraphSlamEngine_CM<GRAPH_T>::printParams() {
+	parent_t::printParams();
+	m_alignment_options.dumpToConsole();
 }
 
 
@@ -720,7 +1032,6 @@ template<class GRAPH_T>
 bool CGraphSlamEngine_CM<GRAPH_T>::getCMGraph(
 		mrpt_msgs::GetCMGraph::Request& req,
 		mrpt_msgs::GetCMGraph::Response& res) {
-
 	using namespace std;
 	using namespace mrpt::utils;
 	using namespace mrpt::math;
@@ -773,8 +1084,7 @@ CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
 		const mrpt_msgs::GraphSlamAgent& agent_in):
 	engine(engine_in),
 	agent(agent_in),
-	has_setup_comm(false),
-	global_init_pos(mrpt::poses::UNINITIALIZED_POSE)
+	has_setup_comm(false)
 {
     using namespace mrpt::utils;
 
@@ -794,6 +1104,9 @@ CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
   engine.logFmt(LVL_DEBUG,
       "In constructor of TNeighborAgentProps for topic namespace: %s",
       agent.topic_namespace.data.c_str());
+
+	// initialize the occupancy map
+  gridmap_cached = mrpt::maps::COccupancyGridMap2D::Create();
 }
 
 template<class GRAPH_T>
@@ -831,27 +1144,25 @@ void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::setupSubs() {
 	last_regd_nodes_sub = nh->subscribe<NodeIDWithPose_vec>(
 			last_regd_nodes_topic,
 			m_queue_size,
-			&TNeighborAgentProps::updateNodes, this);
+			&TNeighborAgentProps::fetchUpdatedNodesList, this);
 	last_regd_id_scan_sub = nh->subscribe<NodeIDWithLaserScan>(
 			last_regd_id_scan_topic,
 			m_queue_size,
-			&TNeighborAgentProps::updateLastRegdIDScan, this);
-
+			&TNeighborAgentProps::fetchLastRegdIDScan, this);
 }
 
 template<class GRAPH_T>
-void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::updateNodes(
+void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::
+fetchUpdatedNodesList(
 		const mrpt_msgs::NodeIDWithPose_vec::ConstPtr& nodes) {
 	MRPT_START;
 	using namespace mrpt_msgs;
 	using namespace mrpt_bridge;
 	using namespace std;
 	using namespace mrpt::utils;
-std::cout << "TODO - Remove me. Kalimera ==> " << 103 << std::endl;
 
 	typedef typename GRAPH_T::constraint_t::type_value pose_t;
-    engine.logFmt(LVL_DEBUG, "In updateNodes method.");
-std::cout << "TODO - Remove me. Kalimera ==> " << 104 << std::endl;
+    engine.logFmt(LVL_DEBUG, "In fetchUpdatedNodesList method.");
 
 	for (NodeIDWithPose_vec::_vec_type::const_iterator
 			n_it = nodes->vec.begin();
@@ -903,18 +1214,17 @@ std::cout << "TODO - Remove me. Kalimera ==> " << 104 << std::endl;
   //print nodeIDs just for verification
 
   MRPT_END;
-}
+} // end of fetchUpdatedNodesList
 
 template<class GRAPH_T>
 void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::
-updateLastRegdIDScan(
+fetchLastRegdIDScan(
 		const mrpt_msgs::NodeIDWithLaserScan::ConstPtr& last_regd_id_scan) {
 	MRPT_START;
 	using namespace std;
 	using namespace mrpt::utils;
 	ASSERT_(last_regd_id_scan);
-std::cout << "TODO - Remove me. Kalimera ==> " << 105 << std::endl;
-  engine.logFmt(LVL_DEBUG, "In updateLastRegdIDScan method.");
+  engine.logFmt(LVL_DEBUG, "In fetchLastRegdIDScan method.");
 
 	// make sure I haven't received any LaserScan for the current nodeID
 	// TODO
@@ -927,14 +1237,14 @@ std::cout << "TODO - Remove me. Kalimera ==> " << 105 << std::endl;
 	has_new_scans = true;
 
 	MRPT_END;
-}
+} // end of fetchLastRegdIDScan
 
 template<class GRAPH_T>
 void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
 		vector_uint* nodeIDs/*=NULL*/,
 		std::map<
 			mrpt::utils::TNodeID,
-			TNodeProps>* nodes_params/*=NULL*/,
+			node_props_t>* nodes_params/*=NULL*/,
 		bool only_unused/*=true*/) const {
 	MRPT_START;
 	using namespace mrpt::obs;
@@ -944,9 +1254,6 @@ void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
 
 	// at least one of the two args should be given.
 	ASSERT_(nodeIDs || nodes_params);
-
-	engine.logFmt(LVL_DEBUG,
-			"In getCachedNodes, nodeIDs: %s", getSTLContainerAsString(nodeIDs_set).c_str());
 
 	// traverse all nodes
 	for (std::set<TNodeID>::const_iterator
@@ -960,9 +1267,7 @@ void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
 
 		// add the node properties
 		if (nodes_params) {
-			std::pair<
-				TNodeID,
-				TNodeProps> params;
+			std::pair<TNodeID, node_props_t> params; // current pair to be inserted.
 			const pose_t* p = &poses.at(*n_it);
 
 			params.first = *n_it;
@@ -976,23 +1281,19 @@ void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
       // Its natural to have more poses than LaserScans since on every node
       // registration I send a modified list of X node positions and just one
       // LaserScan
-      if (!ros_laser_scan) {
-				engine.logFmt(LVL_DEBUG,
-						"LaserScan of nodeID \"%lu\" for topic ns \"%s\"is not found.",
-						static_cast<unsigned long>(*n_it),
-						agent.topic_namespace.data.c_str());
-				continue;
-      }
+      if (!ros_laser_scan) { continue; }
 
 			mrpt_bridge::convert(*ros_laser_scan, *p, *mrpt_scan);
 			params.second.scan = mrpt_scan;
+
+			// insert the pair
 			nodes_params->insert(params);
 
 			// debugging message
-			std::stringstream ss;
-			ss << "\ntID: " << nodes_params->rbegin()->first
-				<< " ==> Props: " << nodes_params->rbegin()->second;
-			engine.logFmt(LVL_DEBUG, "%s", ss.str().c_str());
+			//std::stringstream ss;
+			//ss << "\ntID: " << nodes_params->rbegin()->first
+				//<< " ==> Props: " << nodes_params->rbegin()->second;
+			//engine.logFmt(LVL_DEBUG, "%s", ss.str().c_str());
 
 		}
 
@@ -1085,6 +1386,60 @@ CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::fillOptPaths(
 	MRPT_END;
 } // end of TNeighborAgentProps::fillOptPaths
 
+template<class GRAPH_T>
+void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::
+computeGridMap() const {
+	MRPT_START;
+	using namespace mrpt::poses;
+	using namespace mrpt::utils;
+	using namespace mrpt;
+	using namespace mrpt::math;
+
+	gridmap_cached->clear();
+
+	vector_uint nodeIDs;
+	std::map<TNodeID, node_props_t> nodes_params;
+	// get list of nodes, laser scans
+	this->getCachedNodes(&nodeIDs, &nodes_params, false);
+
+	// iterate over poses, scans. Add them to the gridmap.
+	for (typename map<TNodeID, node_props_t>::const_iterator
+			it = nodes_params.begin();
+			it != nodes_params.end();
+			++it) {
+		const CPose3D curr_pose_3d; // do not add the actual pose!
+		gridmap_cached->insertObservation(it->second.scan.pointer(), &curr_pose_3d);
+	}
+
+	MRPT_END;
+}
+
+template<class GRAPH_T>
+const mrpt::maps::COccupancyGridMap2DPtr&
+CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::
+getGridMap() const { 
+	MRPT_START;
+	if (hasNewData()) {
+		this->computeGridMap();
+	}
+
+	return gridmap_cached;
+	MRPT_END;
+}
+
+template<class GRAPH_T>
+void CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::
+getGridMap(mrpt::maps::COccupancyGridMap2DPtr& map) const {
+	MRPT_START;
+	ASSERT_(map.present());
+
+	if (hasNewData()) {
+		this->computeGridMap();
+	}
+
+	map->copyMapContentFrom(*gridmap_cached);
+	MRPT_END;
+}
 
 template<class GRAPH_T>
 bool CGraphSlamEngine_CM<GRAPH_T>::TNeighborAgentProps::hasNewData() const {

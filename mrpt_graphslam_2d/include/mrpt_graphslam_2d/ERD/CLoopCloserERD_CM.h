@@ -63,6 +63,9 @@ public:
 				mrpt::utils::TNodeID,
 				mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D);
 	void addScanMatchingEdges(mrpt::utils::TNodeID curr_nodeID);
+	void fetchNodeIDsForScanMatching(
+			const mrpt::utils::TNodeID& curr_nodeID,
+			std::set<mrpt::utils::TNodeID>* nodes_set);
 
 protected:
 

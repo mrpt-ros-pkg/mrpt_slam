@@ -64,7 +64,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: map
-      Topic: /csl_desktop_107/feedback/gridmap
+      Topic: /csl_desktop_119/feedback/gridmap
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -86,7 +86,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csl_desktop_107/feedback/robot_trajectory
+      Topic: /csl_desktop_119/feedback/robot_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -114,14 +114,14 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /csl_desktop_107/input/laser_scan
+      Topic: /csl_desktop_119/input/laser_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /csl_desktop_107/camera1/image_raw
+      Image Topic: /csl_desktop_119/camera1/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -137,7 +137,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /csl_desktop_107/feedback/gridmap
+      Topic: /csl_desktop_119/feedback/gridmap
       Unreliable: false
       Value: true
     - Class: rviz/Axes
@@ -152,7 +152,7 @@ Visualization Manager:
       Length: 1
       Name: Axes
       Radius: 0.1
-      Reference Frame: csl_desktop_107_anchor
+      Reference Frame: csl_desktop_119_anchor
       Value: true
     - Alpha: 1
       Axes Length: 1
@@ -166,7 +166,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /csl_desktop_107/feedback/robot_position
+      Topic: /csl_desktop_119/feedback/robot_position
       Unreliable: false
       Value: false
     - Alpha: 1
@@ -188,7 +188,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csl_desktop_107/feedback/odom_trajectory
+      Topic: /csl_desktop_119/feedback/odom_trajectory
       Unreliable: false
       Value: true
   Enabled: true

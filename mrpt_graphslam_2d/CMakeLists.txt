@@ -84,6 +84,7 @@ else()
 
   set(SR_GRAPHSLAM_SRC
     src/CConnectionManager.cpp
+  	src/common.cpp
     )
 
   set(MR_GRAPHSLAM_MERGER_SRC

@@ -31,10 +31,7 @@ void CLoopCloserERD_CM<GRAPH_T>::addBatchOfNodeIDsAndScans(
 		const std::map<
 			mrpt::utils::TNodeID,
 			mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D) {
-
-	this->m_nodes_to_laser_scans2D.insert(
-			nodeIDs_to_scans2D.begin(),
-			nodeIDs_to_scans2D.end());
+	cm_parent_t::addBatchOfNodeIDsAndScans(nodeIDs_to_scans2D);
 
 	// update the last known number of nodeIDs
 	this->m_last_total_num_nodes = this->m_graph->nodeCount();
@@ -42,7 +39,7 @@ void CLoopCloserERD_CM<GRAPH_T>::addBatchOfNodeIDsAndScans(
 	this->updateMapPartitions(/*full update=*/ true,
 			/* is_first_time_node_reg = */ false);
 	
-}
+} // end of addBatchOfNodeIDsAndScans
 
 template<class GRAPH_T>
 void CLoopCloserERD_CM<GRAPH_T>::addScanMatchingEdges(
@@ -51,12 +48,31 @@ void CLoopCloserERD_CM<GRAPH_T>::addScanMatchingEdges(
 
 	// Do scan-matching only if I have initially registered curr_nodeID in the
 	// graph.
-	bool is_own = this->m_engine.isOwnNodeID(curr_nodeID);
+	bool is_own = this->m_engine->isOwnNodeID(curr_nodeID);
 	if (is_own) {
 		lc_parent_t::addScanMatchingEdges(curr_nodeID);
 	}
 
 	MRPT_END;
+}
+
+template<class GRAPH_T>
+void CLoopCloserERD_CM<GRAPH_T>::fetchNodeIDsForScanMatching(
+		const mrpt::utils::TNodeID& curr_nodeID,
+		std::set<mrpt::utils::TNodeID>* nodes_set) {
+	ASSERT_(nodes_set);
+
+	size_t fetched_nodeIDs = 0;
+	for (int nodeID_i = static_cast<int>(curr_nodeID)-1;
+			((fetched_nodeIDs <= this->m_laser_params.prev_nodes_for_ICP) &&
+			 (nodeID_i >= 0)); 
+			--nodeID_i) {
+		bool is_own = this->m_engine->isOwnNodeID(nodeID_i);
+		if (is_own) {
+			nodes_set->insert(nodeID_i);
+			fetched_nodeIDs++;
+		}
+	}
 }
 		
 
