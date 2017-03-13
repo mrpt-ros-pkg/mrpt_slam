@@ -7,33 +7,27 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CICPCRITERIANRD_CM_H
-#define CICPCRITERIANRD_CM_H
+#ifndef CGRAPHSLAMOPTIMIZER_MR_H
+#define CGRAPHSLAMOPTIMIZER_MR_H
 
-#include "mrpt_graphslam_2d/interfaces/CNodeRegistrationDecider_CM.h"
-#include <mrpt/graphslam/NRD/CICPCriteriaNRD.h>
+namespace mrpt { namespace graphslam { namespace optimizers {
 
-namespace mrpt { namespace graphslam { namespace deciders {
-
-template<class GRAPH_T>
-class CICPCriteriaNRD_CM :
-	public virtual CICPCriteriaNRD<GRAPH_T>,
-	public virtual CNodeRegistrationDecider_CM<GRAPH_T>
+/**\brief Interface for implementing graphSLAM optimizer classes specific to
+ * the Condensed Measurements MR-SLAM case
+ */
+class CGraphSlamOptimizer_MR : 
+	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<GRAPH_T>
+	public virtual CGraphSlamOptimizer<GRAPH_T>
 {
 	public:
-		typedef CNodeRegistrationDecider_CM<GRAPH_T> parent_cm;
-		typedef CICPCriteriaNRD<GRAPH_T> parent_mrpt;
-		typedef typename GRAPH_T::global_pose_t global_pose_t;
-
-		CICPCriteriaNRD_CM();
+	CGraphSlamOptimizer_MR ();
+	~CGraphSlamOptimizer_MR ();
 
 	private:
 
 
-};
-
 } } } // end of namespaces
 
-#include "CICPCriteriaNRD_CM_impl.h"
+#endif /* end of include guard: CGRAPHSLAMOPTIMIZER_MR_H */
 
-#endif /* end of include guard: CICPCRITERIANRD_CM_H */
+

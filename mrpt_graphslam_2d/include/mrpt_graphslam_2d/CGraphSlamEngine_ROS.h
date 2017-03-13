@@ -89,7 +89,7 @@ protected:
 	/**\brief Custom Callback queue for processing requests for the
 	 * services outside the standard CallbackQueue.
 	 *
-	 * \note Logical thing would be to define it in CGraphSlamEngine_CM, but that
+	 * \note Logical thing would be to define it in CGraphSlamEngine_MR, but that
 	 * results in an segfault with the following error message:
 	 * ```
 	 * pure virtual method called

@@ -14,9 +14,9 @@
 
 #include <mrpt/graphslam/apps_related/TUserOptionsChecker.h>
 #include <mrpt/graphs/CNetworkOfPoses.h>
-#include "mrpt_graphslam_2d/NRD/CFixedIntervalsNRD_CM.h"
-#include "mrpt_graphslam_2d/NRD/CICPCriteriaNRD_CM.h"
-#include "mrpt_graphslam_2d/ERD/CLoopCloserERD_CM.h"
+#include "mrpt_graphslam_2d/NRD/CFixedIntervalsNRD_MR.h"
+#include "mrpt_graphslam_2d/NRD/CICPCriteriaNRD_MR.h"
+#include "mrpt_graphslam_2d/ERD/CLoopCloserERD_MR.h"
 
 namespace mrpt { namespace graphslam { namespace apps {
 

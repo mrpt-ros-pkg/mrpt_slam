@@ -1,13 +1,13 @@
-#ifndef CREGISTRATIONDECIDEROROPTIMIZER_CM_H
-#define CREGISTRATIONDECIDEROROPTIMIZER_CM_H
+#ifndef CREGISTRATIONDECIDEROROPTIMIZER_MR_H
+#define CREGISTRATIONDECIDEROROPTIMIZER_MR_H
 
-#include "mrpt_graphslam_2d/CGraphSlamEngine_CM.h"
+#include "mrpt_graphslam_2d/CGraphSlamEngine_MR.h"
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_ROS.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
 
 // forward declaration
 namespace mrpt { namespace graphslam {
-template<class GRAPH_t> class CGraphSlamEngine_CM;
+template<class GRAPH_t> class CGraphSlamEngine_MR;
 } }// end of namespaces
 
 namespace mrpt { namespace graphslam {
@@ -18,18 +18,18 @@ namespace mrpt { namespace graphslam {
  * \warning Beware that this class <b>does not</b> inherit from the
  * mrpt::graphslam::CNodeRegistrationDeciderOrOptimizer.
  *
- * \note Condensed Measurements-related classes are suffixed with _CM.
+ * \note Condensed Measurements-related classes are suffixed with _MR.
  *
  */
 template<class GRAPH_T>
-class CRegistrationDeciderOrOptimizer_CM :
+class CRegistrationDeciderOrOptimizer_MR :
 	public mrpt::graphslam::CRegistrationDeciderOrOptimizer_ROS<GRAPH_T>
 {
 public:
-	typedef CGraphSlamEngine_CM<GRAPH_T> engine_t;
+	typedef CGraphSlamEngine_MR<GRAPH_T> engine_t;
 
-	CRegistrationDeciderOrOptimizer_CM();
-	~CRegistrationDeciderOrOptimizer_CM();
+	CRegistrationDeciderOrOptimizer_MR();
+	~CRegistrationDeciderOrOptimizer_MR();
 
 	void setCGraphSlamEnginePtr(const engine_t* engine);
 	virtual void setCConnectionManagerPtr(
@@ -51,6 +51,6 @@ protected:
 } } // end of namespaces
 
 // template methods implementations
-#include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM_impl.h"
+#include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_MR_impl.h"
 
-#endif /* end of include guard: CREGISTRATIONDECIDEROROPTIMIZER_CM_H */
+#endif /* end of include guard: CREGISTRATIONDECIDEROROPTIMIZER_MR_H */

@@ -7,19 +7,16 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CFIXEDINTERVALSNRD_CM_IMPL_H
-#define CFIXEDINTERVALSNRD_CM_IMPL_H
+#ifndef CICPCRITERIANRD_MR_IMPL_H
+#define CICPCRITERIANRD_MR_IMPL_H
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
 template<class GRAPH_T>
-CFixedIntervalsNRD_CM<GRAPH_T>::CFixedIntervalsNRD_CM() {
-	this->initializeLoggers("CFixedIntervalsNRD_CM");
+CICPCriteriaNRD_MR<GRAPH_T>::CICPCriteriaNRD_MR() {
+	this->initializeLoggers("CICPCriteriaNRD_MR");
 }
 
 } } } // end of namespaces
 
-
-
-#endif /* end of include guard: CFIXEDINTERVALSNRD_CM_IMPL_H */
-
+#endif /* end of include guard: CICPCRITERIANRD_MR_IMPL_H */

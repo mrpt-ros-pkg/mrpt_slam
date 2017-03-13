@@ -7,23 +7,23 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CNODEREGISTRATIONDECIDER_CM_IMPL_H
-#define CNODEREGISTRATIONDECIDER_CM_IMPL_H
+#ifndef CNODEREGISTRATIONDECIDER_MR_IMPL_H
+#define CNODEREGISTRATIONDECIDER_MR_IMPL_H
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
 template<class GRAPH_T>
-CNodeRegistrationDecider_CM<GRAPH_T>::CNodeRegistrationDecider_CM() {}
+CNodeRegistrationDecider_MR<GRAPH_T>::CNodeRegistrationDecider_MR() {}
 
 template<class GRAPH_T>
-CNodeRegistrationDecider_CM<GRAPH_T>::~CNodeRegistrationDecider_CM() {}
+CNodeRegistrationDecider_MR<GRAPH_T>::~CNodeRegistrationDecider_MR() {}
 
 template<class GRAPH_T>
-void CNodeRegistrationDecider_CM<GRAPH_T>::addNodeAnnotsToPose(
+void CNodeRegistrationDecider_MR<GRAPH_T>::addNodeAnnotsToPose(
 		global_pose_t* pose) const { }
 
 template<>
-void CNodeRegistrationDecider_CM<mrpt::graphs::CNetworkOfPoses2DInf_NA>::addNodeAnnotsToPose(
+void CNodeRegistrationDecider_MR<mrpt::graphs::CNetworkOfPoses2DInf_NA>::addNodeAnnotsToPose(
 		global_pose_t* pose) const {
 	ASSERT_(pose);
 
@@ -36,4 +36,4 @@ void CNodeRegistrationDecider_CM<mrpt::graphs::CNetworkOfPoses2DInf_NA>::addNode
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CNODEREGISTRATIONDECIDER_CM_IMPL_H */
+#endif /* end of include guard: CNODEREGISTRATIONDECIDER_MR_IMPL_H */

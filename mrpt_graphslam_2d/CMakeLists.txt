@@ -99,9 +99,9 @@ else()
     ${SR_GRAPHSLAM_SRC}
     src/${PROJECT_NAME}_node.cpp
     )
-  add_executable(${PROJECT_NAME}_cm_node
+  add_executable(${PROJECT_NAME}_mr_node
     ${SR_GRAPHSLAM_SRC}
-    src/${PROJECT_NAME}_cm_node.cpp
+    src/${PROJECT_NAME}_mr_node.cpp
     )
   add_executable(map_merger_node
   	${SR_GRAPHSLAM_SRC}
@@ -118,7 +118,7 @@ else()
     ${MRPT_LIBS}
     ${catkin_LIBRARIES}
     )
-  target_link_libraries(${PROJECT_NAME}_cm_node
+  target_link_libraries(${PROJECT_NAME}_mr_node
     ${MRPT_LIBS}
     ${catkin_LIBRARIES}
     )
@@ -133,7 +133,7 @@ else()
 
   # Mark executables and/or libraries for installation
   install(
-  	TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node ${PROJECT_NAME}_cm_node map_merger_node
+  	TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node ${PROJECT_NAME}_mr_node map_merger_node
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

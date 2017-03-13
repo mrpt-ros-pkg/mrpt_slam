@@ -43,7 +43,7 @@
 #include <mrpt/graphslam/apps_related/CGraphSlamHandler.h>
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS.h"
-#include "mrpt_graphslam_2d/CGraphSlamEngine_CM.h"
+#include "mrpt_graphslam_2d/CGraphSlamEngine_MR.h"
 #include "mrpt_graphslam_2d/TUserOptionsChecker_ROS.h"
 
 
@@ -146,7 +146,7 @@ class CGraphSlamHandler_ROS :
 	 	 */
 		/**\{*/
 		void initEngine_ROS();
-		void initEngine_CM();
+		void initEngine_MR();
 		/**\}*/
 
 		static const std::string sep_header;

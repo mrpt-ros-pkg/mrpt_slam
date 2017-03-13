@@ -7,14 +7,14 @@
 	 | Released under BSD License. See details in http://www.mrpt.org/License    |
 	 +---------------------------------------------------------------------------+ */
 
-#ifndef CGRAPHSLAMENGINE_CM_H
-#define CGRAPHSLAMENGINE_CM_H
+#ifndef CGRAPHSLAMENGINE_MR_H
+#define CGRAPHSLAMENGINE_MR_H
 
 #include <ros/callback_queue.h>
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS.h"
-#include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM.h"
-#include "mrpt_graphslam_2d/interfaces/CEdgeRegistrationDecider_CM.h"
+#include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_MR.h"
+#include "mrpt_graphslam_2d/interfaces/CEdgeRegistrationDecider_MR.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
 #include "mrpt_graphslam_2d/misc/common.h"
 
@@ -30,6 +30,7 @@
 #include <mrpt/poses/CPosePDFSOG.h>
 
 #include <mrpt/math/utils.h>
+#include <mrpt/utils/TColorManager.h>
 #include <mrpt/system/os.h>
 #include <mrpt/slam/CGridMapAligner.h>
 #include <mrpt/graphs/TMRSlamNodeAnnotations.h>
@@ -42,15 +43,15 @@
 
 namespace mrpt { namespace graphslam {
 
-/** \brief mrpt::graphslam::CGraphSlamEngine derived class for interacting
- * executing CondensedMeasurements multi-robot graphSLAM
+/** \brief mrpt::graphslam::CGraphSlamEngine derived class for executing
+ * multi-robot graphSLAM
  */
 template<class GRAPH_T>
-class CGraphSlamEngine_CM : public CGraphSlamEngine_ROS<GRAPH_T>
+class CGraphSlamEngine_MR : public CGraphSlamEngine_ROS<GRAPH_T>
 {
 public:
 	typedef CGraphSlamEngine_ROS<GRAPH_T> parent_t;
-	typedef CGraphSlamEngine_CM<GRAPH_T> self_t;
+	typedef CGraphSlamEngine_MR<GRAPH_T> self_t;
 	typedef typename GRAPH_T::constraint_t constraint_t;
 	typedef typename constraint_t::type_value pose_t;
 	typedef std::pair<
@@ -67,9 +68,9 @@ public:
 	typedef typename mrpt::graphslam::detail::TNodeProps<GRAPH_T> node_props_t;
 	typedef mrpt::graphslam::TUncertaintyPath<GRAPH_T> path_t;
 	typedef std::vector<path_t> paths_t;
-	typedef CEdgeRegistrationDecider_CM<GRAPH_T> edge_reg_cm_t;
+	typedef CEdgeRegistrationDecider_MR<GRAPH_T> edge_reg_mr_t;
 
-	CGraphSlamEngine_CM(
+	CGraphSlamEngine_MR(
 			ros::NodeHandle* nh,
 			const std::string& config_file,
 			const std::string& rawlog_fname="",
@@ -80,7 +81,7 @@ public:
 			mrpt::graphslam::optimizers::CGraphSlamOptimizer<GRAPH_T>* optimizer=NULL
 			);
 
-	~CGraphSlamEngine_CM();
+	~CGraphSlamEngine_MR();
 
 	bool _execGraphSlamStep(
 			mrpt::obs::CActionCollectionPtr& action,
@@ -97,7 +98,7 @@ public:
 	struct TNeighborAgentProps {
 		/**\brief Constructor */
 		TNeighborAgentProps(
-				CGraphSlamEngine_CM<GRAPH_T>& engine_in,
+				CGraphSlamEngine_MR<GRAPH_T>& engine_in,
 				const mrpt_msgs::GraphSlamAgent& agent_in);
 		/**\brief Destructor */
 		~TNeighborAgentProps();
@@ -157,6 +158,13 @@ public:
 		/**\brief Fill the given occupancy gridmap object with the current neighbor's grdmap.
 		 */
 		void getGridMap(mrpt::maps::COccupancyGridMap2DPtr& map) const;
+		/**\brief Return True if there are new data (node positions and
+		 * corresponding LaserScans available)
+		 *
+		 * Caller is responsible of setting the underlying has_new_* variables to
+		 * false using the resetFlags method upon successful integration of (some
+		 * of) the nodes
+		 */
 		bool hasNewData() const;
 		std::string getAgentNs() const { return this->agent.topic_namespace.data; }
 		void resetFlags() const;
@@ -172,10 +180,15 @@ public:
 		 * a nodeID
 		 */
 		const sensor_msgs::LaserScan* getLaserScanByNodeID(
-				const mrpt::utils::TNodeID& nodeID) const;
+				const mrpt::utils::TNodeID nodeID) const;
 
 		/**\brief Pointer to the GraphSlamAgent instance of the neighbor */
 		const mrpt_msgs::GraphSlamAgent& agent;
+
+		void setTColor(const mrpt::utils::TColor& color_in) { color = color_in; }
+		/**\brief Unique color of current TNeighborAgentProps instance
+		 */
+		mrpt::utils::TColor color;
 
 		/**\name Neighbor cached properties */
 		/**\{ */
@@ -186,7 +199,7 @@ public:
 		/**\brief ROS LaserScans that I have received from this graphSLAM agent. */
 		std::vector<mrpt_msgs::NodeIDWithLaserScan> ros_scans;
 		/**\brief Have I already integrated  this node in my graph?
-		 * \note CGraphSlamEngine_CM instance is responsible of setting these values to
+		 * \note CGraphSlamEngine_MR instance is responsible of setting these values to
 		 * true when it integrates them in own graph
 		 */
 		std::map<mrpt::utils::TNodeID, bool> nodeID_to_is_integrated;
@@ -202,7 +215,7 @@ public:
 
 		/**\brief Constant reference to the outer class
 		 */
-		CGraphSlamEngine_CM<GRAPH_T>& engine;
+		CGraphSlamEngine_MR<GRAPH_T>& engine;
 		/**\name Full topic names / service names
 		 * \brief Names of the full topic paths that the neighbor publishes nodes,
 		 * LaserScans at.
@@ -222,7 +235,7 @@ public:
 		mutable bool has_new_scans;
 
 		int m_queue_size;
-		/**\brief NodeHandle passed by the calling CGraphSlamEngine_CM class
+		/**\brief NodeHandle passed by the calling CGraphSlamEngine_MR class
 		 */
 		ros::NodeHandle* nh;
 		bool has_setup_comm;
@@ -237,14 +250,14 @@ public:
 	const neighbors_t& getVecOfNeighborAgentProps() const {
 		return m_neighbors;
 	}
-	/**\brief Return true if current CGraphSlamEngine_CM object initially
+	/**\brief Return true if current CGraphSlamEngine_MR object initially
 	 * registered this nodeID, false otherwise.
 	 * \param[in] nodeID nodeID for which the query is made.
 	 * \exc runtime_error In case given nodeID isn't registered at all in the
 	 * graph
 	 */
 	bool isOwnNodeID(
-			const mrpt::utils::TNodeID& nodeID,
+			const mrpt::utils::TNodeID nodeID,
 			const global_pose_t* pose_out=NULL) const;
 
 
@@ -319,8 +332,10 @@ private:
 	void readROSParameters();
 	void printParams();
 	mrpt::poses::CPose3D getLSPoseForGridMapVisualization(
-			const mrpt::utils::TNodeID& nodeID) const;
-
+			const mrpt::utils::TNodeID nodeID) const;
+	void setObjectPropsFromNodeID(
+			const mrpt::utils::TNodeID nodeID,
+			mrpt::opengl::CSetOfObjectsPtr& viz_object);
 	/**\brief Overriden method that takes in account registration of multiple
 	 * nodes of other running graphSLAM agents
 	 *
@@ -328,6 +343,16 @@ private:
 	void monitorNodeRegistration(
 			bool registered=false,
 			std::string class_name="Class");
+	/**\brief Fill given set with the nodeIDs that were initially registered by
+	 * the current graphSLAM engine (and not by any neighboring agent.
+	 */
+	void getAllOwnNodes(
+		std::set<mrpt::utils::TNodeID>* nodes_set) const;
+	void getNodeIDsOfEstimatedTrajectory(
+		std::set<mrpt::utils::TNodeID>* nodes_set) const;
+	void getRobotEstimatedTrajectory(
+			typename GRAPH_T::global_poses_t* graph_poses) const;
+
 
 	/**\brief GraphSlamAgent instance pointer to TNeighborAgentProps
 	 *
@@ -372,7 +397,7 @@ private:
 	/**\{*/
 
 	/**\brief Condensed Measurements topic \a namespace */
-	std::string m_cm_ns;
+	std::string m_mr_ns;
 	/**\brief Name of topic at which we publish information about the agents that
 	 * we can currently communicate with.
 	 */
@@ -481,6 +506,7 @@ private:
 	 * \warning Rendez-vous behavior is not yet implemented.
 	 */
 	bool m_conservative_find_initial_tfs_to_neighbors;
+	mrpt::utils::TColorManager neighbor_colors_manager;
 
 };
 
@@ -488,6 +514,6 @@ private:
 } } // end of namespaces
 
 // pseudo-split decleration from implementation
-#include "mrpt_graphslam_2d/CGraphSlamEngine_CM_impl.h"
+#include "mrpt_graphslam_2d/CGraphSlamEngine_MR_impl.h"
 
-#endif /* end of include guard: CGRAPHSLAMENGINE_CM_H */
+#endif /* end of include guard: CGRAPHSLAMENGINE_MR_H */

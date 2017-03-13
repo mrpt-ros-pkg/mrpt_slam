@@ -6,10 +6,10 @@
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
-#ifndef CEDGEREGISTRATIONDECIDER_CM_H
-#define CEDGEREGISTRATIONDECIDER_CM_H
+#ifndef CEDGEREGISTRATIONDECIDER_MR_H
+#define CEDGEREGISTRATIONDECIDER_MR_H
 
-#include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_CM.h"
+#include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_MR.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
 #include <mrpt/graphslam/interfaces/CRangeScanEdgeRegistrationDecider.h>
 
@@ -23,10 +23,10 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * SLAM scheme according to the Condensed Measurements multi-robot strategy by
  * M.T. Lazaro et al. [1] are to inherit from this method.
  *
- * \note Condensed Measurements-related classes are suffixed with _CM.
+ * \note Condensed Measurements-related classes are suffixed with _MR.
  *
  * \note For an example of inheriting from this class, see the
- * mrpt::graphslam::deciders::CLoopCloserERD_CM.
+ * mrpt::graphslam::deciders::CLoopCloserERD_MR.
  *
  * [1] <a
  * href="http://webdiis.unizar.es/~mtlazaro/papers/Lazaro-IROS13.pdf">Multi-robot
@@ -34,13 +34,13 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * J.A. Castellanos, G. Grisetti
  */
 template<class GRAPH_T>
-class CEdgeRegistrationDecider_CM :
-	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_T>,
+class CEdgeRegistrationDecider_MR :
+	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<GRAPH_T>,
 	public virtual mrpt::graphslam::deciders::CRangeScanEdgeRegistrationDecider<GRAPH_T>
 {
 public:
-	CEdgeRegistrationDecider_CM ();
-	~CEdgeRegistrationDecider_CM ();
+	CEdgeRegistrationDecider_MR ();
+	~CEdgeRegistrationDecider_MR ();
 	void addBatchOfNodeIDsAndScans(
 			const std::map<
 				mrpt::utils::TNodeID,
@@ -51,5 +51,5 @@ protected:
 
 } } } // end of namespaces
 
-#include "CEdgeRegistrationDecider_CM_impl.h"
-#endif /* end of include guard: CEDGEREGISTRATIONDECIDER_CM_H */
+#include "CEdgeRegistrationDecider_MR_impl.h"
+#endif /* end of include guard: CEDGEREGISTRATIONDECIDER_MR_H */

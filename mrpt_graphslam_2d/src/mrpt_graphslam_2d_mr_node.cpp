@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	COutputLogger logger;
 
 	try {
-		std::string node_name = "mrpt_graphslam_2d_cm";
+		std::string node_name = "mrpt_graphslam_2d_mr";
 
   	ros::init(argc, argv, node_name);
 		ros::NodeHandle nh;
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 		CGraphSlamHandler_ROS<CNetworkOfPoses2DInf_NA> graphslam_handler(
 				&logger, &options_checker, &nh);
 		graphslam_handler.readParams();
-		graphslam_handler.initEngine_CM();
+		graphslam_handler.initEngine_MR();
 		graphslam_handler.setupComm();
 
 		std::string ns = nh.getNamespace();

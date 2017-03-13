@@ -522,8 +522,6 @@ void CMapMerger::mergeMaps() {
 
 		} // end for all gridmaps
 
-		cout << "neighbor_to_is_used: " << getMapAsString(neighbor_to_is_used) << endl;
-
 		TColorManager traj_color_mngr; // different color to each trajectory
 		// Traverse and add all the trajectories to the fused map visualization
 		for (trajectories_t::const_iterator
@@ -551,7 +549,7 @@ void CMapMerger::mergeMaps() {
 			curr_traj->setColor(traj_color_mngr.getNextTColorf());
 			curr_traj->setPose(rel_pose);
 			curr_traj->setName(format("traj_%s", curr_neighbor->agent.topic_namespace.data.c_str()));
-			{
+			{ // save 3D Scene
 				COpenGLScenePtr fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
 				fused_scene->insert(curr_traj);
 
@@ -560,6 +558,18 @@ void CMapMerger::mergeMaps() {
 			}
 
 		}
+
+
+		{ // save the COpenGLScene
+
+			COpenGLScenePtr fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
+			std::string fname = output_dir_fname + "/" + "output_scene.3DScene";
+			fused_scene->saveToFile(fname);
+
+			m_fused_map_win_manager->win->unlockAccess3DScene();
+			m_fused_map_win_manager->win->forceRepaint();
+		}
+
 
 		// save final fused map
 		// TODO

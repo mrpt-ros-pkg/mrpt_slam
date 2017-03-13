@@ -7,19 +7,19 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CEDGEREGISTRATIONDECIDER_CM_IMPL_H
-#define CEDGEREGISTRATIONDECIDER_CM_IMPL_H
+#ifndef CEDGEREGISTRATIONDECIDER_MR_IMPL_H
+#define CEDGEREGISTRATIONDECIDER_MR_IMPL_H
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
 template<class GRAPH_T>
-CEdgeRegistrationDecider_CM<GRAPH_T>::CEdgeRegistrationDecider_CM() {}
+CEdgeRegistrationDecider_MR<GRAPH_T>::CEdgeRegistrationDecider_MR() {}
 
 template<class GRAPH_T>
-CEdgeRegistrationDecider_CM<GRAPH_T>::~CEdgeRegistrationDecider_CM() {}
+CEdgeRegistrationDecider_MR<GRAPH_T>::~CEdgeRegistrationDecider_MR() {}
 
 template<class GRAPH_T>
-void CEdgeRegistrationDecider_CM<GRAPH_T>::addBatchOfNodeIDsAndScans(
+void CEdgeRegistrationDecider_MR<GRAPH_T>::addBatchOfNodeIDsAndScans(
 		const std::map<
 			mrpt::utils::TNodeID,
 			mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D) {
@@ -35,4 +35,4 @@ void CEdgeRegistrationDecider_CM<GRAPH_T>::addBatchOfNodeIDsAndScans(
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CEDGEREGISTRATIONDECIDER_CM_IMPL_H */
+#endif /* end of include guard: CEDGEREGISTRATIONDECIDER_MR_IMPL_H */

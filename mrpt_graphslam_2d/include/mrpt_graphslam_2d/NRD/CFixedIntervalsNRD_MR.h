@@ -7,27 +7,35 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CGRAPHSLAMOPTIMIZER_CM_H
-#define CGRAPHSLAMOPTIMIZER_CM_H
+#ifndef CFIXEDINTERVALSNRD_MR_H
+#define CFIXEDINTERVALSNRD_MR_H
 
-namespace mrpt { namespace graphslam { namespace optimizers {
+#include "mrpt_graphslam_2d/interfaces/CNodeRegistrationDecider_MR.h"
+#include <mrpt/graphslam/NRD/CICPCriteriaNRD.h>
 
-/**\brief Interface for implementing graphSLAM optimizer classes specific to
- * the Condensed Measurements MR-SLAM case
- */
-class CGraphSlamOptimizer_CM : 
-	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_CM<GRAPH_T>
-	public virtual CGraphSlamOptimizer<GRAPH_T>
+namespace mrpt { namespace graphslam { namespace deciders {
+
+template<class GRAPH_T>
+class CFixedIntervalsNRD_MR :
+	public virtual CFixedIntervalsNRD<GRAPH_T>,
+	public virtual CNodeRegistrationDecider_MR<GRAPH_T>
 {
 	public:
-	CGraphSlamOptimizer_CM ();
-	~CGraphSlamOptimizer_CM ();
+		typedef CNodeRegistrationDecider_MR<GRAPH_T> parent_cm;
+		typedef CFixedIntervalsNRD<GRAPH_T> parent_mrpt;
+		typedef typename GRAPH_T::global_pose_t global_pose_t;
+
+		CFixedIntervalsNRD_MR();
 
 	private:
 
 
+};
+
 } } } // end of namespaces
 
-#endif /* end of include guard: CGRAPHSLAMOPTIMIZER_CM_H */
+#include "CFixedIntervalsNRD_MR_impl.h"
 
+
+#endif /* end of include guard: CFIXEDINTERVALSNRD_MR_H */
 

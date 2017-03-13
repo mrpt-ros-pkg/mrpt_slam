@@ -7,14 +7,14 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CLOOPCLOSERERD_CM_IMPL_H
-#define CLOOPCLOSERERD_CM_IMPL_H
+#ifndef CLOOPCLOSERERD_MR_IMPL_H
+#define CLOOPCLOSERERD_MR_IMPL_H
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
 // Ctors, Dtors
 template<class GRAPH_T>
-CLoopCloserERD_CM<GRAPH_T>::CLoopCloserERD_CM() {
+CLoopCloserERD_MR<GRAPH_T>::CLoopCloserERD_MR() {
 	// CLoopCloser Ctor is automatically called.
 
 	this->is_mr_slam_class = true;
@@ -23,26 +23,26 @@ CLoopCloserERD_CM<GRAPH_T>::CLoopCloserERD_CM() {
 	// between successive calls
 	this->m_override_registered_nodes_check = true;
 
-	this->initializeLoggers("CLoopCloserERD_CM");
+	this->initializeLoggers("CLoopCloserERD_MR");
 }
 
 template<class GRAPH_T>
-void CLoopCloserERD_CM<GRAPH_T>::addBatchOfNodeIDsAndScans(
+void CLoopCloserERD_MR<GRAPH_T>::addBatchOfNodeIDsAndScans(
 		const std::map<
 			mrpt::utils::TNodeID,
 			mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D) {
-	cm_parent_t::addBatchOfNodeIDsAndScans(nodeIDs_to_scans2D);
+	mr_parent_t::addBatchOfNodeIDsAndScans(nodeIDs_to_scans2D);
 
 	// update the last known number of nodeIDs
 	this->m_last_total_num_nodes = this->m_graph->nodeCount();
 
 	this->updateMapPartitions(/*full update=*/ true,
 			/* is_first_time_node_reg = */ false);
-	
+
 } // end of addBatchOfNodeIDsAndScans
 
 template<class GRAPH_T>
-void CLoopCloserERD_CM<GRAPH_T>::addScanMatchingEdges(
+void CLoopCloserERD_MR<GRAPH_T>::addScanMatchingEdges(
 		mrpt::utils::TNodeID curr_nodeID) {
 	MRPT_START;
 
@@ -57,7 +57,7 @@ void CLoopCloserERD_CM<GRAPH_T>::addScanMatchingEdges(
 }
 
 template<class GRAPH_T>
-void CLoopCloserERD_CM<GRAPH_T>::fetchNodeIDsForScanMatching(
+void CLoopCloserERD_MR<GRAPH_T>::fetchNodeIDsForScanMatching(
 		const mrpt::utils::TNodeID& curr_nodeID,
 		std::set<mrpt::utils::TNodeID>* nodes_set) {
 	ASSERT_(nodes_set);
@@ -77,13 +77,13 @@ void CLoopCloserERD_CM<GRAPH_T>::fetchNodeIDsForScanMatching(
 		
 
 template<class GRAPH_T>
-CLoopCloserERD_CM<GRAPH_T>::~CLoopCloserERD_CM() {
+CLoopCloserERD_MR<GRAPH_T>::~CLoopCloserERD_MR() {
 	// CLoopCloser Dtor is automatically called.
 }
 
 // Member methods implementations
 template<class GRAPH_T>
-bool CLoopCloserERD_CM<GRAPH_T>::updateState(
+bool CLoopCloserERD_MR<GRAPH_T>::updateState(
 		mrpt::obs::CActionCollectionPtr action,
 		mrpt::obs::CSensoryFramePtr observations,
 		mrpt::obs::CObservationPtr observation ) {
@@ -98,4 +98,4 @@ bool CLoopCloserERD_CM<GRAPH_T>::updateState(
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CLOOPCLOSERERD_CM_IMPL_H */
+#endif /* end of include guard: CLOOPCLOSERERD_MR_IMPL_H */

@@ -33,7 +33,7 @@
 namespace mrpt { namespace graphslam { namespace detail {
 
 /**\brief Class responsible of handling the network communication between SLAM
- * agents in the Multi-Robot Condensed Measurements graphSLAM algorithm.
+ * agents in the Multi-Robot graphSLAM algorithm.
  */
 class CConnectionManager
 {

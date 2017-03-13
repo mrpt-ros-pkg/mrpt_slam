@@ -28,15 +28,15 @@ void TUserOptionsChecker_ROS<GRAPH_T>::createDeciderOptimizerMappings() {
 	parent::createDeciderOptimizerMappings();
 
 	// node registration deciders
-	this->node_regs_map["CICPCriteriaNRD_CM"] =
-		parent::template createNodeRegistrationDecider<CICPCriteriaNRD_CM<GRAPH_T>>;
-	this->node_regs_map["CFixedIntervalsNRD_CM"] =
-		parent::template createNodeRegistrationDecider<CFixedIntervalsNRD_CM<GRAPH_T>>;
+	this->node_regs_map["CICPCriteriaNRD_MR"] =
+		parent::template createNodeRegistrationDecider<CICPCriteriaNRD_MR<GRAPH_T>>;
+	this->node_regs_map["CFixedIntervalsNRD_MR"] =
+		parent::template createNodeRegistrationDecider<CFixedIntervalsNRD_MR<GRAPH_T>>;
 
 
 	// edge registration deciders
-	this->edge_regs_map["CLoopCloserERD_CM"] =
-		parent::template createEdgeRegistrationDecider<CLoopCloserERD_CM<GRAPH_T>>;
+	this->edge_regs_map["CLoopCloserERD_MR"] =
+		parent::template createEdgeRegistrationDecider<CLoopCloserERD_MR<GRAPH_T>>;
 
 	// optimizers
 
@@ -48,9 +48,9 @@ void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties() {
 	using namespace std;
 
 	parent::populateDeciderOptimizerProperties();
-	{ // CICPCriteriaNRD_CM
+	{ // CICPCriteriaNRD_MR
 		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
-		dec->name = "CICPCriteriaNRD_CM";
+		dec->name = "CICPCriteriaNRD_MR";
 		dec->description =
 			"Multi-robot SLAM implementation of the CICPCriteriaNRD class based on \"Condensed Measurements\"";
 		dec->type = "Node";
@@ -60,9 +60,9 @@ void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties() {
 
 		this->regs_descriptions.push_back(dec);
 	}
-	{ // CFixedIntervalsNRD_CM
+	{ // CFixedIntervalsNRD_MR
 		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
-		dec->name = "CFixedIntervalsNRD_CM";
+		dec->name = "CFixedIntervalsNRD_MR";
 		dec->description =
 			"Multi-robot SLAM implementation of the CFixedIntervalsNRD class based on \"Condensed Measurements\"";
 		dec->type = "Node";
@@ -73,9 +73,9 @@ void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties() {
 		this->regs_descriptions.push_back(dec);
 	}
 
-	{ // CLoopCloserERD_CM
+	{ // CLoopCloserERD_MR
 		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
-		dec->name = "CLoopCloserERD_CM";
+		dec->name = "CLoopCloserERD_MR";
 		dec->description =
 			"Multi-robot SLAM implementation of the CLoopCloserERD class based on \"Condensed Measurements\"";
 		dec->type = "Edge";

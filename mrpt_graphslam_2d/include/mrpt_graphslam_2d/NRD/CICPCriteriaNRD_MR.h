@@ -7,25 +7,25 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CFIXEDINTERVALSNRD_CM_H
-#define CFIXEDINTERVALSNRD_CM_H
+#ifndef CICPCRITERIANRD_MR_H
+#define CICPCRITERIANRD_MR_H
 
-#include "mrpt_graphslam_2d/interfaces/CNodeRegistrationDecider_CM.h"
+#include "mrpt_graphslam_2d/interfaces/CNodeRegistrationDecider_MR.h"
 #include <mrpt/graphslam/NRD/CICPCriteriaNRD.h>
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
 template<class GRAPH_T>
-class CFixedIntervalsNRD_CM :
-	public virtual CFixedIntervalsNRD<GRAPH_T>,
-	public virtual CNodeRegistrationDecider_CM<GRAPH_T>
+class CICPCriteriaNRD_MR :
+	public virtual CICPCriteriaNRD<GRAPH_T>,
+	public virtual CNodeRegistrationDecider_MR<GRAPH_T>
 {
 	public:
-		typedef CNodeRegistrationDecider_CM<GRAPH_T> parent_cm;
-		typedef CFixedIntervalsNRD<GRAPH_T> parent_mrpt;
+		typedef CNodeRegistrationDecider_MR<GRAPH_T> parent_cm;
+		typedef CICPCriteriaNRD<GRAPH_T> parent_mrpt;
 		typedef typename GRAPH_T::global_pose_t global_pose_t;
 
-		CFixedIntervalsNRD_CM();
+		CICPCriteriaNRD_MR();
 
 	private:
 
@@ -34,8 +34,6 @@ class CFixedIntervalsNRD_CM :
 
 } } } // end of namespaces
 
-#include "CFixedIntervalsNRD_CM_impl.h"
+#include "CICPCriteriaNRD_MR_impl.h"
 
-
-#endif /* end of include guard: CFIXEDINTERVALSNRD_CM_H */
-
+#endif /* end of include guard: CICPCRITERIANRD_MR_H */
