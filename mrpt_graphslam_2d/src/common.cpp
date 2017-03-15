@@ -45,3 +45,11 @@ bool mrpt::graphslam::detail::essentiallyEqual(double a, double b) {
 	return essentiallyEqual(a, b, std::numeric_limits<double>::epsilon());
 }
 
+bool mrpt::graphslam::detail::isEssentiallyZero(
+		const mrpt::poses::CPose2D& p) {
+	double epsilon = 0.001;
+	return (
+			essentiallyEqual(p.x(), 0, epsilon) && // all 0s
+			essentiallyEqual(p.y(), 0, epsilon) &&
+			essentiallyEqual(p.phi(), 0, epsilon)); 
+}

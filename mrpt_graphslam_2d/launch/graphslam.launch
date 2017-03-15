@@ -31,7 +31,7 @@ Refer to the README.md file for usage information
   <arg name="rviz_file" default="$(find mrpt_graphslam_2d)/rviz/sr_graphslam.rviz" />
 
 	<arg name="disable_MRPT_visuals" default="false" />
-	<arg name="verbosity" default="0"/>
+	<arg name="verbosity" default="1"/>
 
   <!-- LAUNCH PARAMETERS -->
   <group ns="deciders_optimizers">

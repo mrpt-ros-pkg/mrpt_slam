@@ -14,6 +14,7 @@
 
 #include <mrpt/poses/CPosePDF.h>
 #include <mrpt/poses/CPosePDFSOG.h>
+#include <mrpt/poses/CPose2D.h>
 #include <mrpt/slam/CGridMapAligner.h>
 #include <mrpt/math/utils.h>
 #include <sstream>
@@ -26,5 +27,7 @@ std::string getGridMapAlignmentResultsAsString(
 
 bool essentiallyEqual(double a, double b, double epsilon);
 bool essentiallyEqual(double a, double b);
+
+bool isEssentiallyZero(const mrpt::poses::CPose2D& p);
 
 } } } // end of namespaces

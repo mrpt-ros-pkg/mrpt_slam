@@ -41,7 +41,7 @@ class CEdgeRegistrationDecider_MR :
 public:
 	CEdgeRegistrationDecider_MR ();
 	~CEdgeRegistrationDecider_MR ();
-	void addBatchOfNodeIDsAndScans(
+	virtual void addBatchOfNodeIDsAndScans(
 			const std::map<
 				mrpt::utils::TNodeID,
 				mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D);

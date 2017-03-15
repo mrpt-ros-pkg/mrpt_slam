@@ -182,9 +182,22 @@ public:
 		const sensor_msgs::LaserScan* getLaserScanByNodeID(
 				const mrpt::utils::TNodeID nodeID) const;
 
-		/**\brief Pointer to the GraphSlamAgent instance of the neighbor */
+		/**\brief GraphSlamAgent instance of the neighbor */
 		const mrpt_msgs::GraphSlamAgent& agent;
+		/**\brief Decide whether there are enough new nodes + scans that have not been
+		 * integrated in the graph yet.
+		 * 
+		 * Method takes in account only the nodeIDs that have a valid LaserScan
+		 *
+		 * \return True if there are more than \a new_batch_size valid nodes + scans
+		 * available for integration, false otherwise
+		 */
+		bool hasNewNodesBatch(int new_batch_size);
 
+		/**\brief Set the color related to the current neighbor agent
+		 *
+		 * Handy in visualization operations
+		 */
 		void setTColor(const mrpt::utils::TColor& color_in) { color = color_in; }
 		/**\brief Unique color of current TNeighborAgentProps instance
 		 */
@@ -240,9 +253,17 @@ public:
 		ros::NodeHandle* nh;
 		bool has_setup_comm;
 
-		/**\brief CPose2D connecting own graph origin to neighbor graph origin
+		/**\brief CPose2D connecting own graph origin to neighbor first received
+		 * and integrated node.
+		 * If this pose is 0 then it is not yet computed.
 		 */
-		mrpt::poses::CPose2D tf_self_to_neighbor_origin;
+		mrpt::poses::CPose2D tf_self_to_neighbor_first_integrated_pose;
+		/**\brief Last nodeID/CPose2D of neighbor that was integrated - Pose is taken
+		 * with regards to neighbor's frame of reference.
+		 */
+		std::pair<
+			mrpt::utils::TNodeID,
+			mrpt::poses::CPose2D> last_integrated_pair_neighbor_frame;
 
 	};
 	typedef std::vector<TNeighborAgentProps*> neighbors_t;
@@ -262,6 +283,21 @@ public:
 
 
 private:
+	/**\brief Traverse all neighbors for which I know the intra-graph
+	 * transformation, run addNodeBatchFromNeighbor.
+	 */
+	bool addNodeBatchesFromAllNeighbors();
+	/**\brief neighbors for which I know the intra-graph
+	 * transformation, add new batches of fetches nodeIDs and scans
+	 *
+	 * Try to integrate the newly received nodeIDs and laser Scans in own graph
+	 * as a batch
+	 *
+	 * \note Batch integration (instead of individual nodeID + LaserScan every
+	 * time a new one is received) is preferred since the neighbor is given time
+	 * to optimize the node positions
+	 */
+	bool addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor);
 	/**\brief Using map-merging find a potentuial transofrmation between own
 	 * graph map to another agent's map and using that transformation add other
 	 * agent's nodes to own graph
@@ -489,10 +525,10 @@ private:
 	 */
 	bool m_pause_exec_on_mr_registration;
 
-	/**\brief How many new nodes should be registered after the previous successful
-	 * map matching before running map-matching again
+	/**\brief After an intra-graph transformation is found between own graph and
+	 * a neighbor's map, newly fetched neighbor's nodes are added in batches.
 	 */
-	int m_rerun_map_matching_after_n_new_nodes;
+	int m_nodes_integration_batch_size;
 
 	/**\brief Parameters used during the alignment operation
 	 */
