@@ -160,9 +160,10 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
     tictac.Tic();
     mapBuilder->processActionObservation(*action, *sf);
     t_exec = tictac.Tac();
-    printf("Map building executed in %.03fms\n", 1000.0f * t_exec);
+    ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
     publishMapPose();
     run3Dwindow();
+    publishTF();
   }
 }
 
@@ -196,7 +197,7 @@ void PFslamWrapper::callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& _msg
     tictac.Tic();
     mapBuilder->processActionObservation(*action, *sf);
     t_exec = tictac.Tac();
-    printf("Map building executed in %.03fms\n", 1000.0f * t_exec);
+    ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
 
     publishMapPose();
     run3Dwindow();
@@ -370,7 +371,7 @@ bool PFslamWrapper::rawlogPlay()
         tictac.Tic();
         mapBuilder->processActionObservation(data[i].first, data[i].second);
         t_exec = tictac.Tac();
-        printf("Map building executed in %.03fms\n", 1000.0f * t_exec);
+        ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
 
         ros::Duration(rawlog_play_delay).sleep();
 
