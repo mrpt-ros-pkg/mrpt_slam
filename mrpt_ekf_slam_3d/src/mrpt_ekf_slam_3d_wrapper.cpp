@@ -186,12 +186,13 @@ void EKFslamWrapper::landmarkCallback(const mrpt_msgs::ObservationRangeBearing& 
     tictac.Tic();
     mapping.processActionObservation(action, sf);
     t_exec = tictac.Tac();
-    printf("Map building executed in %.03fms\n", 1000.0f * t_exec);
+    ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
     ros::Duration(rawlog_play_delay).sleep();
     mapping.getCurrentState(robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
     viz_state();
     viz_dataAssociation();
     run3Dwindow();
+    publishTF();
   }
 }
 
@@ -219,7 +220,7 @@ bool EKFslamWrapper::rawlogPlay()
         tictac.Tic();
         mapping.processActionObservation(action, observations);
         t_exec = tictac.Tac();
-        printf("Map building executed in %.03fms\n", 1000.0f * t_exec);
+        ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
         ros::Duration(rawlog_play_delay).sleep();
         mapping.getCurrentState(robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
         // ros::spinOnce();

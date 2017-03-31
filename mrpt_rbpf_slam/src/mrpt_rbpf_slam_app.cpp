@@ -15,8 +15,6 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
-      slam.publishTF();
-
       ros::spinOnce();
       r.sleep();
     }

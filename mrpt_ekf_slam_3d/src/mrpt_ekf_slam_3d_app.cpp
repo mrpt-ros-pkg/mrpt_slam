@@ -12,12 +12,9 @@ int main(int argc, char **argv)
   ros::Duration(3).sleep();
 
   if (!slam.rawlogPlay())
-  {  // if not play from rawlog file
-
+  {
     while (ros::ok())
     {
-      slam.publishTF();
-
       ros::spinOnce();
       r.sleep();
     }

@@ -1,22 +1,17 @@
 <package>
   <name>mrpt_ekf_slam_2d</name>
   <version>0.1.5</version>
-  <description>mrpt_ekf_slam_2d</description>
+  <description>This package is a wrapper for the implementation of EKF-based SLAM with range-bearing sensors, odometry, and a 2D (+heading) robot pose, and 2D landmarks.</description>
   <maintainer email="jlblanco@ual.es">Jose Luis</maintainer>
 
   <license>BSD</license>
 
+  <url>http://mrpt.org/</url>
   <url type="website">http://ros.org/wiki/mrpt_ekf_slam_2d</url>
-  <!-- <url type="bugtracker"></url> -->
+  <url type="bugtracker">https://github.com/mrpt-ros-pkg/mrpt_slam/issues</url>
 
   <author>Jose Luis</author>
   <author>Vladislav Tananaev</author>
-
-  <license>BSD</license>
-
-
-  <license>BSD</license>
-  <url>http://mrpt.org/</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -29,6 +24,8 @@
   <build_depend>nav_msgs</build_depend>
   <build_depend>mrpt_bridge</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>rviz</build_depend>
+  <build_depend>mrpt_rawlog</build_depend>
   <build_depend>mrpt</build_depend> <!-- Depend on mrpt system pkgs -->
 
   <run_depend>roscpp</run_depend>
@@ -37,11 +34,12 @@
   <run_depend>tf</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  <build_depend>visualization_msgs</build_depend>
+  <run_depend>visualization_msgs</run_depend>
   <run_depend>nav_msgs</run_depend>
   <run_depend>mrpt_bridge</run_depend>
   <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>rviz</run_depend>
+  <run_depend>mrpt_rawlog</run_depend>
   <run_depend>mrpt</run_depend> <!-- Depend on mrpt system pkgs -->
-
 
 </package>

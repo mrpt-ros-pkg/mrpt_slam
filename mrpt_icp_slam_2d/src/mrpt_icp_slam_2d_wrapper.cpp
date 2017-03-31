@@ -319,9 +319,10 @@ void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg)
     tictac.Tic();
     mapBuilder.processObservation(observation);
     t_exec = tictac.Tac();
-    printf("Map building executed in %.03fms\n", 1000.0f * t_exec);
+    ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
 
     run3Dwindow();
+    publishTF();
     publishMapPose();
   }
 }
@@ -422,7 +423,7 @@ bool ICPslamWrapper::rawlogPlay()
         else
           mapBuilder.processActionObservation(*action, *observations);
         t_exec = tictac.Tac();
-        printf("Map building executed in %.03fms\n", 1000.0f * t_exec);
+        ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
 
         ros::Duration(rawlog_play_delay).sleep();
 
