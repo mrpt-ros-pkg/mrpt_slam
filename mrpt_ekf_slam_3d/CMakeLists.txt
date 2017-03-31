@@ -5,7 +5,18 @@ project(mrpt_ekf_slam_3d)
 add_definitions(-std=c++11) # Use C++11
 
 #find catkin packages
-find_package(catkin REQUIRED COMPONENTS cmake_modules roslib roscpp tf std_msgs nav_msgs sensor_msgs visualization_msgs mrpt_bridge dynamic_reconfigure)
+find_package(catkin REQUIRED COMPONENTS
+  cmake_modules
+  roslib
+  roscpp
+  tf
+  std_msgs
+  nav_msgs
+  sensor_msgs
+  visualization_msgs
+  mrpt_bridge
+  dynamic_reconfigure
+  roslaunch)
 
 #find mrpt packages
 find_package(MRPT REQUIRED base gui obs slam)
@@ -72,5 +83,7 @@ install(DIRECTORY
 #############
 ## Testing ##
 #############
+# Add testing for *.launch files
+roslaunch_add_file_check(launch)
 
 endif()
