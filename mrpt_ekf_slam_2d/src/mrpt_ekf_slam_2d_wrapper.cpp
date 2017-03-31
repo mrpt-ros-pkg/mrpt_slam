@@ -187,12 +187,13 @@ void EKFslamWrapper::landmarkCallback(const mrpt_msgs::ObservationRangeBearing& 
     tictac.Tic();
     mapping.processActionObservation(action, sf);
     t_exec = tictac.Tac();
-    printf("Map building executed in %.03fms\n", 1000.0f * t_exec);
+    ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
     ros::Duration(rawlog_play_delay).sleep();
     mapping.getCurrentState(robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
     viz_state();
     viz_dataAssociation();
     run3Dwindow();
+    publishTF();
   }
 }
 
@@ -456,11 +457,7 @@ void EKFslamWrapper::publishTF()
   mapping.getCurrentState(robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
   // Most of this code was copy and pase from ros::amcl
   mrpt::poses::CPose3D robotPose;
-
   robotPose = CPose3D(robotPose_.mean);
-  // mapBuilder->mapPDF.getEstimatedPosePDF(curPDF);
-
-  // curPDF.getMean(robotPose);
 
   tf::Stamped<tf::Pose> odom_to_map;
   tf::Transform tmp_tf;
@@ -485,7 +482,6 @@ void EKFslamWrapper::publishTF()
 
   // We want to send a transform that is good up until a
   // tolerance time so that odom can be used
-
   ros::Duration transform_tolerance_(0.1);
   ros::Time transform_expiration = (stamp + transform_tolerance_);
   tf::StampedTransform tmp_tf_stamped(latest_tf_.inverse(), transform_expiration, global_frame_id, odom_frame_id);

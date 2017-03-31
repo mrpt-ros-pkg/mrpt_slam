@@ -10,6 +10,7 @@
 #include <fstream>   // std::ifstream
 #include <string>
 #include "mrpt_ekf_slam_2d/mrpt_ekf_slam_2d.h"
+
 // add ros libraries
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -58,7 +59,7 @@ using namespace mrpt::obs;
 #endif
 
 /**
- * @brief The EKFslamWrapper class provides  the ROS wrapper for EKF SLAM 2d from MRPT libraries.
+ * @brief The EKFslamWrapper class provides the ROS wrapper for EKF SLAM 2d from MRPT libraries.
  *
  */
 class EKFslamWrapper : EKFslam
@@ -72,10 +73,9 @@ public:
   * @brief destructor
   */
   ~EKFslamWrapper();
-
   /**
- * @brief read the parameters from launch file
- */
+  * @brief read the parameters from launch file
+  */
   void get_param();
   /**
   * @brief compute the orientation and scale of covariance ellipsoids
@@ -88,7 +88,7 @@ public:
                                         const mrpt::math::CMatrixDouble covariance);
   /**
   * @brief compute the correct orientation and scale of covariance ellipsoids (make sure that  we output covariance
-  *ellipsoids for right handed system of coordinates)
+  * ellipsoids for right handed system of coordinates)
   *
   * @param eigenvectors the 2x2 matrix of eigenvectors
   * @param eigenvalues the 2d vector of eigen values
@@ -140,11 +140,11 @@ public:
   /**
   * @brief  update the pose of the sensor with respect to the robot
   *
-  *@param frame_id the frame of the sensors
+  * @param frame_id the frame of the sensors
   */
   void updateSensorPose(std::string _frame_id);
   /**
-   * @brief wait for transfor between odometry frame and the robot frame
+   * @brief wait for transform between odometry frame and the robot frame
    *
    * @param des position of the robot with respect to odometry frame
    * @param target_frame the odometry tf frame
