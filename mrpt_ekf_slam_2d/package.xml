@@ -1,20 +1,17 @@
 <package>
   <name>mrpt_ekf_slam_2d</name>
   <version>0.1.5</version>
-  <description>mrpt_ekf_slam_2d</description>
+  <description>This package is a wrapper for the implementation of EKF-based SLAM with range-bearing sensors, odometry, and a 2D (+heading) robot pose, and 2D landmarks.</description>
   <maintainer email="jlblanco@ual.es">Jose Luis</maintainer>
 
   <license>BSD</license>
 
+  <url>http://mrpt.org/</url>
   <url type="website">http://ros.org/wiki/mrpt_ekf_slam_2d</url>
-  <!-- <url type="bugtracker"></url> -->
+  <url type="bugtracker">https://github.com/mrpt-ros-pkg/mrpt_slam/issues</url>
 
   <author>Jose Luis</author>
   <author>Vladislav Tananaev</author>
-
-  <license>BSD</license>
-
-  <url>http://mrpt.org/</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
