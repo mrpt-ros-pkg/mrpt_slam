@@ -122,7 +122,6 @@ void CConnectionManager::getNearbySlamAgents(
 			//ros::master::getNodes(nodes_up);
 			//printSTLContainer(nodes_up);
 	}
-
 }
 
 const mrpt_msgs::GraphSlamAgents&
@@ -231,26 +230,26 @@ bool CConnectionManager::convert(
 			ros_master.uri, &slam_agent->port);
 	slam_agent->hostname.data = hostname;
 
-	// agent_ID
+	// agent_ID - last field of the IP address
 	vector<string> tokens;
 	mrpt::system::tokenize(ip_addr, ".", tokens);
 	slam_agent->agent_ID = atoi(tokens.rbegin()->c_str());
 
 	// robot topic namespace
 	{
-		stringstream ss("");
-		ss << slam_agent->name.data  << "_" << slam_agent->agent_ID;
-		slam_agent->topic_namespace.data = ss.str().c_str();
+		//stringstream ss("");
+		//ss << slam_agent->name.data  << "_" << slam_agent->agent_ID;
+		//slam_agent->topic_namespace.data = ss.str().c_str();
+		slam_agent->topic_namespace.data = slam_agent->name.data;
 
 		// check that there exists a subtopic namespace named feedback under this.
-		// TODO
 		ros::master::V_TopicInfo topics;
 		bool got_topics = ros::master::getTopics(topics);
 		ASSERTMSG_(got_topics, "Unable to fetch topics. Exiting.");
 
 		// get the namespaces under the current topic_namespace
-
 		const std::string& topic_ns = "/" + slam_agent->topic_namespace.data;
+		// TODO - What if this topic changes? from the configuration file
 		const std::string& feedback_ns =
 			"/" + slam_agent->topic_namespace.data + "/" + "feedback";
 
@@ -264,20 +263,6 @@ bool CConnectionManager::convert(
 			cout << "Found: " << cit->name << endl;
 			agent_namespace_found = true;
 		}
-
-		//cout << "Topics: " << endl;
-		//for (ros::master::V_TopicInfo::const_iterator
-				//it = topics.begin();
-				//it != topics.end();
-				//++it) {
-			//cout << "- " << it->name;
-			//cout << "| Starts with: \"" << topic_ns << "\" "
-				//<< (strStarts(it->name, topic_ns)? "TRUE" : "FALSE")
-				//<< "| Starts with: \"" << feedback_ns << "\" "
-				//<< (strStarts(it->name, feedback_ns)? "TRUE" : "FALSE")
-				//<< endl;
-		//}
-		//cout << "--------" << endl;
 	}
 
 	// timestamp

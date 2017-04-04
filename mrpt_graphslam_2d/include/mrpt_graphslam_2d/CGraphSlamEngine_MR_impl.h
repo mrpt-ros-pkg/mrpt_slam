@@ -347,7 +347,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 	hypots_t graph_conns;
 	// build the only hypothesis connecting graph with neighbor subgraph
 	// own origin -> first valid nodeID of neighbor
-	{ 
+	{
 		hypot_t graph_conn;
 		constraint_t c;
 		c.mean = pose_out;
