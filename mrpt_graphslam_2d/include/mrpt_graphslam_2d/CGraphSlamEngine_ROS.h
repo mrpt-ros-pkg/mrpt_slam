@@ -15,7 +15,7 @@
 #include <mrpt/graphslam/CGraphSlamEngine.h>
 #include <ros/ros.h>
 
-namespace mrpt { namespace graphslam { 
+namespace mrpt { namespace graphslam {
 
 /**\brief Class template that provides a wrapper around the MRPT
  * CGraphSlamEngine class template and implements methods for interacting with
