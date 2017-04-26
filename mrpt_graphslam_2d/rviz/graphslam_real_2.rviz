@@ -70,18 +70,18 @@ Visualization Manager:
       Length: 1
       Name: anchor_frame_1
       Radius: 0.1
-      Reference Frame: csldesktop_anchor
+      Reference Frame: mf1_anchor
       Value: true
     - Class: rviz/Axes
       Enabled: true
       Length: 1
       Name: anchor_frame_2
       Radius: 0.1
-      Reference Frame: csldesktop_11312_anchor
+      Reference Frame: mf2_anchor
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /csldesktop/ar_sys/result
+      Image Topic: /nickkoukubuntu/onboard_camera/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -93,7 +93,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /csldesktop_11312/ar_sys/result
+      Image Topic: /odroidxu3/onboard_camera/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -205,7 +205,7 @@ Visualization Manager:
           Value: true
       Name: robot_model_1
       Robot Description: robot_description
-      TF Prefix: csldesktop
+      TF Prefix: nickkoukubuntu
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -311,7 +311,7 @@ Visualization Manager:
           Value: true
       Name: robot_model_2
       Robot Description: robot_description
-      TF Prefix: csldesktop_11312
+      TF Prefix: odroidxu3
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -340,7 +340,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /csldesktop/input/laser_scan
+      Topic: /nickkoukubuntu/input/laser_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -370,7 +370,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /csldesktop_11312/input/laser_scan
+      Topic: /odroidxu3/input/laser_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -383,7 +383,7 @@ Visualization Manager:
       Length: 1
       Name: odom_1
       Position Tolerance: 0.1
-      Topic: /csldesktop/input/odom
+      Topic: /nickkoukubuntu/input/odom
       Value: false
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
@@ -393,7 +393,7 @@ Visualization Manager:
       Length: 1
       Name: odom_2
       Position Tolerance: 0.1
-      Topic: /csldesktop_11312/input/odom
+      Topic: /odroidxu3/input/odom
       Value: false
     - Alpha: 0.7
       Class: rviz/Map
@@ -401,7 +401,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: map_2
-      Topic: /csldesktop_11312/feedback/gridmap
+      Topic: /odroidxu3/feedback/gridmap
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -423,7 +423,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop_11312/feedback/odom_trajectory
+      Topic: /odroidxu3/feedback/odom_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -438,7 +438,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /csldesktop_11312/feedback/robot_position
+      Topic: /odroidxu3/feedback/robot_position
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -460,7 +460,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop_11312/feedback/robot_trajectory
+      Topic: /odroidxu3/feedback/robot_trajectory
       Unreliable: false
       Value: true
     - Alpha: 0.7
@@ -469,7 +469,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: map_1
-      Topic: /csldesktop/feedback/gridmap
+      Topic: /nickkoukubuntu/feedback/gridmap
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -491,7 +491,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop/feedback/odom_trajectory
+      Topic: /nickkoukubuntu/feedback/odom_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -506,7 +506,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /csldesktop/feedback/robot_position
+      Topic: /nickkoukubuntu/feedback/robot_position
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -528,7 +528,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop/feedback/robot_trajectory
+      Topic: /nickkoukubuntu/feedback/robot_trajectory
       Unreliable: false
       Value: true
   Enabled: true

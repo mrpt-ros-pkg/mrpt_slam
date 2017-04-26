@@ -33,9 +33,6 @@ void CLoopCloserERD_MR<GRAPH_T>::addBatchOfNodeIDsAndScans(
 			mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D) {
 	mr_parent_t::addBatchOfNodeIDsAndScans(nodeIDs_to_scans2D);
 
-	// update the last known number of nodeIDs
-	this->m_last_total_num_nodes = this->m_graph->nodeCount();
-
 	this->updateMapPartitions(/*full update=*/ true,
 			/* is_first_time_node_reg = */ false);
 
@@ -65,7 +62,7 @@ void CLoopCloserERD_MR<GRAPH_T>::fetchNodeIDsForScanMatching(
 	size_t fetched_nodeIDs = 0;
 	for (int nodeID_i = static_cast<int>(curr_nodeID)-1;
 			((fetched_nodeIDs <= this->m_laser_params.prev_nodes_for_ICP) &&
-			 (nodeID_i >= 0)); 
+			 (nodeID_i >= 0));
 			--nodeID_i) {
 		bool is_own = this->m_engine->isOwnNodeID(nodeID_i);
 		if (is_own) {
@@ -74,7 +71,7 @@ void CLoopCloserERD_MR<GRAPH_T>::fetchNodeIDsForScanMatching(
 		}
 	}
 }
-		
+
 
 template<class GRAPH_T>
 CLoopCloserERD_MR<GRAPH_T>::~CLoopCloserERD_MR() {

@@ -28,6 +28,7 @@ void CEdgeRegistrationDecider_MR<GRAPH_T>::addBatchOfNodeIDsAndScans(
 			nodeIDs_to_scans2D.begin(),
 			nodeIDs_to_scans2D.end());
 
+	// update the last known number of nodeIDs
 	this->m_last_total_num_nodes = this->m_graph->nodeCount();
 
 } // end of addBatchOfNodeIDsAndScans

@@ -44,7 +44,7 @@ Refer to the README.md file for usage information
 		<param name="grount_truth" value="" />
 	</group>
 	<group ns="misc">
-		<param name="disable_MRPT_visuals" value="$(arg disable_MRPT_visuals)" />
+		<param name="disable_MRPT_visuals" value="$(arg disable_MRPT_visuals)" type="bool" />
 		<param name="verbosity" value="$(arg verbosity)" type="int" />
 		<param name="do_publish_gridmap_topic" value="$(arg do_publish_gridmap_topic)" type="bool" />
 	</group>

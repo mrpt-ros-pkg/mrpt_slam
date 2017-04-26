@@ -1,5 +1,9 @@
 Directory contains rviz-related files
 
-Beware that the topics in `graphslam_gazebo_X.rviz` files depend on the
-hostname of the running computer, thus, prior to the graphSLAM execution, users
-should run the `nodes/generate_gazebo_rviz_files.py` script.
+Currently the \*gazebo\* rviz files refer to static topics and the user has to
+manually change csldesktop to his own hostname for them to appropriately
+visualize the procedure. Same goes for the \*real\* files.
+
+There are plans to dynamically create the rviz files based on the user's hostname / current configuration using the [rviz_generator package](https://github.com/bergercookie/rviz_generator)
+
+
