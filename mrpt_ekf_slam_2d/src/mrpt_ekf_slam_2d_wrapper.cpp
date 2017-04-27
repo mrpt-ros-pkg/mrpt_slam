@@ -392,7 +392,7 @@ void EKFslamWrapper::viz_state()
     float quantiles = landmark->getQuantiles();
 
     // mean position
-    CPose3D pose = landmark->getPose();  // pose of the robot and landmarks (x,y,z=0)
+	CPose3D pose = mrpt::poses::CPose3D(landmark->getPose());  // pose of the robot and landmarks (x,y,z=0)
 
     // covariance ellipses
     tf::Quaternion orientation;

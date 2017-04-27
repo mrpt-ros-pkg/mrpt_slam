@@ -243,7 +243,7 @@ void PFslamWrapper::publishMapPose()
     for (size_t i = 0; i < objs_counter; i++)
     {
       beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);
-      mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);
+      mrpt_bridge::convert(mrpt::poses::CPose3D(beacon_particle->getPose()), poseArrayBeacons.poses[i]);
       viz_beacons.push_back(beacon_particle);
     }
     pub_Particles_Beacons_.publish(poseArrayBeacons);
@@ -410,7 +410,7 @@ bool PFslamWrapper::rawlogPlay()
           for (size_t i = 0; i < objs_counter; i++)
           {
             beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);
-            mrpt_bridge::convert(beacon_particle->getPose(), poseArrayBeacons.poses[i]);
+            mrpt_bridge::convert(mrpt::poses::CPose3D(beacon_particle->getPose()), poseArrayBeacons.poses[i]);
             viz_beacons.push_back(beacon_particle);
           }
           pub_Particles_Beacons_.publish(poseArrayBeacons);

@@ -393,7 +393,7 @@ void EKFslamWrapper::viz_state()
     mrpt::math::CMatrixDouble covariance = landmark->getCovMatrix();
 
     // the landmark (or robot) mean position
-    CPose3D pose = landmark->getPose();
+	CPose3D pose = mrpt::poses::CPose3D(landmark->getPose());
     // For visualization of the covariance ellipses we need the size of the axis and orientation
 
     Eigen::Vector3d scale;  // size of axis of the ellipse
