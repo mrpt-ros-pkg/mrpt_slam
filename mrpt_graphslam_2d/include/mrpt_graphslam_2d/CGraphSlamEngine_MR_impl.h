@@ -592,7 +592,7 @@ getLSPoseForGridMapVisualization(
 	const TMRSlamNodeAnnotations* node_annots = dynamic_cast<const TMRSlamNodeAnnotations*>(
 			&this->m_graph.nodes.at(nodeID));
 
-	// Is the current ndoeID registered by a neighboring agent or is it my own?
+	// Is the current nodeID registered by a neighboring agent or is it my own?
 	TNeighborAgentProps* neighbor = NULL;
 	this->getNeighborByAgentID(node_annots->agent_ID_str, neighbor);
 
@@ -643,48 +643,48 @@ void CGraphSlamEngine_MR<GRAPH_T>::usePublishersBroadcasters() {
 	parent_t::usePublishersBroadcasters();
 
 	// update list of neighbors that the current agent can communicate with.
+	mrpt_msgs::GraphSlamAgents nearby_slam_agents;
 	m_conn_manager.getNearbySlamAgents(
-				&m_nearby_slam_agents,
+				&nearby_slam_agents,
 				/*ignore_self = */ true);
-	m_list_neighbors_pub.publish(m_nearby_slam_agents);
+	m_list_neighbors_pub.publish(nearby_slam_agents);
 
 	// Initialize TNeighborAgentProps
 	// for each *new* GraphSlamAgent we should add a TNeighborAgentProps instance,
-	// and initialize its subscribers so that we fetch every new LaserScan and
-	// modified nodes list it publishes
+	// and initialize its subscribers so that we fetch every new LaserScan and list of
+	// modified nodes it publishes
 	{
 		for (GraphSlamAgents::_list_type::const_iterator
-				it = m_nearby_slam_agents.list.begin();
-				it != m_nearby_slam_agents.list.end();
+				it = nearby_slam_agents.list.begin();
+				it != nearby_slam_agents.list.end();
 				++it) {
 
 			const GraphSlamAgent& gsa = *it;
 
 			// Is the current GraphSlamAgent already registered?
-			auto search = [gsa](const TNeighborAgentProps* neighbor) {
+			const auto search = [gsa](const TNeighborAgentProps* neighbor) {
 				return (neighbor->agent == gsa);
 			};
-			typename neighbors_t::iterator neighbor_it = find_if(
+			typename neighbors_t::const_iterator neighbor_it = find_if(
 					m_neighbors.begin(),
 					m_neighbors.end(), search);
 
 			if (neighbor_it == m_neighbors.end()) { // current gsa not found, add it
 
+				MRPT_LOG_DEBUG_STREAM << "Initializing NeighborAgentProps instance for "
+					<< gsa.name.data;
 				m_neighbors.push_back(new TNeighborAgentProps(*this, gsa));
 				TNeighborAgentProps* latest_neighbor = m_neighbors.back();
 				latest_neighbor->setTColor(neighbor_colors_manager.getNextTColor());
 				m_neighbor_to_found_initial_tf.insert(make_pair(
 							latest_neighbor, false));
 				latest_neighbor->setupComm();
-				MRPT_LOG_INFO_STREAM << "Initialized NeighborAgentProps instance...";
 			}
-
 		}
 	}
 
 	this->pubUpdatedNodesList();
 	this->pubLastRegdIDScan();
-
 
 	MRPT_END;
 } // end of usePublishersBroadcasters
@@ -975,13 +975,14 @@ void CGraphSlamEngine_MR<GRAPH_T>::setObjectPropsFromNodeID(
 	using namespace mrpt::utils;
 	MRPT_START;
 
-	// if I registered this - just use the standard map color
+	// who registered this node?
 	TNeighborAgentProps* neighbor = NULL;
 	std::string& agent_ID_str = this->m_graph.nodes.at(nodeID).agent_ID_str;
 	bool is_not_own = getNeighborByAgentID(agent_ID_str, neighbor);
 
 	TColor obj_color;
 	if (!is_not_own) { // I registered this.
+		// use the standard maps color
 		obj_color = this->m_optimized_map_color;
 	}
 	else {

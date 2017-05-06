@@ -30,11 +30,11 @@ bool operator!=(
 bool operator==(
 		const mrpt_msgs::GraphSlamAgent& agent1,
 		const mrpt_msgs::GraphSlamAgent& agent2) {
-
 	return (
 			agent1.agent_ID == agent2.agent_ID &&
 			agent1.topic_namespace.data == agent2.topic_namespace.data);
 }
+////////////////////////////////////////////////////////////
 
 bool operator!=(
 		const mrpt_msgs::GraphSlamAgent& agent1,
@@ -46,6 +46,30 @@ bool operator<(
 		const mrpt_msgs::GraphSlamAgent& agent1,
 		const mrpt_msgs::GraphSlamAgent& agent2) {
 	return agent1.agent_ID < agent2.agent_ID;
+}
+////////////////////////////////////////////////////////////
+
+bool operator==(
+		const multimaster_msgs_fkie::ROSMaster& master,
+		const mrpt_msgs::GraphSlamAgent& agent) {
+	return (master.name == agent.name.data);
+}
+
+bool operator!=(
+		const multimaster_msgs_fkie::ROSMaster& master,
+		const mrpt_msgs::GraphSlamAgent& agent) {
+	return !(master == agent);
+}
+
+bool operator==(
+		const mrpt_msgs::GraphSlamAgent& agent,
+		const multimaster_msgs_fkie::ROSMaster& master) {
+	return (master == agent);
+}
+bool operator!=(
+		const mrpt_msgs::GraphSlamAgent& agent,
+		const multimaster_msgs_fkie::ROSMaster& master) {
+	return (master != agent);
 }
 
 ////////////////////////////////////////////////////////////
@@ -92,7 +116,6 @@ void CConnectionManager::getNearbySlamAgents(
 	if (ignore_self) {
 		// remove the GraphSlamAgent instance whose topic namespace coincedes with
 		// the namespace that the CConnectionManager instance is running under.
-
 		auto search = [this](const mrpt_msgs::GraphSlamAgent& agent) {
 			return (agent.topic_namespace.data == this->own_ns);
 		};
@@ -107,20 +130,10 @@ void CConnectionManager::getNearbySlamAgents(
 		// be empty.
 		//ASSERT_(it != agents_vec->list.end());
 		if (it != agents_vec->list.end()) {
-			// TODO - remove these
-			//cout << "agents_vec prior to erasing own agent" << *agents_vec << endl;
 			agents_vec->list.erase(it);
-			//cout << "agents_vec after erasing own agent" << *agents_vec << endl;
 		}
 		else {
-			//cout << "Own agent not found! " << endl;
-			//cout << getSTLContainerAsString(agents_vec->list) << endl;
-			//cout << "Own namespace: " << m_nh->getNamespace() << endl;
 		}
-			//cout << "Nodes that are up: " << endl;
-			//std::vector<string> nodes_up;
-			//ros::master::getNodes(nodes_up);
-			//printSTLContainer(nodes_up);
 	}
 }
 
@@ -136,6 +149,9 @@ CConnectionManager::getNearbySlamAgents() {
 } // end of getNearbySlamAgents
 
 void CConnectionManager::updateNearbySlamAgents() {
+	using ::operator==;
+	using namespace mrpt::utils;
+	using namespace mrpt::math;
 	ASSERT_(has_setup_comm);
 
 	DiscoverMasters srv;
@@ -150,45 +166,32 @@ void CConnectionManager::updateNearbySlamAgents() {
 			masters_it != masters->end();
 			++masters_it) {
 
-		// resize the m_nearby_slam_agents list
-
-		//// TODO - remove these.
-		//cout << "name: " << masters_it->name << endl;
-		//cout << "uri: " << masters_it->uri << endl;
-		//cout << "ROS timestamp: " << masters_it->timestamp << endl;
-		//cout << "online? : " << masters_it->online << endl;
-		//cout << "monitoruri: " << masters_it->monitoruri << endl;
-		//cout << "---------------" << endl << endl;
-
 		// 3 cases:
 		// In RosMasters     AND     In mrpt_msgs::GraphSlamAgents => update relevant fields
-		// In RosMasters     BUT NOT In mrpt_msgs::GraphSlamAgents => add it to mrpt_msgs::GraphSlamAgents
-		// NOT In RosMasters BUT     In mrpt_msgs::GraphSlamAgents => remove it from mrpt_msgs::GraphSlamAgents
+		// In RosMasters     AND NOT In mrpt_msgs::GraphSlamAgents => add it to mrpt_msgs::GraphSlamAgents
+		// NOT In RosMasters AND     In mrpt_msgs::GraphSlamAgents => Do nothing.
 
 		// have I already registered the current agent?
-		auto search = [&masters_it](const mrpt_msgs::GraphSlamAgent& agent) {
-			return agent.name.data == masters_it->name;
+		auto search = [masters_it](const mrpt_msgs::GraphSlamAgent& agent) {
+			return agent == *masters_it;
 		};
 		agents_it it = find_if(
 				m_nearby_slam_agents.list.begin(),
 				m_nearby_slam_agents.list.end(), search);
 
-		if (it != m_nearby_slam_agents.list.end()) { // found, update fields
-			// update the timestamp
+		if (it != m_nearby_slam_agents.list.end()) { // found, update relevant fields
+			// update timestamp
 			it->last_seen_time.data = ros::Time(masters_it->timestamp);
 		}
 		else { // not found, try to insert it.
 			mrpt_msgs::GraphSlamAgent new_agent;
 			bool is_agent = this->convert(*masters_it, &new_agent);
-			if (is_agent) m_nearby_slam_agents.list.push_back(new_agent);
+			if (is_agent) {
+				m_nearby_slam_agents.list.push_back(new_agent);
+			};
 		}
 
 	} // for all ROSMaster(s)
-
-	// if not found in RosMasters but found in mrpt_msgs::GraphSlamAgents, remove
-	// it.
-	// TODO
-	
 
 } // end of updateNearbySlamAgents
 
@@ -200,7 +203,7 @@ void CConnectionManager::setupComm() {
 	this->setupSrvs();
 
 	has_setup_comm = true;
-}
+} // end of setupComm
 
 void CConnectionManager::setupSubs() { }
 void CConnectionManager::setupPubs() { }
@@ -242,7 +245,7 @@ bool CConnectionManager::convert(
 		//slam_agent->topic_namespace.data = ss.str().c_str();
 		slam_agent->topic_namespace.data = slam_agent->name.data;
 
-		// check that there exists a subtopic namespace named feedback under this.
+		// assert that there exists a subtopic namespace named feedback under this.
 		ros::master::V_TopicInfo topics;
 		bool got_topics = ros::master::getTopics(topics);
 		ASSERTMSG_(got_topics, "Unable to fetch topics. Exiting.");
@@ -260,7 +263,6 @@ bool CConnectionManager::convert(
 		ros::master::V_TopicInfo::const_iterator cit = find_if(
 				topics.begin(), topics.end(), search);
 		if (cit != topics.end()) {
-			cout << "Found: " << cit->name << endl;
 			agent_namespace_found = true;
 		}
 	}

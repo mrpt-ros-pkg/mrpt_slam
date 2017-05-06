@@ -55,8 +55,8 @@ Refer to the README.md file for usage information
 		<param name="laser_frame" value="$(arg laser_frame_ID)"/>
 	</group>
 
-	<!--<arg name="dbg_prog" value="xterm -e cgdb args" />-->
-	<arg name="dbg_prog" value="nemiver" />
+	<!--<arg name="dbg_prog" value="xterm -hold -geometry 1920x1080+0+0 -e" />-->
+	<arg name="dbg_prog" value="xterm -hold -geometry 1920x1080+0+0 -e gdb --args" /> <!-- USE HYPHENS  use gdb, cgdb, ddd, nemiver etc. -->
 	<group unless="$(arg is_mr_slam)"> <!-- Single robot graphSLAM -->
 		<group if="$(arg run_under_gdb)">
 	  	    <node launch-prefix="$(arg dbg_prog)" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />

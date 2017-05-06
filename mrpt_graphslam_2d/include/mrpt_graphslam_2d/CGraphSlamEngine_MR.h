@@ -182,8 +182,11 @@ public:
 		const sensor_msgs::LaserScan* getLaserScanByNodeID(
 				const mrpt::utils::TNodeID nodeID) const;
 
-		/**\brief GraphSlamAgent instance of the neighbor */
-		const mrpt_msgs::GraphSlamAgent& agent;
+		/**\brief GraphSlamAgent instance of the neighbor
+		 *
+		 * UPDATE: This should be a real instance instead of a reference
+		 */
+		const mrpt_msgs::GraphSlamAgent agent;
 		/**\brief Decide whether there are enough new nodes + scans that have not been
 		 * integrated in the graph yet.
 		 * 
@@ -309,19 +312,19 @@ private:
 	 */
 	bool findTFsWithAllNeighbors();
 	/**
-	 * Method is used only when I haven't found any transformation between mine
-	 * and the current neighbor's graph. When I do find one, I just add every new
-	 * nodeID + LS directly in own graph since I can now connect the new ones
-	 * with the already integrated nodes of the neighbor.
+	 * \brief Method is used only when I haven't found any transformation between
+	 * mine and the current neighbor's graph. When I do find one, I just add
+	 * every new nodeID + LS directly in own graph since I can now connect the
+	 * new ones with the already integrated nodes of the neighbor.
 	 *
 	 * \sa findTFsWithAllNeighbors
 	 */
 	bool findTFWithNeighbor(TNeighborAgentProps* neighbor);
-	/**\brief Fill the TneighborAgentProps instance based on the given agent_ID_str
+	/**\brief Fill the TNeighborAgentProps instance based on the given agent_ID_str
 	 * string that is provided.
 	 *
 	 * \return False if the agent_ID_str doesn't correspond to any registered
-	 * TNeighborAgentProps
+	 * TNeighborAgentProps, True otherwise
 	 */
 	bool getNeighborByAgentID(
 			const std::string& agent_ID_str,
@@ -403,8 +406,6 @@ private:
 	 * transformation between own and neighbor graphs.
 	 */
 	std::map<TNeighborAgentProps*, bool> m_neighbor_to_found_initial_tf;
-	/**\brief Class member version of the nearby SLAM agents */
-	mrpt_msgs::GraphSlamAgents m_nearby_slam_agents;
 
 	/**\name Subscribers - Publishers
 	 *

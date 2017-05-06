@@ -61,7 +61,6 @@ public:
 	void getNearbySlamAgents(mrpt_msgs::GraphSlamAgents* agents_vec,
 			bool ignore_self=true);
 	/**\brief Read-only method for accessing list of nearby agents
-	 *
 	 */
 	const mrpt_msgs::GraphSlamAgents&  getNearbySlamAgents();
 	/**\brief Read-only method for accessing list of nearby agents.
@@ -160,7 +159,7 @@ bool operator!=(
 /**\{*/
 
 /**\brief GraphSlamAgent instances are considered the same if the "agent_ID" field is the
- * same
+ * same and the topic_namespace is the same
  */
 /**\{*/
 bool operator==(
@@ -172,6 +171,24 @@ bool operator!=(
 bool operator<(
 		const mrpt_msgs::GraphSlamAgent& agent1,
 		const mrpt_msgs::GraphSlamAgent& agent2);
+/**\}*/
+
+/**\brief GraphSlamAgent and ROSMaster instances are considered the same if the
+ * corresponding "name" fields coincede
+ */
+/**\{*/
+bool operator==(
+		const multimaster_msgs_fkie::ROSMaster& master,
+		const mrpt_msgs::GraphSlamAgent& agent);
+bool operator==(
+		const mrpt_msgs::GraphSlamAgent& agent,
+		const multimaster_msgs_fkie::ROSMaster& master);
+bool operator!=(
+		const multimaster_msgs_fkie::ROSMaster& master,
+		const mrpt_msgs::GraphSlamAgent& agent);
+bool operator!=(
+		const mrpt_msgs::GraphSlamAgent& agent,
+		const multimaster_msgs_fkie::ROSMaster& master);
 
 /**\}*/
 
