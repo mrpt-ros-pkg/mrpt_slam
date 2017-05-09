@@ -14,18 +14,17 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
 - [mrpt-graphslam library](http://reference.mrpt.org/devel/namespacemrpt_1_1graphslam.html)
 - [graphslam-engine application page](http://www.mrpt.org/list-of-mrpt-apps/application-graphslamengine/)
 - [graphslam-engine documentation](https://www.dropbox.com/s/u7phs612qf1l8bb/graphslam-engine-guide.pdf?dl=0)
-- TODO - Upload and include Youtube demo video w/ ground-truth
 
-## Algorithm demonstration
+## Single robot algorithm
 
-### Real-Time demo experiment - short loop
+### Real-Time experiment - short loop
 
 - A sample rosbag is included in the rosbags/demo_short_loop directory. To run
     this just launch the sr_graphslam_demo.launch file:
 
     `roslaunch mrpt_graphslam_2d sr_graphslam_demo.launch start_rviz:=True`
 
-- Demo rosbag contains laserScan measurements (and odometry which is not usuable in the algorithm due to the topic type)
+- Demo rosbag contains Laser Scan measurements (and odometry which is not usuable in the algorithm due to the topic type)
 
 
 ### Real-Time experiment - ground-truth data included
@@ -60,6 +59,27 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
 - Rosbag was recorded in the Mechanical Engineering School of the [National
 	Technical University of Athens](http://www.mech.ntua.gr/en)
 
-# Notes:
+## Multi-robot algorithm
 
-- Multi-Robot graphSLAM is not yet supported.
+### Multi-robot simulations in Gazebo - [csl_mr_slam](http://github.com/bergercookie/csl_mr_slam)
+
+Multi-robot simulations are supported in the Gazebo Simulator via the
+**csl_mr_slam/csl_robots_gazebo** ROS package. An example of running such a simulation is given
+below.
+
+![](https://media.giphy.com/media/l0Iy3H3H4eJQFxqlW/giphy.gif)
+
+A complete example of executing multi-robot graphSLAM in the Gazebo simulation
+environment is presented in the following video:
+
+[![Multi-robot simulations](http://img.youtube.com/vi/4RKS2jrvsYE/0.jpg)](http://www.youtube.com/watch?v=4RKS2jrvsYE)
+
+### Real-time multi-robot experiments
+
+As with its single-robot variant, support for running the algorithm in a
+real-time multi-robot setup is provided via the **csl_mr_slam/csl_hw_setup**
+package.
+
+An example of executing real-time multi-robot graphSLAM is given
+[here](https://www.dropbox.com/s/zm2njljeprnsfaf/20170426_mr_graphslam_real_2.mp4?dl=0).
+
