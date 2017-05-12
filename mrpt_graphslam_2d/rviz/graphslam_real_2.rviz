@@ -88,7 +88,7 @@ Visualization Manager:
       Name: img_1
       Normalize Range: true
       Queue Size: 2
-      Transport Hint: raw
+      Transport Hint: compressed
       Unreliable: false
       Value: true
     - Class: rviz/Image
@@ -100,7 +100,7 @@ Visualization Manager:
       Name: img_2
       Normalize Range: true
       Queue Size: 2
-      Transport Hint: raw
+      Transport Hint: compressed
       Unreliable: false
       Value: true
     - Alpha: 1
