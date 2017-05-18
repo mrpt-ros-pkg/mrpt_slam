@@ -77,7 +77,7 @@ Visualization Manager:
       Length: 1
       Name: anchor_frame_2
       Radius: 0.1
-      Reference Frame: mf2_anchor
+      Reference Frame: mf3_anchor
       Value: true
     - Class: rviz/Image
       Enabled: true

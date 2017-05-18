@@ -27,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: img_3
+    SyncSource: img_2
 Visualization Manager:
   Class: ""
   Displays:
@@ -68,14 +68,14 @@ Visualization Manager:
       Length: 1
       Name: anchor_frame_2
       Radius: 0.1
-      Reference Frame: mf2_anchor
+      Reference Frame: mf3_anchor
       Value: true
     - Class: rviz/Axes
       Enabled: true
       Length: 1
       Name: anchor_frame_3
       Radius: 0.1
-      Reference Frame: mf3_anchor
+      Reference Frame: mf5_anchor
       Value: true
     - Class: rviz/Image
       Enabled: true
@@ -116,7 +116,7 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
@@ -127,12 +127,12 @@ Visualization Manager:
       Robot Description: robot_description
       TF Prefix: nickkoukubuntu
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
@@ -143,12 +143,12 @@ Visualization Manager:
       Robot Description: robot_description
       TF Prefix: odroidxu3
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
@@ -159,7 +159,7 @@ Visualization Manager:
       Robot Description: robot_description
       TF Prefix: odroidu2
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -173,7 +173,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 0
@@ -190,7 +190,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -203,7 +203,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 0
@@ -220,7 +220,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -509,22 +509,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 40.1641
+      Distance: 28.726
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.353708
-        Y: -2.69735
-        Z: -5.32826
+        X: 4.92833
+        Y: 3.92607
+        Z: -4.21462
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.0798
+      Pitch: 1.3298
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.65722
+      Yaw: 2.77223
     Saved: ~
 Window Geometry:
   Displays:

@@ -298,7 +298,6 @@ class CGraphSlamHandler_ROS :
 		std::string m_anchor_frame_id;
 		std::string m_base_link_frame_id;
 		std::string m_odom_frame_id;
-		std::string m_laser_frame_id;
 		/**\}*/
 
 		/**\name Geometrical Configuration
@@ -306,7 +305,6 @@ class CGraphSlamHandler_ROS :
 	 	 * the different robot parts etc.
 	 	 */
 		/**\{*/
-		geometry_msgs::TransformStamped m_base_laser_transform; // TODO - either use it or lose it
 		geometry_msgs::TransformStamped m_anchor_odom_transform;
 		/**\}*/
 
