@@ -64,7 +64,8 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
 ### Multi-robot simulations in Gazebo - [csl_mr_slam](http://github.com/bergercookie/csl_mr_slam)
 
 Multi-robot simulations are supported in the Gazebo Simulator via the
-**csl_mr_slam/csl_robots_gazebo** ROS package. An example of running such a simulation is given
+[csl_hw_setup](https://github.com/bergercookie/csl_mr_slam/tree/master/csl_hw_setup)
+ROS package. An example of running such a simulation is given
 below.
 
 ![](https://media.giphy.com/media/l0Iy3H3H4eJQFxqlW/giphy.gif)

@@ -438,30 +438,26 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
   // current MRPT robot pose
   pose_t mrpt_pose = this->m_engine->getCurrentRobotPosEstimation();
 
+  //
+  // convert pose_t to corresponding geometry_msg::TransformStamped
   // anchor frame <=> base_link
+  //
+	geometry_msgs::TransformStamped anchor_base_link_transform;
+	anchor_base_link_transform.header.stamp = ros::Time::now();
+	anchor_base_link_transform.header.frame_id = m_anchor_frame_id;
+	anchor_base_link_transform.child_frame_id = m_base_link_frame_id;
+
+	// translation
+	anchor_base_link_transform.transform.translation.x = mrpt_pose.x();
+	anchor_base_link_transform.transform.translation.y = mrpt_pose.y();
+	anchor_base_link_transform.transform.translation.z = 0;
+
+	// rotation
+	anchor_base_link_transform.transform.rotation =
+		tf::createQuaternionMsgFromYaw(mrpt_pose.phi());
+
   // TODO - potential error in the rotation, investigate this
-  {
-		// fill the geometry_msgs::TransformStamped object
-		geometry_msgs::TransformStamped transform_stamped;
-		transform_stamped.header.stamp = ros::Time::now();
-		transform_stamped.header.frame_id = m_anchor_frame_id;
-		transform_stamped.child_frame_id = m_base_link_frame_id;
-
-		transform_stamped.transform.translation.x = mrpt_pose.x();
-		transform_stamped.transform.translation.y = mrpt_pose.y();
-		transform_stamped.transform.translation.z = 0;
-
-		tf2::Quaternion q;
-		q.setRPY(0, 0, mrpt_pose.phi());
-		tf2::Vector3 axis = q.getAxis();
-		tf2Scalar w = q.getW();
-		transform_stamped.transform.rotation.x = axis.getX();
-		transform_stamped.transform.rotation.y = axis.getY();
-		transform_stamped.transform.rotation.z = axis.getZ();
-		transform_stamped.transform.rotation.w = w;
-
-		m_broadcaster.sendTransform(transform_stamped);
-  }
+	m_broadcaster.sendTransform(anchor_base_link_transform);
 
   // anchor frame <=> odom frame
   //
@@ -472,34 +468,15 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
   	m_broadcaster.sendTransform(m_anchor_odom_transform);
   }
 
-  // set an arrow indicating clearly the current orientation of the robot
+  // set an arrow indicating the current orientation of the robot
   {
 		geometry_msgs::PoseStamped geom_pose;
-
 		geom_pose.header.stamp = timestamp;
 		geom_pose.header.seq = m_pub_seq;
 		geom_pose.header.frame_id = m_anchor_frame_id; // with regards to base_link...
 
-		// Pose
-		geometry_msgs::Point& point = geom_pose.pose.position;
-		point.x = mrpt_pose.x();
-		point.y = mrpt_pose.y();
-		point.z = 0;
-
-		// Orientation
-		// RPY --> Quaternion
-		tf2::Quaternion q;
-		q.setRPY(0, 0, mrpt_pose.phi());
-		tf2::Vector3 axis = q.getAxis();
-		tf2Scalar w = q.getW();
-
-		geometry_msgs::Quaternion& quat = geom_pose.pose.orientation;
-		quat.x = axis.getX();
-		quat.y = axis.getY();
-		quat.z = axis.getZ();
-		quat.w = w;
-
-		geom_pose.pose.position = point;
+		// position
+		mrpt_bridge::convert(mrpt_pose, geom_pose.pose);
 		m_curr_robot_pos_pub.publish(geom_pose);
   }
 
@@ -683,14 +660,8 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
 			ros_odom->pose.pose.position.z;
 
 		// quaternion
-		m_anchor_odom_transform.transform.rotation.x =
-			ros_odom->pose.pose.orientation.x;
-		m_anchor_odom_transform.transform.rotation.y =
-	  	ros_odom->pose.pose.orientation.y;
-		m_anchor_odom_transform.transform.rotation.z =
-	  	ros_odom->pose.pose.orientation.z;
-		m_anchor_odom_transform.transform.rotation.w =
-	  	ros_odom->pose.pose.orientation.w;
+		m_anchor_odom_transform.transform.rotation =
+			ros_odom->pose.pose.orientation;
   }
 
   // build and fill an MRPT CObservationOdometry instance for manipulation from
