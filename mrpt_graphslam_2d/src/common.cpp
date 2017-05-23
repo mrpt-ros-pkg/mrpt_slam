@@ -7,6 +7,7 @@
 	 | Released under BSD License. See details in http://www.mrpt.org/License    |
 	 +---------------------------------------------------------------------------+ */
 
+#include <mrpt/math/utils.h>
 #include "mrpt_graphslam_2d/misc/common.h"
 
 using namespace mrpt::poses;
@@ -38,18 +39,11 @@ std::string mrpt::graphslam::detail::getGridMapAlignmentResultsAsString(
 			return ss.str();
 }
 
-bool mrpt::graphslam::detail::essentiallyEqual(double a, double b, double epsilon) {
-	return fabs(a - b) <= ( (fabs(a) > fabs(b) ? fabs(b) : fabs(a)) * epsilon);
-}
-bool mrpt::graphslam::detail::essentiallyEqual(double a, double b) {
-	return essentiallyEqual(a, b, std::numeric_limits<double>::epsilon());
-}
-
 bool mrpt::graphslam::detail::isEssentiallyZero(
 		const mrpt::poses::CPose2D& p) {
 	double epsilon = 0.001;
 	return (
-			essentiallyEqual(p.x(), 0, epsilon) && // all 0s
-			essentiallyEqual(p.y(), 0, epsilon) &&
-			essentiallyEqual(p.phi(), 0, epsilon)); 
+			mrpt::math::essentiallyEqual(p.x(), 0, epsilon) && // all 0s
+			mrpt::math::essentiallyEqual(p.y(), 0, epsilon) &&
+			mrpt::math::essentiallyEqual(p.phi(), 0, epsilon)); 
 }

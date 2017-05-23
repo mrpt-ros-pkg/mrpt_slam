@@ -25,9 +25,6 @@ std::string getGridMapAlignmentResultsAsString(
 			const mrpt::poses::CPosePDF& pdf,
 			const mrpt::slam::CGridMapAligner::TReturnInfo& ret_info);
 
-bool essentiallyEqual(double a, double b, double epsilon);
-bool essentiallyEqual(double a, double b);
-
 bool isEssentiallyZero(const mrpt::poses::CPose2D& p);
 
 } } } // end of namespaces

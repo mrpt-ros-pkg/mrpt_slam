@@ -36,8 +36,7 @@ CGraphSlamEngine_ROS<GRAPH_t>::CGraphSlamEngine_ROS(
 
 template<class GRAPH_t>
 CGraphSlamEngine_ROS<GRAPH_t>::~CGraphSlamEngine_ROS() {
-	MRPT_LOG_DEBUG_STREAM
-		<< "In Destructor: Deleting CGraphSlamEngine_ROS instance...";
+	MRPT_LOG_DEBUG_STREAM("In Destructor: Deleting CGraphSlamEngine_ROS instance...");
 	ros::shutdown();
 }
 
@@ -109,8 +108,8 @@ void CGraphSlamEngine_ROS<GRAPH_t>::usePublishersBroadcasters() { }
 
 template<class GRAPH_t>
 void CGraphSlamEngine_ROS<GRAPH_t>::setupComm() {
-	MRPT_LOG_INFO_STREAM <<
-		"Setting up subscribers, publishers, services...";
+	MRPT_LOG_INFO_STREAM(
+		"Setting up subscribers, publishers, services...");
 
 	// setup subscribers, publishers, services...
 	this->setupSubs();
@@ -121,19 +120,19 @@ void CGraphSlamEngine_ROS<GRAPH_t>::setupComm() {
 
 template<class GRAPH_t>
 void CGraphSlamEngine_ROS<GRAPH_t>::setupSubs() {
-	MRPT_LOG_DEBUG_STREAM << "Setting up subscribers...";
+	MRPT_LOG_DEBUG_STREAM("Setting up subscribers...");
 
 }
 
 template<class GRAPH_t>
 void CGraphSlamEngine_ROS<GRAPH_t>::setupPubs() {
-	MRPT_LOG_DEBUG_STREAM << "Setting up publishers...";
+	MRPT_LOG_DEBUG_STREAM("Setting up publishers...");
 
 }
 
 template<class GRAPH_t>
 void CGraphSlamEngine_ROS<GRAPH_t>::setupSrvs() {
-	MRPT_LOG_DEBUG_STREAM << "Setting up services...";
+	MRPT_LOG_DEBUG_STREAM("Setting up services...");
 
 }
 
