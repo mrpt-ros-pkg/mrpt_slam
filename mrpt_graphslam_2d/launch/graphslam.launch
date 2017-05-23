@@ -18,7 +18,6 @@ Refer to the README.md file for usage information
 	<arg name="anchor_frame_ID" default="map" />
 	<arg name="base_link_frame_ID" default="base_link"/>
 	<arg name="odometry_frame_ID" default="odometry"/>
-	<arg name="laser_frame_ID" default="laser"/>
 
 	<arg name="NRD" default="CFixedIntervalsNRD" />
 	<arg name="ERD" default="CICPCriteriaERD" />
@@ -26,20 +25,20 @@ Refer to the README.md file for usage information
 
 	<arg name="is_mr_slam" default="false" />
 
-  <!-- Should we also start an instance of rviz ? -->
-  <arg name="start_rviz" default="false" />
-  <arg name="rviz_file" default="$(find mrpt_graphslam_2d)/rviz/sr_graphslam.rviz" />
+    <!-- Should we also start an instance of rviz ? -->
+    <arg name="start_rviz" default="false" />
+    <arg name="rviz_file" default="$(find mrpt_graphslam_2d)/rviz/sr_graphslam.rviz" />
 
 	<arg name="disable_MRPT_visuals" default="false" />
 	<arg name="verbosity" default="1"/>
 
-  <!-- LAUNCH PARAMETERS -->
-  <group ns="deciders_optimizers">
+    <!-- LAUNCH PARAMETERS -->
+    <group ns="deciders_optimizers">
 		<param name="NRD" value="$(arg NRD)" />
-    <param name="ERD" value="$(arg ERD)" />
+        <param name="ERD" value="$(arg ERD)" />
 		<param name="GSO" value="$(arg GSO)" />
-  </group>
-  <group ns="files">
+    </group>
+    <group ns="files">
 		<param name="config" value="$(arg config_file)" />
 		<param name="grount_truth" value="" />
 	</group>
@@ -58,19 +57,19 @@ Refer to the README.md file for usage information
 	<arg name="dbg_prog" value="xterm -hold -geometry 1920x1080+0+0 -e gdb --args" /> <!-- USE HYPHENS  use gdb, cgdb, ddd, nemiver etc. -->
 	<group unless="$(arg is_mr_slam)"> <!-- Single robot graphSLAM -->
 		<group if="$(arg run_under_gdb)">
-	  	<node launch-prefix="$(arg dbg_prog)" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
-	  </group>
+	  	    <node launch-prefix="$(arg dbg_prog)" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
+	    </group>
 		<group unless="$(arg run_under_gdb)">
-	  	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
-	  </group>
+	  	    <node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
+	    </group>
 	</group>
 	<group if="$(arg is_mr_slam)"> <!-- multi-robot SLAM -->
 		<group if="$(arg run_under_gdb)">
-	  	<node launch-prefix="$(arg dbg_prog)" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_mr_node" name="mrpt_graphslam_2d_mr" output="$(arg output)" />
-	  </group>
+	  	    <node launch-prefix="$(arg dbg_prog)" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_mr_node" name="mrpt_graphslam_2d_mr" output="$(arg output)" />
+	    </group>
 		<group unless="$(arg run_under_gdb)">
-	  	<node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_mr_node" name="mrpt_graphslam_2d_mr" output="$(arg output)" />
-	  </group>
+	  	    <node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_mr_node" name="mrpt_graphslam_2d_mr" output="$(arg output)" />
+	    </group>
 	</group>
 
 

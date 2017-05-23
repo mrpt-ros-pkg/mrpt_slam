@@ -9,6 +9,8 @@ Panels:
         - /anchor_frame_11
         - /anchor_frame_21
         - /img_21
+        - /robot_model_11
+        - /robot_model_21
       Splitter Ratio: 0.5
     Tree Height: 328
   - Class: rviz/Selection
@@ -63,14 +65,14 @@ Visualization Manager:
       Length: 1
       Name: anchor_frame_1
       Radius: 0.1
-      Reference Frame: csldesktop_anchor
+      Reference Frame: csldesktop/anchor
       Value: true
     - Class: rviz/Axes
       Enabled: true
       Length: 1
       Name: anchor_frame_2
       Radius: 0.1
-      Reference Frame: csldesktop_11312_anchor
+      Reference Frame: csldesktop_11312/anchor
       Value: true
     - Class: rviz/Image
       Enabled: true
@@ -197,7 +199,7 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: robot_model_1
-      Robot Description: robot_description
+      Robot Description: csldesktop/robot_description
       TF Prefix: csldesktop
       Update Interval: 0
       Value: true
@@ -303,7 +305,7 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: robot_model_2
-      Robot Description: robot_description
+      Robot Description: csldesktop_11312/robot_description
       TF Prefix: csldesktop_11312
       Update Interval: 0
       Value: true
@@ -555,15 +557,15 @@ Visualization Manager:
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 3.048
-        Y: -4.8197
-        Z: -4.44887
+        X: 3.57737
+        Y: -5.15677
+        Z: -4.08701
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.9848
+      Pitch: 1.0448
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.5954
+      Yaw: 2.7704
     Saved: ~
 Window Geometry:
   Displays:
