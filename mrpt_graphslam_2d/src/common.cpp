@@ -14,6 +14,7 @@ using namespace mrpt::poses;
 using namespace mrpt::math;
 using namespace std;
 using namespace mrpt::math;
+using namespace mrpt::utils;
 
 std::string mrpt::graphslam::detail::getGridMapAlignmentResultsAsString(
 			const mrpt::poses::CPosePDF& pdf,
@@ -43,7 +44,7 @@ bool mrpt::graphslam::detail::isEssentiallyZero(
 		const mrpt::poses::CPose2D& p) {
 	double epsilon = 0.001;
 	return (
-			mrpt::math::essentiallyEqual(p.x(), 0, epsilon) && // all 0s
-			mrpt::math::essentiallyEqual(p.y(), 0, epsilon) &&
-			mrpt::math::essentiallyEqual(p.phi(), 0, epsilon)); 
+			approximatelyEqual(p.x(), 0.0, epsilon) && // all 0s
+			approximatelyEqual(p.y(), 0.0, epsilon) &&
+			approximatelyEqual(p.phi(), 0.0, epsilon));
 }

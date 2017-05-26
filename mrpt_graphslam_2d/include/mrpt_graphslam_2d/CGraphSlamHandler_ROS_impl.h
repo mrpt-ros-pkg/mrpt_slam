@@ -732,6 +732,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::_process(
 
   //this->m_logger->logFmt(LVL_DEBUG, "Calling execGraphSlamStep...");
 
+	// TODO - use the exit code of execGraphSlamStep to exit??
   if (!this->m_engine->isPaused()) {
 		this->m_engine->execGraphSlamStep(observ, m_measurement_cnt);
 		m_measurement_cnt++;

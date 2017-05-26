@@ -17,8 +17,6 @@ template<class GRAPH_T>
 CLoopCloserERD_MR<GRAPH_T>::CLoopCloserERD_MR() {
 	// CLoopCloser Ctor is automatically called.
 
-	this->is_mr_slam_class = true;
-
 	// since this is for MR-SLAM, we do expect more than one node registered
 	// between successive calls
 	this->m_override_registered_nodes_check = true;
@@ -85,11 +83,12 @@ bool CLoopCloserERD_MR<GRAPH_T>::updateState(
 		mrpt::obs::CSensoryFramePtr observations,
 		mrpt::obs::CObservationPtr observation ) {
 
-	lc_parent_t::updateState(action, observations, observation);
+	bool success = lc_parent_t::updateState(action, observations, observation);
 
 	// search for possible edges with the other agent's graph.
 	// TODO
 
+	return success;
 }
 
 

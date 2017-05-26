@@ -16,7 +16,7 @@
 #include <mrpt/poses/CPosePDFSOG.h>
 #include <mrpt/poses/CPose2D.h>
 #include <mrpt/slam/CGridMapAligner.h>
-#include <mrpt/math/utils.h>
+#include <mrpt/utils/stl_containers_utils.h>
 #include <sstream>
 
 namespace mrpt { namespace graphslam { namespace detail {

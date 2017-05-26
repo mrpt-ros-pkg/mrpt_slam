@@ -4,7 +4,9 @@
 namespace mrpt { namespace graphslam {
 
 template<class GRAPH_T>
-CRegistrationDeciderOrOptimizer_MR<GRAPH_T>::CRegistrationDeciderOrOptimizer_MR() { }
+CRegistrationDeciderOrOptimizer_MR<GRAPH_T>::CRegistrationDeciderOrOptimizer_MR() {
+	this->is_mr_slam_class = true;
+}
 
 template<class GRAPH_T>
 CRegistrationDeciderOrOptimizer_MR<GRAPH_T>::~CRegistrationDeciderOrOptimizer_MR() { }

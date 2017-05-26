@@ -98,9 +98,11 @@ bool CGraphSlamEngine_ROS<GRAPH_t>::_execGraphSlamStep(
 		mrpt::obs::CObservationPtr& observation,
 		size_t& rawlog_entry) {
 
-	parent::_execGraphSlamStep(
+	bool continue_exec = parent::_execGraphSlamStep(
 			action, observations, observation, rawlog_entry);
 	this->usePublishersBroadcasters();
+
+	return continue_exec;
 }
 
 template<class GRAPH_t>

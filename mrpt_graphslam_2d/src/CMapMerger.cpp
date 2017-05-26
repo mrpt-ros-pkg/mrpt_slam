@@ -468,10 +468,7 @@ void CMapMerger::mergeMaps() {
 			pdf_out->getMostLikelyCovarianceAndMean(cov_out, pose_out);
 
 			// dismiss this?
-			if (results.goodness > 0.999 ||
-					(essentiallyEqual(pose_out.x(), 0, 0.001) && // all 0s
-					 essentiallyEqual(pose_out.y(), 0, 0.001) &&
-					 essentiallyEqual(pose_out.phi(), 0, 0.001))) {
+			if (results.goodness > 0.999 || isEssentiallyZero(pose_out)) {
 				continue;
 			}
 
