@@ -16,7 +16,7 @@
 #include <cstring>
 
 // ROS headers
-#include "mrpt_graphslam_2d/CGraphSlamResources.h"
+#include "mrpt_graphslam_2d/CGraphSlamHandler_ROS.h"
 
 using namespace mrpt;
 using namespace mrpt::utils;
@@ -30,18 +30,18 @@ using namespace mrpt::utils;
 using namespace mrpt::graphslam;
 using namespace mrpt::graphslam::deciders;
 using namespace mrpt::graphslam::optimizers;
-using namespace mrpt::graphslam::supplementary;
+using namespace mrpt::graphslam::apps;
 
 using namespace std;
 
-/** Main function of the mrpt_graphslam_application */
+/** Main function of the mrpt_graphslam application */
 int main(int argc, char **argv)
 {
 	std::string node_name = "mrpt_graphslam_2d";
 
 	COutputLogger logger;
 	logger.setLoggerName(node_name);
-	logger.logFmt(LVL_WARN, "Initializing %s node...\n", "mrpt_graphslam_2d");
+	logger.logFmt(LVL_WARN, "Initializing %s node...\n", node_name.c_str());
 
   ros::init(argc, argv, node_name);
 	ros::NodeHandle nh;
@@ -50,27 +50,25 @@ int main(int argc, char **argv)
 
 
 	try {
-		// CGraphSlamResources initialization
-		CGraphSlamResources resources(&logger, &nh);
-		resources.readParams();
-		resources.setupCommunication();
+
+		// Initialization
+		TUserOptionsChecker_ROS<CNetworkOfPoses2DInf> options_checker;
+		CGraphSlamHandler_ROS<CNetworkOfPoses2DInf> graphslam_handler(
+				&logger, &options_checker, &nh);
+		graphslam_handler.readParams();
+		graphslam_handler.initEngine_ROS();
+		graphslam_handler.setupComm();
+
 		// print the parameters just for verification
-		resources.printParams();
+		graphslam_handler.printParams();
 
 		bool cont_exec = true;
 		while (ros::ok() && cont_exec) {
-			cont_exec = resources.usePublishersBroadcasters();
+			cont_exec = graphslam_handler.usePublishersBroadcasters();
 
 			ros::spinOnce();
 			loop_rate.sleep();
 		}
-
-		//
-		// Postprocessing
-		//
-
-		resources.generateReport();
-
 	}
 	catch (exception& e) {
 		ROS_ERROR_STREAM(
@@ -88,7 +86,4 @@ int main(int argc, char **argv)
 		mrpt::system::pause();
 		return -1;
 	}
-
-
 }
-

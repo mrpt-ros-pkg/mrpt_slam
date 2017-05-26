@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+
+<!--
+Mon Oct 10 19:20:36 EEST 2016, Nikos Koukis
+
+Launchfile  responsible for the mrpt_graphslam_2d application in a single agent setup.
+Refer to the README.md file for usage information
+
+-->
+
+<launch>
+	<!-- LAUNCH ARGUMENTS -->
+	<arg name="output" default="screen"/>
+	<arg name="config_file" default="$(find mrpt_graphslam_2d)/config/ros_odometry_2DRangeScans.ini"  />
+	<arg name="do_publish_gridmap_topic" default="true" />
+	<arg name="run_under_gdb" default="false"/>
+
+	<arg name="anchor_frame_ID" default="map" />
+	<arg name="base_link_frame_ID" default="base_link"/>
+	<arg name="odometry_frame_ID" default="odometry"/>
+
+	<arg name="NRD" default="CFixedIntervalsNRD" />
+	<arg name="ERD" default="CICPCriteriaERD" />
+	<arg name="GSO" default="CLevMarqGSO" />
+
+	<arg name="is_mr_slam" default="false" />
+
+    <!-- Should we also start an instance of rviz ? -->
+    <arg name="start_rviz" default="false" />
+    <arg name="rviz_file" default="$(find mrpt_graphslam_2d)/rviz/sr_graphslam.rviz" />
+
+	<arg name="disable_MRPT_visuals" default="false" />
+	<arg name="verbosity" default="1"/>
+
+    <!-- LAUNCH PARAMETERS -->
+    <group ns="deciders_optimizers">
+		<param name="NRD" value="$(arg NRD)" />
+        <param name="ERD" value="$(arg ERD)" />
+		<param name="GSO" value="$(arg GSO)" />
+    </group>
+    <group ns="files">
+		<param name="config" value="$(arg config_file)" />
+		<param name="grount_truth" value="" />
+	</group>
+	<group ns="misc">
+		<param name="disable_MRPT_visuals" value="$(arg disable_MRPT_visuals)" type="bool" />
+		<param name="verbosity" value="$(arg verbosity)" type="int" />
+		<param name="do_publish_gridmap_topic" value="$(arg do_publish_gridmap_topic)" type="bool" />
+	</group>
+	<group ns="frame_IDs">
+		<param name="anchor_frame" value="$(arg anchor_frame_ID)" />
+		<param name="base_link_frame" value="$(arg base_link_frame_ID)"/>
+		<param name="odometry_frame" value="$(arg odometry_frame_ID)" />
+	</group>
+
+	<!--<arg name="dbg_prog" value="xterm -hold -geometry 1920x1080+0+0 -e" />-->
+	<arg name="dbg_prog" value="xterm -hold -geometry 1920x1080+0+0 -e gdb --args" /> <!-- USE HYPHENS  use gdb, cgdb, ddd, nemiver etc. -->
+	<group unless="$(arg is_mr_slam)"> <!-- Single robot graphSLAM -->
+		<group if="$(arg run_under_gdb)">
+	  	    <node launch-prefix="$(arg dbg_prog)" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
+	    </group>
+		<group unless="$(arg run_under_gdb)">
+	  	    <node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_node" name="mrpt_graphslam_2d" output="$(arg output)" />
+	    </group>
+	</group>
+	<group if="$(arg is_mr_slam)"> <!-- multi-robot SLAM -->
+		<group if="$(arg run_under_gdb)">
+	  	    <node launch-prefix="$(arg dbg_prog)" pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_mr_node" name="mrpt_graphslam_2d_mr" output="$(arg output)" />
+	    </group>
+		<group unless="$(arg run_under_gdb)">
+	  	    <node pkg="mrpt_graphslam_2d" type="mrpt_graphslam_2d_mr_node" name="mrpt_graphslam_2d_mr" output="$(arg output)" />
+	    </group>
+	</group>
+
+
+	<!-- Start rviz -->
+	<group if="$(arg start_rviz)">
+		<node pkg="rviz" type="rviz" name="rviz_visualization" output="$(arg output)" args="-d $(arg rviz_file)" />
+	</group>
+
+</launch>
