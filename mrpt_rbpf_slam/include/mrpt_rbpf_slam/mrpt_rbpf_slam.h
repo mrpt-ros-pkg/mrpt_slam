@@ -5,7 +5,7 @@
  *
  */
 
-#ifndef MPRT_RBPF_SLAM_H
+#ifndef MRPT_RBPF_SLAM_H
 #define MRPT_RBPF_SLAM_H
 
 #include <ros/console.h>
