@@ -193,6 +193,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_MR() {
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::getROSParameters(std::string* str_out) {
   using namespace mrpt::utils;
+  using namespace std;
 
   ASSERT_(str_out);
 
@@ -256,6 +257,7 @@ std::string CGraphSlamHandler_ROS<GRAPH_T>::getParamsAsString() {
 
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::printParams() {
+  using namespace std;
   parent_t::printParams();
   cout << this->getParamsAsString() << endl;
 }
@@ -430,6 +432,8 @@ void CGraphSlamHandler_ROS<GRAPH_T>::setupSrvs() {
 template<class GRAPH_T>
 bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
   using namespace mrpt::utils;
+  using namespace std;
+
   MRPT_START;
   bool ret_val = true;
 

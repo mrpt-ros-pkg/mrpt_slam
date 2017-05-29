@@ -466,6 +466,7 @@ template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::initClass() {
 	using namespace mrpt::graphslam;
 	using namespace mrpt::utils;
+	using namespace std;
 
 	// initialization of topic namespace names
 	// TODO - put these into seperate method
@@ -1394,6 +1395,7 @@ computeGridMap() const {
 	using namespace mrpt::utils;
 	using namespace mrpt;
 	using namespace mrpt::math;
+	using namespace std;
 
 	gridmap_cached->clear();
 

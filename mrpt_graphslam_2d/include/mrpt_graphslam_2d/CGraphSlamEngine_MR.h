@@ -68,7 +68,7 @@ public:
 	typedef typename mrpt::graphslam::detail::TNodeProps<GRAPH_T> node_props_t;
 	typedef mrpt::graphslam::TUncertaintyPath<GRAPH_T> path_t;
 	typedef std::vector<path_t> paths_t;
-	typedef CEdgeRegistrationDecider_MR<GRAPH_T> edge_reg_mr_t;
+	typedef mrpt::graphslam::deciders::CEdgeRegistrationDecider_MR<GRAPH_T> edge_reg_mr_t;
 
 	CGraphSlamEngine_MR(
 			ros::NodeHandle* nh,
