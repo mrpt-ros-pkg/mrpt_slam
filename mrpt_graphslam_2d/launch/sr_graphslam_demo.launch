@@ -11,9 +11,9 @@ single robot situations. More elaborate demo files are built on top of this one
 
 
 <launch>
+    <arg name="disable_MRPT_visuals" default="false" />
 	<arg name="robot_ns" value="/" />
     <arg name="output" value="screen" />
-    <arg name="disable_MRPT_visuals" value="false" />
     <arg name="verbosity" value="1" />
     <arg name="bag_dir" value="$(find mrpt_graphslam_2d)/rosbags/demo_short_loop" />
     <arg name="bag_file" value="demo.bag"/>
@@ -46,7 +46,7 @@ single robot situations. More elaborate demo files are built on top of this one
   		    <arg name="verbosity" value="$(arg verbosity)" />
 		    <arg name="start_rviz" value="$(arg start_rviz)" />
 		    <arg name="rviz_file" value="$(arg rviz_file)" />
-            <arg name="config_file" value="$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"  />
+            <arg name="config_file" value="$(arg config_file)"  />
 		    <arg name="anchor_frame_ID" value="$(arg anchor_frame_ID)" />
 		    <arg name="base_link_frame_ID" value="$(arg base_link_frame_ID)" />
             <arg name="NRD" value="$(arg NRD)" />

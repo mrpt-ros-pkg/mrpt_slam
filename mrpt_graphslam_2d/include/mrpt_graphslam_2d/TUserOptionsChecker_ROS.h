@@ -48,6 +48,7 @@ struct TUserOptionsChecker_ROS:
 
 	TUserOptionsChecker_ROS();
 	~TUserOptionsChecker_ROS();
+	/**\brief Create deciders, optimizers specific to the ROS case */
 	void createDeciderOptimizerMappings();
 	void populateDeciderOptimizerProperties();
 
