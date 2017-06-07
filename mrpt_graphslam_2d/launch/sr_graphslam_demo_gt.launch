@@ -26,7 +26,7 @@ See the README.md file for more information on this
     <arg name="bag_dir" default="$(find mrpt_graphslam_2d)/rosbags" />
     <arg name="bag_file" default="records_with_gt.bag"/>
     <arg name="bag_file_full" default="$(arg bag_dir)/$(arg bag_file)"/>
-	<arg name="bag_topic_remaps" value=""/>
+	<arg name="bag_topic_remaps" default="/youbot_15/:=/"/>
 
     <!-- Should we also start an instance of rviz ? -->
     <arg name="start_rviz" default="true" />
@@ -34,14 +34,15 @@ See the README.md file for more information on this
 
 	<arg name="anchor_frame_ID" value="mf1_anchor" />
 
-    <arg name = "config_file" value = "$(find mrpt_graphslam_2d)/config/ros_odometry_2DRangeScans.ini"  />
+    <!--<arg name = "config_file" value = "$(find mrpt_graphslam_2d)/config/ros_odometry_2DRangeScans.ini"  />-->
+    <arg name = "config_file" value = "$(find mrpt_graphslam_2d)/config/ros_odometry_2DRangeScans_LC_MR_real.ini"  />
     <!--<arg name = "config_file" value = "$(find mrpt_graphslam_2d)/config/ros_laser_odometry.ini"  />-->
     <!--<arg name = "config_file" value = "$(find mrpt_graphslam_2d)/config/ros_odometry_2DRangeScans_LC_version.ini"  />-->
 
     <arg name="NRD" value="CFixedIntervalsNRD" />
     <!--<arg name="NRD" value="CICPCriteriaNRD" />-->
-    <arg name="ERD" value="CICPCriteriaERD" />
-    <!--<arg name="ERD" value="CLoopCloserERD" />-->
+    <!--<arg name="ERD" value="CICPCriteriaERD" />-->
+    <arg name="ERD" value="CLoopCloserERD" />
 	<arg name="GSO" value="CLevMarqGSO" />
 
 	<!-- Run single-robot graphSLAM -->
