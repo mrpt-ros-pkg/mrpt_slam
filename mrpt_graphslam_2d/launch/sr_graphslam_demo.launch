@@ -3,9 +3,9 @@
 <!--
 Fri Nov 11 14:26:18 EET 2016, Nikos Koukis
 
-Launchfile for a simple demonstration of the mrpt_graphslam_2d algorithm on
+Launchfile for a simple demonstration of the mrpt_graphslam_2d algorithm in
 single robot situations. More elaborate demo files are built on top of this one
-- see sr_graphslam_demo_gt.launch file
+such as the sr_graphslam_demo_gt.launch file
 
 -->
 
@@ -41,10 +41,13 @@ single robot situations. More elaborate demo files are built on top of this one
 
     <!-- Launch the demo bagfile -->
     <param name="/use_sim_time" value="true" type="bool" />
-	<node pkg="rosbag" type="play" name="rosbag_player" args="--clock $(arg bag_file_full) $(arg bag_topic_remaps)" output="$(arg output)"/>
+
+	<arg name="play_own_rosbag" default="true"/>
+	<group if="$(arg play_own_rosbag)">
+	    <node pkg="rosbag" type="play" name="rosbag_player_$(arg robot_ns)" args="--clock $(arg bag_file_full) $(arg bag_topic_remaps)" output="$(arg output)"/>
+    </group>
 
 	<group ns="$(arg robot_ns)">
-	    <!-- Run single-robot graphSLAM -->
 	    <include file="$(find mrpt_graphslam_2d)/launch/graphslam.launch">
 		    <arg name="output" value="$(arg output)" />
             <arg name="disable_MRPT_visuals" value="$(arg disable_MRPT_visuals)" />

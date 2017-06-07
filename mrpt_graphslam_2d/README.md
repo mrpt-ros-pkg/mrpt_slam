@@ -19,7 +19,7 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
 
 ### Real-Time experiment - short loop
 
-- A sample rosbag is included in the rosbags/demo_short_loop directory. To run
+- A sample rosbag is included in the `rosbags/demo_short_loop` directory. To run
     this just launch the sr_graphslam_demo.launch file:
 
     `roslaunch mrpt_graphslam_2d sr_graphslam_demo.launch start_rviz:=True`
@@ -36,14 +36,15 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
     ceiling. The cameras using the ar_sys ROS package are tracking Aruco
     markers that act as the workspace origin (static marker) and as the robot
     executing  SLAM (moving marker) respectively.
-    To run this demo, just download the whole folder place it directly under
-    the rosbags directory of the mrpt_graphslam_2d package and
-    run the sr_graphslam_demo_gt.launch file.
+    To run this demo, simply download the entire folder, place it directly under
+    the `rosbags` directory of the mrpt_graphslam_2d package and run the
+    sr_graphslam_demo_gt.launch file.
 
     `roslaunch mrpt_graphslam_2d sr_graphslam_demo_gt.launch`
 
 - One can also tinker with the aforementioned launchfile to enable/disable the
-    different visualization features.
+    different visualization features, use another decider/optimizer class, or
+    modify the .ini file to change the algorithm behavior.
 
 - Robot movement starts after ~60''. Due to different timestamps in the
     laserscans, odometry topics the algorithm feedback is lagging a bit compared
@@ -60,6 +61,38 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
 	Technical University of Athens](http://www.mech.ntua.gr/en)
 
 ## Multi-robot algorithm
+
+Multi-robot support is provided via the csl_mr_slam package package suite as
+well as the use of multimaster_fkie packages utilized for communication across
+the various ROS agents.
+
+### Multi-robot real-time experiments - rosbag
+
+Rosbags collected from real-robots can be found in the following links:
+
+- [20170607_multi_robot_graphSLAM_short](https://www.dropbox.com/sh/wivaa7phyiy7sc5/AAAdqI3N7OqCz0dtiLdge3QAa?dl=0)
+- [20170607_multi_robot graphSLAM_medium](https://www.dropbox.com/sh/5dj2ixstiy4r0g7/AAAxUCnTIhivCj6bB1osE2Woa?dl=0)
+
+To run a demo using one of the corresponding rosbags download that directory,
+place it directly under the `rosbags` directory of the mrpt_graphslam_2d package
+and run the `run_mr_graphslam_demo.py` script of the `csl_robots_gazebo
+package`. The latter script (as is standard with the nodes of the
+`csl_robots_gazebo` package reads its configuration parameters off
+the shell environment at hand and adjusts its behavior accordingly. As an
+examaple users can use the following command for running a multi-robot demo.
+
+```sh
+
+source $(rospack find csl_robots_gazebo)/config/slam/mr_slam_demo_config.sh && \
+rosrun csl_robots_gazebo run_mr_graphslam_demo.py
+
+```
+
+**Warning**
+
+For this to work, you need to have the csl_mr_slam package suite (as well as the
+packages that the latter depends on) in your catkin workspace.
+
 
 ### Multi-robot simulations in Gazebo - [csl_mr_slam](http://github.com/bergercookie/csl_mr_slam)
 
