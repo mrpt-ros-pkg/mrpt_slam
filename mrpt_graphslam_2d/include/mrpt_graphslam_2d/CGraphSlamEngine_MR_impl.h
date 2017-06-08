@@ -35,9 +35,11 @@ CGraphSlamEngine_MR<GRAPH_T>::CGraphSlamEngine_MR(
 	m_nh(nh),
 	m_graph_nodes_last_size(0),
 	m_registered_multiple_nodes(false),
-	m_intra_group_node_count_thresh_minadv(25),
 	cm_graph_async_spinner(/* threads_num: */ 1, &this->custom_service_queue),
-	m_pause_exec_on_mr_registration(false)
+	m_pause_exec_on_mr_registration(false),
+	m_sec_alignment_params("AlignmentParameters"),
+	m_sec_mr_slam_params("MultiRobotParameters"),
+	m_opts(*this)
 {
 	this->initClass();
 }
@@ -65,9 +67,9 @@ bool CGraphSlamEngine_MR<GRAPH_T>::addNodeBatchesFromAllNeighbors() {
 	bool ret_val = false;
 	for (const auto& neighbor : m_neighbors) {
 		if (!isEssentiallyZero(
-					neighbor->tf_self_to_neighbor_first_integrated_pose) && // intra-graph TF found
+					neighbor->tf_self_to_neighbor_first_integrated_pose) && // inter-graph TF found
 				neighbor->hasNewData() &&
-				neighbor->hasNewNodesBatch(m_nodes_integration_batch_size)) {
+				neighbor->hasNewNodesBatch(m_opts.nodes_integration_batch_size)) {
 			bool loc_ret_val = this->addNodeBatchFromNeighbor(neighbor);
 			if (loc_ret_val) { ret_val = true; }
 		}
@@ -207,7 +209,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::findTFsWithAllNeighbors() {
 	using namespace mrpt::utils;
 	using namespace mrpt::math;
 
-	if (this->m_graph.nodeCount() < m_intra_group_node_count_thresh) {
+	if (this->m_graph.nodeCount() < m_opts.inter_group_node_count_thresh) {
 		return false;
 	}
 
@@ -225,7 +227,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::findTFsWithAllNeighbors() {
 			++neighbors_it) {
 
 		// run matching proc with neighbor only if I haven't found an initial
-		// intra-graph TF
+		// inter-graph TF
 		if (!m_neighbor_to_found_initial_tf.at(*neighbors_it)) {
 
 			bool loc_ret_val = findTFWithNeighbor(*neighbors_it);
@@ -263,7 +265,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 	vector_uint neighbor_nodes;
 	std::map<mrpt::utils::TNodeID, node_props_t> nodes_params;
 	neighbor->getCachedNodes(&neighbor_nodes, &nodes_params, /*only unused=*/ false);
-	if (neighbor_nodes.size() < m_intra_group_node_count_thresh ||
+	if (neighbor_nodes.size() < m_opts.inter_group_node_count_thresh ||
 			!neighbor->hasNewData()) {
 		return false;
 	}
@@ -445,11 +447,11 @@ bool CGraphSlamEngine_MR<GRAPH_T>::_execGraphSlamStep(
 
 	// find matches between own nodes and those of the neighbors
   bool did_register_from_map_merge;
-  if (!m_conservative_find_initial_tfs_to_neighbors) {
+  if (!m_opts.conservative_find_initial_tfs_to_neighbors) {
   	did_register_from_map_merge = this->findTFsWithAllNeighbors();
   }
-  else { // intra-graph TF is available - add new nodes
-  	THROW_EXCEPTION("Conservative intra-graph TF computation is not yet implemented.");
+  else { // inter-graph TF is available - add new nodes
+  	THROW_EXCEPTION("Conservative inter-graph TF computation is not yet implemented.");
   }
 
   bool did_register_from_batches = this->addNodeBatchesFromAllNeighbors();
@@ -576,7 +578,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::initClass() {
 	}
 	this->readParams();
 
-	this->m_optimized_map_color = neighbor_colors_manager.getNextTColor();
+	this->m_optimized_map_color = m_neighbor_colors_manager.getNextTColor();
 
 	// start the spinner for asynchronously servicing cm_graph requests
 	cm_graph_async_spinner.start();
@@ -678,7 +680,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::usePublishersBroadcasters() {
 					<< gsa.name.data);
 				m_neighbors.push_back(new TNeighborAgentProps(*this, gsa));
 				TNeighborAgentProps* latest_neighbor = m_neighbors.back();
-				latest_neighbor->setTColor(neighbor_colors_manager.getNextTColor());
+				latest_neighbor->setTColor(m_neighbor_colors_manager.getNextTColor());
 				m_neighbor_to_found_initial_tf.insert(make_pair(
 							latest_neighbor, false));
 				latest_neighbor->setupComm();
@@ -710,10 +712,10 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubUpdatedNodesList() {
 	// fill the NodeIDWithPose_vec msg
 	NodeIDWithPose_vec ros_nodes;
 
-	// send up to m_num_last_regd_nodes Nodes - start from end.
+	// send up to num_last_regd_nodes Nodes - start from end.
 	for (typename GRAPH_T::global_poses_t::const_reverse_iterator
 			cit = this->m_graph.nodes.rbegin();
-			(poses_counter <= m_num_last_regd_nodes &&
+			(poses_counter <= m_opts.num_last_regd_nodes &&
 			 cit != this->m_graph.nodes.rend());
 			++cit) {
 
@@ -836,34 +838,20 @@ bool CGraphSlamEngine_MR<GRAPH_T>::isOwnNodeID(
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::readParams() {
-	this->readROSParameters();
-	this->readGridMapAlignmentParams();
-}
-
-template<class GRAPH_T>
-void CGraphSlamEngine_MR<GRAPH_T>::readGridMapAlignmentParams() {
+	using namespace mrpt::utils;
 	using namespace mrpt::slam;
 
-	std::string alignment_opts_ns = "alignment_opts";
+	this->readROSParameters();
 
-	m_nh->param<float>(alignment_opts_ns + "/" +  "min_ICP_goodness",
-			m_alignment_options.min_ICP_goodness, 0.60);
-	m_nh->param<double>(alignment_opts_ns + "/" + "maxKLd_for_merge",
-			m_alignment_options.maxKLd_for_merge, 0.90);
-	m_nh->param<float>(alignment_opts_ns + "/" +  "ransac_minSetSizeRatio",
-			m_alignment_options.ransac_minSetSizeRatio, 0.40);
-	m_nh->param<int>(alignment_opts_ns + "/" +  "nodes_integration_batch_size",
-			m_nodes_integration_batch_size, 4);
+	// GridMap Alignment
+	m_alignment_options.loadFromConfigFileName(this->m_config_fname, m_sec_alignment_params);
 
-	// GridMap Alignment options to be used in merging.
+	// Thu Jun 8 17:02:17 EEST 2017, Nikos Koukis
+	// other option ends up in segfault.
 	m_alignment_options.methodSelection = CGridMapAligner::amModifiedRANSAC;
-	////options.methodSelection = CGridMapAligner::amRobustMatch; // ASSERTION ERROR
 
-	//m_alignment_options.loadFromConfigFileName(
-			//"/home/bergercookie/mrpt/share/mrpt/config_files/grid-matching/gridmatch_example.ini",
-			//"grid-match");
-
-}
+	m_opts.loadFromConfigFileName(this->m_config_fname, m_sec_mr_slam_params);
+} // end of readParams
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::readROSParameters() {
@@ -871,30 +859,13 @@ void CGraphSlamEngine_MR<GRAPH_T>::readROSParameters() {
 	// parameters
 	parent_t::readROSParameters();
 
-	m_nh->param<bool>(m_mr_ns + "/" + "conservative_find_initial_tfs_to_neighbors",
-			m_conservative_find_initial_tfs_to_neighbors, false);
-	ASSERTMSG_(!m_conservative_find_initial_tfs_to_neighbors,
-			"Conservative behavior is not yet implemented.");
-
-	m_nh->param<int>(m_mr_ns + "/" + "num_last_registered_nodes",
-			m_num_last_regd_nodes, 10);
-
-	m_nh->param<int>(m_mr_ns + "/" + "intra_group_node_count_thresh",
-			m_intra_group_node_count_thresh, m_intra_group_node_count_thresh_minadv);
-	// warn user if they choose smaller threshold.
-	if (m_intra_group_node_count_thresh < m_intra_group_node_count_thresh_minadv) {
-		MRPT_LOG_ERROR_STREAM("intra_group_node_count_thresh ["
-			<< m_intra_group_node_count_thresh
-			<< "is set lower than the advised minimum ["
-			<< m_intra_group_node_count_thresh_minadv
-			<< "]");
-	}
 }
 
 template<class GRAPH_T>
-void CGraphSlamEngine_MR<GRAPH_T>::printParams() {
+void CGraphSlamEngine_MR<GRAPH_T>::printParams() const {
 	parent_t::printParams();
 	m_alignment_options.dumpToConsole();
+	m_opts.dumpToConsole();
 }
 
 
@@ -1425,7 +1396,7 @@ computeGridMap() const {
 	}
 
 	MRPT_END;
-}
+} // end of TNeighborAgentProps::computeGridMap
 
 template<class GRAPH_T>
 const mrpt::maps::COccupancyGridMap2DPtr&
@@ -1438,7 +1409,7 @@ getGridMap() const {
 
 	return gridmap_cached;
 	MRPT_END;
-}
+} // end of TNeighborAgentProps::getGridMap
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::
@@ -1452,12 +1423,70 @@ getGridMap(mrpt::maps::COccupancyGridMap2DPtr& map) const {
 
 	map->copyMapContentFrom(*gridmap_cached);
 	MRPT_END;
-}
+} // end of TNeighborAgentProps::getGridMap
+
 
 template<class GRAPH_T>
 bool CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::hasNewData() const {
   return has_new_nodes && has_new_scans;
-}
+} // end of hasNewData
+
+template<class GRAPH_T>
+CGraphSlamEngine_MR<GRAPH_T>::TOptions::TOptions(const engine_mr_t& engine_in):
+	nodes_integration_batch_size(4),
+	num_last_regd_nodes(10),
+	conservative_find_initial_tfs_to_neighbors(false),
+	inter_group_node_count_thresh_minadv(25),
+	inter_group_node_count_thresh(40),
+	engine(engine_in)
+{
+} // end of TOptions::TOptions
+
+template<class GRAPH_T>
+CGraphSlamEngine_MR<GRAPH_T>::TOptions::~TOptions() {
+} // end of TOptions::~TOptions
+
+template<class GRAPH_T>
+void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
+		const mrpt::utils::CConfigFileBase& source,
+		const std::string& section) {
+
+	MRPT_LOAD_CONFIG_VAR(nodes_integration_batch_size, int, source, section);
+	MRPT_LOAD_CONFIG_VAR(num_last_regd_nodes, int, source, section);
+
+	MRPT_LOAD_CONFIG_VAR(conservative_find_initial_tfs_to_neighbors, bool, source, section);
+	ASSERTMSG_(!conservative_find_initial_tfs_to_neighbors,
+			"Conservative behavior is not yet implemented.");
+
+
+	MRPT_LOAD_CONFIG_VAR(inter_group_node_count_thresh, int, source, section);
+	// warn user if they choose smaller threshold.
+	if (inter_group_node_count_thresh < inter_group_node_count_thresh_minadv) {
+		engine.logFmt(mrpt::utils::LVL_ERROR,
+				"inter_group_node_count_thresh [%d]"
+				"is set lower than the advised minimum [%d]",
+				inter_group_node_count_thresh,
+				inter_group_node_count_thresh_minadv);
+
+		mrpt::system::sleep(2000);
+	}
+
+
+} // end of TOptions::loadFromConfigFile
+
+template<class GRAPH_T>
+void CGraphSlamEngine_MR<GRAPH_T>::TOptions::dumpToTextStream(
+		mrpt::utils::CStream& out) const {
+
+	LOADABLEOPTS_DUMP_VAR(nodes_integration_batch_size, int);
+	LOADABLEOPTS_DUMP_VAR(num_last_regd_nodes, int);
+	LOADABLEOPTS_DUMP_VAR(conservative_find_initial_tfs_to_neighbors, bool);
+	LOADABLEOPTS_DUMP_VAR(inter_group_node_count_thresh, int)
+	LOADABLEOPTS_DUMP_VAR(inter_group_node_count_thresh_minadv, int)
+
+} // end of TOptions::dumpToTextStream
+
+
 
 } } // end of namespaces
 

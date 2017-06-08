@@ -286,11 +286,11 @@ public:
 
 
 private:
-	/**\brief Traverse all neighbors for which I know the intra-graph
+	/**\brief Traverse all neighbors for which I know the inter-graph
 	 * transformation, run addNodeBatchFromNeighbor.
 	 */
 	bool addNodeBatchesFromAllNeighbors();
-	/**\brief neighbors for which I know the intra-graph
+	/**\brief neighbors for which I know the inter-graph
 	 * transformation, add new batches of fetches nodeIDs and scans
 	 *
 	 * Try to integrate the newly received nodeIDs and laser Scans in own graph
@@ -365,11 +365,8 @@ private:
 			mrpt_msgs::GetCMGraph::Response& res);
 
 	void readParams();
-	/**\brief Read the parameters related to the map-matching operation
-	 */
-	void readGridMapAlignmentParams();
 	void readROSParameters();
-	void printParams();
+	void printParams() const;
 	mrpt::poses::CPose3D getLSPoseForGridMapVisualization(
 			const mrpt::utils::TNodeID nodeID) const;
 	void setObjectPropsFromNodeID(
@@ -462,15 +459,6 @@ private:
 	 */
 	size_t m_graph_nodes_last_size;
 
-	/**\brief Max number of last registered NodeIDs + corresponding positions to publish.
-	 *
-	 * This is necessary for the other GraphSLAM agents so that they can use this
-	 * information to localize the current agent in their own map and later
-	 * make a querry for the Condensed Measurements Graph.
-	 */
-	int m_num_last_regd_nodes;
-
-
 	/**\brief CConnectionManager instance */
 	mrpt::graphslam::detail::CConnectionManager m_conn_manager;
 
@@ -501,17 +489,6 @@ private:
 	 */
 	bool m_registered_multiple_nodes;
 
-	/**\brief Lowest number of nodes that should exist in a group of nodes before
-	 * evaluating it.
-	 *
-	 * \note This should be set >= 3
-	 * \sa m_intra_group_node_count_thresh_minadv
-	 */
-	int m_intra_group_node_count_thresh;
-	/**\brief Minimum advised limit of m_intra_group_node_count_thresh
-	 * \sa m_intra_group_node_count_thresh
-	 */
-	int m_intra_group_node_count_thresh_minadv;
 	/**\brief AsyncSpinner that is used to query the CM-Graph service in case a
 	 * new request arrives
 	 */
@@ -526,24 +503,62 @@ private:
 	 */
 	bool m_pause_exec_on_mr_registration;
 
-	/**\brief After an intra-graph transformation is found between own graph and
-	 * a neighbor's map, newly fetched neighbor's nodes are added in batches.
-	 */
-	int m_nodes_integration_batch_size;
-
 	/**\brief Parameters used during the alignment operation
 	 */
 	mrpt::slam::CGridMapAligner::TConfigParams m_alignment_options;
 
-	/**\brief Be conservative when it comes to deciding the initial
-	 * transformation of own graph with regards to graphs of the neighboring
-	 * agents. If true engine won't use map merging but instead will be waiting
-	 * for rendez-vous with other agents to determine the tf.
-	 *
-	 * \warning Rendez-vous behavior is not yet implemented.
-	 */
-	bool m_conservative_find_initial_tfs_to_neighbors;
-	mrpt::utils::TColorManager neighbor_colors_manager;
+	mrpt::utils::TColorManager m_neighbor_colors_manager;
+
+	std::string m_sec_alignment_params;
+	std::string m_sec_mr_slam_params;
+
+	struct TOptions : mrpt::utils::CLoadableOptions {
+
+		typedef self_t engine_mr_t;
+
+		TOptions(const engine_mr_t& engine_in);
+		~TOptions();
+		void loadFromConfigFile(
+				const mrpt::utils::CConfigFileBase& source,
+				const std::string& section);
+		void dumpToTextStream(mrpt::utils::CStream& out) const;
+
+
+		/**\brief Be conservative when it comes to deciding the initial
+	 	 * transformation of own graph with regards to graphs of the neighboring
+	 	 * agents. If true engine won't use map merging but instead will be waiting
+	 	 * for rendez-vous with other agents to determine the tf.
+	 	 *
+	 	 * \warning Rendez-vous behavior is not yet implemented.
+	 	 */
+		bool conservative_find_initial_tfs_to_neighbors;
+		/**\brief After an inter-graph transformation is found between own graph and
+	 	 * a neighbor's map, newly fetched neighbor's nodes are added in batches.
+	 	 */
+		int nodes_integration_batch_size;
+		/**\brief Max number of last registered NodeIDs + corresponding positions to publish.
+	 	 *
+	 	 * This is necessary for the other GraphSLAM agents so that they can use this
+	 	 * information to localize the current agent in their own map and later
+	 	 * make a querry for the Condensed Measurements Graph.
+	 	 */
+		int num_last_regd_nodes;
+		/**\brief Lowest number of nodes that should exist in a group of nodes before
+	 	 * evaluating it. These nodes are fetched by the other running graphSLAM agents
+	 	 *
+	 	 * \note This should be set >= 3
+	 	 * \sa inter_group_node_count_thresh_minadv
+	 	 */
+		int inter_group_node_count_thresh;
+		/**\brief Minimum advised limit of inter_group_node_count_thresh
+	 	 * \sa inter_group_node_count_thresh
+	 	 */
+		int inter_group_node_count_thresh_minadv;
+
+		/** Instance of engine which uses this struct */
+		const engine_mr_t& engine;
+
+	} m_opts;
 
 };
 

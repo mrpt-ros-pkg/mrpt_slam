@@ -213,14 +213,15 @@ class CGraphSlamHandler_ROS :
 		std::string m_optimizer;
 		/**\}*/
 
-		/**\brief Minimum logging level
-	 	 *
+		/**\brief Minimum logging level for the current class instance.
+		 *
+		 * This doesn't affect the logging level of CGraphSlamEngine or any of the
+		 * deciders/optimizers.
 	 	 * \note Value is fetched from the ROS Parameter Server (not from the
 	 	 * external .ini file.
 	 	 */
 		mrpt::utils::VerbosityLevel m_min_logging_level;
 
-		bool m_has_read_config;
 		/**\name Received measurements - boolean flags
 	 	 *
 	 	 * \brief Flags that indicate if any new measurements have arrived in the

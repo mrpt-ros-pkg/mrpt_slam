@@ -41,7 +41,6 @@ CGraphSlamHandler_ROS<GRAPH_T>::CGraphSlamHandler_ROS(
   m_queue_size = 1;
 
   // variables initialization/assignment
-  m_has_read_config = false;
   m_pub_seq = 0;
   m_stats_pub_seq = 0;
   this->resetReceivedFlags();
@@ -69,7 +68,6 @@ void CGraphSlamHandler_ROS<GRAPH_T>::readParams() {
   ASSERT_(!this->m_ini_fname.empty());
   parent_t::readConfigFname(this->m_ini_fname);
 
-  m_has_read_config = true;
 }
 
 template<class GRAPH_T>
@@ -78,55 +76,52 @@ void CGraphSlamHandler_ROS<GRAPH_T>::readROSParameters() {
 
   // misc
   {
-	std::string ns = "misc/";
+		std::string ns = "misc/";
 
-	// enable/disable visuals
-	bool m_disable_MRPT_visuals;
-	m_nh->param<bool>(ns + "disable_MRPT_visuals", m_disable_MRPT_visuals, false);
-	this->m_enable_visuals = !m_disable_MRPT_visuals;
+		// enable/disable visuals
+		bool m_disable_MRPT_visuals;
+		m_nh->param<bool>(ns + "disable_MRPT_visuals", m_disable_MRPT_visuals, false);
+		this->m_enable_visuals = !m_disable_MRPT_visuals;
 
-	// verbosity level
-	int lvl;
-	m_nh->param<int>(ns + "verbosity",
-		lvl,
-		static_cast<int>(LVL_INFO));
-	m_min_logging_level = static_cast<VerbosityLevel>(lvl);
-	this->m_logger->setMinLoggingLevel(m_min_logging_level);
+		// verbosity level
+		int lvl;
+		m_nh->param<int>(ns + "verbosity",
+				lvl,
+				static_cast<int>(LVL_INFO));
+		m_min_logging_level = static_cast<VerbosityLevel>(lvl);
+		this->m_logger->setMinLoggingLevel(m_min_logging_level);
   }
   // deciders, optimizer
   {
-	std::string ns = "deciders_optimizers/";
-	m_nh->param<std::string>(ns + "NRD", m_node_reg, "CFixedIntervalsNRD");
-	m_nh->param<std::string>(ns + "ERD", m_edge_reg, "CICPCriteriaERD");
-	m_nh->param<std::string>(ns + "GSO", m_optimizer, "CLevMarqGSO");
+		std::string ns = "deciders_optimizers/";
+		m_nh->param<std::string>(ns + "NRD", m_node_reg, "CFixedIntervalsNRD");
+		m_nh->param<std::string>(ns + "ERD", m_edge_reg, "CICPCriteriaERD");
+		m_nh->param<std::string>(ns + "GSO", m_optimizer, "CLevMarqGSO");
   }
   // filenames
   {
-	std::string ns = "files/";
+		std::string ns = "files/";
 
-	// configuration file - mandatory
-	std::string config_param_path = ns + "config";
-	bool found_config = m_nh->getParam(ns + "config", this->m_ini_fname);
-	ASSERTMSG_(found_config,
-		mrpt::format(
-		  "Configuration file was not set. Set %s and try again.\nExiting...",
-		  config_param_path.c_str()));
+		// configuration file - mandatory
+		std::string config_param_path = ns + "config";
+		bool found_config = m_nh->getParam(ns + "config", this->m_ini_fname);
+		ASSERTMSG_(found_config,
+				mrpt::format(
+		  		"Configuration file was not set. Set %s and try again.\nExiting...",
+		  		config_param_path.c_str()));
 
-	// ground-truth file
-	m_nh->getParam(ns + "ground_truth", this->m_gt_fname);
+		// ground-truth file
+		m_nh->getParam(ns + "ground_truth", this->m_gt_fname);
   }
 
   // TF Frame IDs
   // names of the frames of the corresponding robot parts
   {
-	std::string ns = "frame_IDs/";
+		std::string ns = "frame_IDs/";
 
-	m_nh->param<std::string>(ns + "anchor_frame" , m_anchor_frame_id, "map");
-	m_nh->param<std::string>(ns + "base_link_frame" , m_base_link_frame_id, "base_link");
-	m_nh->param<std::string>(ns + "odometry_frame" , m_odom_frame_id, "odom");
-
-	// take action based on the above frames
-	//
+		m_nh->param<std::string>(ns + "anchor_frame" , m_anchor_frame_id, "map");
+		m_nh->param<std::string>(ns + "base_link_frame" , m_base_link_frame_id, "base_link");
+		m_nh->param<std::string>(ns + "odometry_frame" , m_odom_frame_id, "odom");
 
   }
 
@@ -137,11 +132,11 @@ void CGraphSlamHandler_ROS<GRAPH_T>::readROSParameters() {
   this->verifyUserInput();
 
   this->m_logger->logFmt(LVL_DEBUG,
-	  "Successfully read parameters from ROS Parameter Server");
+	  	"Successfully read parameters from ROS Parameter Server");
 
   // Visuals initialization
   if (this->m_enable_visuals) {
-	this->initVisualization();
+		this->initVisualization();
   }
 } // end of readROSParameters
 
@@ -260,6 +255,8 @@ void CGraphSlamHandler_ROS<GRAPH_T>::printParams() {
   using namespace std;
   parent_t::printParams();
   cout << this->getParamsAsString() << endl;
+
+
 }
 
 template<class GRAPH_T>
@@ -323,7 +320,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::verifyUserInput() {
 		  this->m_gt_fname.c_str()));
   }
 
-}
+} // end of verifyUserInput
 
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::setupComm() {
@@ -339,7 +336,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::setupComm() {
   // fetch the static geometrical transformations
   //this->readStaticTFs();
 
-}
+} // end of setupComm
 
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::setupSubs() {
@@ -369,7 +366,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::setupSubs() {
   // 3D point clouds
   // TODO
 
-}
+} // end of setupSubs
 
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::setupPubs() {
@@ -418,16 +415,15 @@ void CGraphSlamHandler_ROS<GRAPH_T>::setupPubs() {
 	  m_queue_size,
 	  /*latch=*/true);
 
-}
+} // end of setupPubs
 
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::setupSrvs() {
   this->m_logger->logFmt(LVL_INFO, "Setting up the services...");
 
-  // SLAM statistics
-  // Error statistics
+  // TODO Error statistics
 
-}
+} // end of setupSrvs
 
 template<class GRAPH_T>
 bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {

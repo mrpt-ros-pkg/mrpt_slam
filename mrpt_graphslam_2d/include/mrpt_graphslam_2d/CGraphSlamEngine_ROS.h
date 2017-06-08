@@ -53,7 +53,7 @@ public:
 protected:
 	/**\brief Read the problem configuration parameters
 	 *
-	 * \sa readROSParameters
+	 * \sa readROSParameters, CGraphSlamEngine::loadParams
 	 */
 	void readParams();
 	/**\brief Provide feedback about the SLAM operation
@@ -65,7 +65,6 @@ protected:
 	/**\brief Read configuration parameters from the ROS parameter server.
 	 *
 	 * \note Method is automatically called on object construction.
-	 *
 	 * \sa readParams, initClass
 	 */
 	void readROSParameters();
