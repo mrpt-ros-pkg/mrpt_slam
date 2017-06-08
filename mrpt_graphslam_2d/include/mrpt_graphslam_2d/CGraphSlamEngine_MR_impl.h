@@ -283,8 +283,11 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 	this->logFmt(LVL_INFO,
 			"Trying to align the maps, initial estimation: %s",
 			init_estim.mean.asString().c_str());
-	neighbor_gridmap->saveMetricMapRepresentationToFile(this->getLoggerName() + "_other");
-	this->m_gridmap_cached->saveMetricMapRepresentationToFile(this->getLoggerName() + "_self");
+
+	// Save them for debugging reasons
+	//neighbor_gridmap->saveMetricMapRepresentationToFile(this->getLoggerName() + "_other");
+	//this->m_gridmap_cached->saveMetricMapRepresentationToFile(this->getLoggerName() + "_self");
+
 	const CPosePDFPtr pdf_tmp = gridmap_aligner.AlignPDF(
 			this->m_gridmap_cached.pointer(), neighbor_gridmap.pointer(),
 			init_estim,
@@ -1079,9 +1082,17 @@ CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
       "In constructor of TNeighborAgentProps for topic namespace: %s",
       agent.topic_namespace.data.c_str());
 
-	// initialize the occupancy map
+	// initialize the occupancy map based on the engine's gridmap properties
   gridmap_cached = mrpt::maps::COccupancyGridMap2D::Create();
-}
+	COccupancyGridMap2DPtr eng_gridmap = engine.m_gridmap_cached;
+	gridmap_cached->setSize(
+			eng_gridmap->getXMin(),
+			eng_gridmap->getXMax(),
+			eng_gridmap->getYMin(),
+			eng_gridmap->getYMax(),
+			eng_gridmap->getResolution());
+
+} // TNeighborAgentProps::TNeighborAgentProps
 
 template<class GRAPH_T>
 CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::~TNeighborAgentProps() { }

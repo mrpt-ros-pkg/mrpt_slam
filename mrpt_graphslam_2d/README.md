@@ -75,7 +75,7 @@ Rosbags collected from real-robots can be found in the following links:
 
 To run a demo using one of the corresponding rosbags download that directory,
 place it directly under the `rosbags` directory of the mrpt_graphslam_2d package
-and run the `run_mr_graphslam_demo.py` script of the `csl_robots_gazebo
+and run the `run_graphslam_demo.sh` script of the `csl_robots_gazebo
 package`. The latter script (as is standard with the nodes of the
 `csl_robots_gazebo` package reads its configuration parameters off
 the shell environment at hand and adjusts its behavior accordingly. As an
@@ -83,8 +83,8 @@ examaple users can use the following command for running a multi-robot demo.
 
 ```sh
 
-source $(rospack find csl_robots_gazebo)/config/slam/mr_slam_demo_config.sh && \
-rosrun csl_robots_gazebo run_mr_graphslam_demo.py
+# csl_robots_gazebo/config/slam/mr_slam_demo_config.sh for configuration
+rosrun csl_robots_gazebo run_graphslam_demo.sh
 
 ```
 

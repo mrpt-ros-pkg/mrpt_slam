@@ -38,11 +38,7 @@
   <run_depend>mrpt_msgs</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>multimaster_msgs_fkie</run_depend>
-  <run_depend>rviz</run_depend>
-  <run_depend>csl_robots_gazebo</run_depend>
-  <run_depend>csl_common</run_depend>
   <run_depend>tf2_ros</run_depend>
-  <run_depend>rosbag</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
