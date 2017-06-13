@@ -62,30 +62,28 @@ mrpt\_graphslam\_2d available [here](// TODO - add it.)
 
 ## Multi-robot algorithm
 
-Multi-robot support is provided via the csl_mr_slam package package suite as
-well as the use of multimaster_fkie packages utilized for communication across
-the various ROS agents.
+Multi-robot support is provided via the csl_mr_slam package suite as well as
+the use of multimaster_fkie packages utilized for communication across the
+various ROS agents.
 
 ### Multi-robot real-time experiments - rosbag
 
 Rosbags collected from real-robots can be found in the following links:
 
 - [20170607_multi_robot_graphSLAM_short](https://www.dropbox.com/sh/wivaa7phyiy7sc5/AAAdqI3N7OqCz0dtiLdge3QAa?dl=0)
-- [20170607_multi_robot graphSLAM_medium](https://www.dropbox.com/sh/5dj2ixstiy4r0g7/AAAxUCnTIhivCj6bB1osE2Woa?dl=0)
+- TODO Add rest of bags..
 
 To run a demo using one of the corresponding rosbags download that directory,
 place it directly under the `rosbags` directory of the mrpt_graphslam_2d package
-and run the `run_graphslam_demo.sh` script of the `csl_robots_gazebo
+and run the `run_mr_graphslam_demo.sh` script of the `csl_robots_gazebo
 package`. The latter script (as is standard with the nodes of the
 `csl_robots_gazebo` package reads its configuration parameters off
 the shell environment at hand and adjusts its behavior accordingly. As an
 examaple users can use the following command for running a multi-robot demo.
 
 ```sh
-
-# csl_robots_gazebo/config/slam/mr_slam_demo_config.sh for configuration
-rosrun csl_robots_gazebo run_graphslam_demo.sh
-
+# see the script for configuration variables
+rosrun csl_robots_gazebo run_mr_graphslam_demo.sh
 ```
 
 **Warning**

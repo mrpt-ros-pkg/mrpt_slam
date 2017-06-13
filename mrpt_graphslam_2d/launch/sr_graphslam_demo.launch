@@ -46,7 +46,7 @@ such as the sr_graphslam_demo_gt.launch file
 
 	<arg name="play_own_rosbag" default="true"/>
 	<group if="$(arg play_own_rosbag)">
-	    <node pkg="rosbag" type="play" name="rosbag_player_$(arg robot_ns)" args="--clock $(arg bag_file_full) $(arg bag_topic_remaps)" output="$(arg output)"/>
+	    <node pkg="rosbag" type="play" name="rosbag_player" args="--clock $(arg bag_file_full) $(arg bag_topic_remaps)" output="$(arg output)"/>
     </group>
 
 	<group ns="$(arg robot_ns)">
