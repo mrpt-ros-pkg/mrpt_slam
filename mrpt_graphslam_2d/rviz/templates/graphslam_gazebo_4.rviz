@@ -59,32 +59,32 @@ Visualization Manager:
       Length: 1
       Name: anchor_frame_1
       Radius: 0.1
-      Reference Frame: csldesktop/anchor
+      Reference Frame: {HOSTNAME_PLACEHOLDER}/anchor
       Value: true
     - Class: rviz/Axes
       Enabled: true
       Length: 1
       Name: anchor_frame_2
       Radius: 0.1
-      Reference Frame: csldesktop_11312/anchor
+      Reference Frame: {HOSTNAME_PLACEHOLDER}_11312/anchor
       Value: true
     - Class: rviz/Axes
       Enabled: true
       Length: 1
       Name: anchor_frame_3
       Radius: 0.1
-      Reference Frame: csldesktop_11313/anchor
+      Reference Frame: {HOSTNAME_PLACEHOLDER}_11313/anchor
       Value: true
     - Class: rviz/Axes
       Enabled: true
       Length: 1
       Name: anchor_frame_4
       Radius: 0.1
-      Reference Frame: csldesktop_11314/anchor
+      Reference Frame: {HOSTNAME_PLACEHOLDER}_11314/anchor
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /csldesktop/ar_sys/result
+      Image Topic: /{HOSTNAME_PLACEHOLDER}/ar_sys/result
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -96,7 +96,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /csldesktop_11312/ar_sys/result
+      Image Topic: /{HOSTNAME_PLACEHOLDER}_11312/ar_sys/result
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -108,7 +108,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /csldesktop_11313/ar_sys/result
+      Image Topic: /{HOSTNAME_PLACEHOLDER}_11313/ar_sys/result
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -120,7 +120,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /csldesktop_11314/ar_sys/result
+      Image Topic: /{HOSTNAME_PLACEHOLDER}_11314/ar_sys/result
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -231,8 +231,8 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: robot_model_1
-      Robot Description: csldesktop/robot_description
-      TF Prefix: csldesktop
+      Robot Description: {HOSTNAME_PLACEHOLDER}/robot_description
+      TF Prefix: {HOSTNAME_PLACEHOLDER}
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -337,8 +337,8 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: robot_model_2
-      Robot Description: csldesktop_11312/robot_description
-      TF Prefix: csldesktop_11312
+      Robot Description: {HOSTNAME_PLACEHOLDER}_11312/robot_description
+      TF Prefix: {HOSTNAME_PLACEHOLDER}_11312
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -443,8 +443,8 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: robot_model_3
-      Robot Description: csldesktop_11313/robot_description
-      TF Prefix: csldesktop_11313
+      Robot Description: {HOSTNAME_PLACEHOLDER}_11313/robot_description
+      TF Prefix: {HOSTNAME_PLACEHOLDER}_11313
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -549,8 +549,8 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: robot_model_4
-      Robot Description: csldesktop_11314/robot_description
-      TF Prefix: csldesktop_11314
+      Robot Description: {HOSTNAME_PLACEHOLDER}_11314/robot_description
+      TF Prefix: {HOSTNAME_PLACEHOLDER}_11314
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -579,7 +579,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /csldesktop/input/laser_scan
+      Topic: /{HOSTNAME_PLACEHOLDER}/input/laser_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -609,7 +609,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /csldesktop_11312/input/laser_scan
+      Topic: /{HOSTNAME_PLACEHOLDER}_11312/input/laser_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -639,7 +639,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /csldesktop_11313/input/laser_scan
+      Topic: /{HOSTNAME_PLACEHOLDER}_11313/input/laser_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -669,7 +669,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /csldesktop_11314/input/laser_scan
+      Topic: /{HOSTNAME_PLACEHOLDER}_11314/input/laser_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -682,7 +682,7 @@ Visualization Manager:
       Length: 1
       Name: odom_1
       Position Tolerance: 0.1
-      Topic: /csldesktop/input/odom
+      Topic: /{HOSTNAME_PLACEHOLDER}/input/odom
       Value: false
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
@@ -692,7 +692,7 @@ Visualization Manager:
       Length: 1
       Name: odom_2
       Position Tolerance: 0.1
-      Topic: /csldesktop_11312/input/odom
+      Topic: /{HOSTNAME_PLACEHOLDER}_11312/input/odom
       Value: false
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
@@ -702,7 +702,7 @@ Visualization Manager:
       Length: 1
       Name: odom_3
       Position Tolerance: 0.1
-      Topic: /csldesktop_11313/input/odom
+      Topic: /{HOSTNAME_PLACEHOLDER}_11313/input/odom
       Value: false
     - Angle Tolerance: 0.1
       Class: rviz/Odometry
@@ -712,7 +712,7 @@ Visualization Manager:
       Length: 1
       Name: odom_4
       Position Tolerance: 0.1
-      Topic: /csldesktop_11314/input/odom
+      Topic: /{HOSTNAME_PLACEHOLDER}_11314/input/odom
       Value: false
     - Alpha: 1
       Buffer Length: 1
@@ -733,7 +733,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop/feedback/robot_trajectory
+      Topic: /{HOSTNAME_PLACEHOLDER}/feedback/robot_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -755,7 +755,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop_11312/feedback/robot_trajectory
+      Topic: /{HOSTNAME_PLACEHOLDER}_11312/feedback/robot_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -777,7 +777,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop_11313/feedback/robot_trajectory
+      Topic: /{HOSTNAME_PLACEHOLDER}_11313/feedback/robot_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -799,7 +799,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop_11314/feedback/robot_trajectory
+      Topic: /{HOSTNAME_PLACEHOLDER}_11314/feedback/robot_trajectory
       Unreliable: false
       Value: true
     - Alpha: 0.7
@@ -808,7 +808,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: map_1
-      Topic: /csldesktop/feedback/gridmap
+      Topic: /{HOSTNAME_PLACEHOLDER}/feedback/gridmap
       Unreliable: false
       Value: true
     - Alpha: 0.7
@@ -817,7 +817,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: map_2
-      Topic: /csldesktop_11312/feedback/gridmap
+      Topic: /{HOSTNAME_PLACEHOLDER}_11312/feedback/gridmap
       Unreliable: false
       Value: true
     - Alpha: 0.7
@@ -826,7 +826,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: map_3
-      Topic: /csldesktop_11313/feedback/gridmap
+      Topic: /{HOSTNAME_PLACEHOLDER}_11313/feedback/gridmap
       Unreliable: false
       Value: true
     - Alpha: 0.7
@@ -835,7 +835,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: map_4
-      Topic: /csldesktop_11314/feedback/gridmap
+      Topic: /{HOSTNAME_PLACEHOLDER}_11314/feedback/gridmap
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -857,7 +857,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop/feedback/odom_trajectory
+      Topic: /{HOSTNAME_PLACEHOLDER}/feedback/odom_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -879,7 +879,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop_11312/feedback/odom_trajectory
+      Topic: /{HOSTNAME_PLACEHOLDER}_11312/feedback/odom_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -901,7 +901,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop_11313/feedback/odom_trajectory
+      Topic: /{HOSTNAME_PLACEHOLDER}_11313/feedback/odom_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -923,7 +923,7 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /csldesktop_11314/feedback/odom_trajectory
+      Topic: /{HOSTNAME_PLACEHOLDER}_11314/feedback/odom_trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -938,7 +938,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /csldesktop/feedback/robot_position
+      Topic: /{HOSTNAME_PLACEHOLDER}/feedback/robot_position
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -953,7 +953,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /csldesktop_11312/feedback/robot_position
+      Topic: /{HOSTNAME_PLACEHOLDER}_11312/feedback/robot_position
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -968,7 +968,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /csldesktop_11313/feedback/robot_position
+      Topic: /{HOSTNAME_PLACEHOLDER}_11313/feedback/robot_position
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -983,7 +983,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /csldesktop_11314/feedback/robot_position
+      Topic: /{HOSTNAME_PLACEHOLDER}_11314/feedback/robot_position
       Unreliable: false
       Value: true
   Enabled: true

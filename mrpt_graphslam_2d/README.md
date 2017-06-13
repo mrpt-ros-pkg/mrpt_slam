@@ -88,8 +88,17 @@ rosrun csl_robots_gazebo run_mr_graphslam_demo.sh
 
 **Warning**
 
-For this to work, you need to have the csl_mr_slam package suite (as well as the
+- For this to work, you need to have the csl_mr_slam package suite (as well as the
 packages that the latter depends on) in your catkin workspace.
+
+- When executing multi-robot graphSLAM using either Gazebo (via the
+    `csl_robots_gazebo` package or using measurements from the prerecorded
+    rosbags, you have to, a priori, generate the necessary rviz files from the
+    template files found in `$(rospack find mrpt_graphslam_2d)/rviz/templates`.
+    To do that you have to run the `$(rospack find
+    mrpt_graphslam_2d)/nodes/rename_rviz_topics.py` script which changes the
+    necessary topic names based on the running computer's hostname. See
+    documentation of the latter script for more on its usage.
 
 
 ### Multi-robot simulations in Gazebo - [csl_mr_slam](http://github.com/bergercookie/csl_mr_slam)
