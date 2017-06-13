@@ -39,8 +39,7 @@ protected:
 	/**\brief Pointer to the CConnectionManager instance
 	 */
 	mrpt::graphslam::detail::CConnectionManager* m_conn_manager;
-	/**\brief Constant pointer to the CGraphSlamEngine instance.
-	 *
+	/**\brief Constant pointer to the CGraphSlamEngine_MR instance.
 	 */
 	const engine_t* m_engine;
 	std::string own_ns;

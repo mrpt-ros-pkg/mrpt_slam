@@ -1,1 +1,3 @@
-rosbags/records_with_gt.bag
+rosbags/*
+rviz/*bag*
+rviz/*gazebo*

@@ -38,7 +38,7 @@
   <run_depend>mrpt_msgs</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>multimaster_msgs_fkie</run_depend>
-  <run_depend>rviz</run_depend>
+  <run_depend>tf2_ros</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

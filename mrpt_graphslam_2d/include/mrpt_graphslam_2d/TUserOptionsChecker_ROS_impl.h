@@ -20,7 +20,8 @@ TUserOptionsChecker_ROS<GRAPH_T>::~TUserOptionsChecker_ROS() {
 }
 
 template<class GRAPH_T>
-void TUserOptionsChecker_ROS<GRAPH_T>::createDeciderOptimizerMappings() {
+void TUserOptionsChecker_ROS<GRAPH_T>::
+createDeciderOptimizerMappings() {
 	using namespace std;
 	using namespace mrpt::graphs;
 	using namespace mrpt::graphslam::apps;
@@ -33,14 +34,13 @@ void TUserOptionsChecker_ROS<GRAPH_T>::createDeciderOptimizerMappings() {
 	this->node_regs_map["CFixedIntervalsNRD_MR"] =
 		parent::template createNodeRegistrationDecider<CFixedIntervalsNRD_MR<GRAPH_T>>;
 
-
 	// edge registration deciders
 	this->edge_regs_map["CLoopCloserERD_MR"] =
 		parent::template createEdgeRegistrationDecider<CLoopCloserERD_MR<GRAPH_T>>;
 
 	// optimizers
 
-}
+} // end of createDeciderOptimizerMappings
 
 template<class GRAPH_T>
 void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties() {
