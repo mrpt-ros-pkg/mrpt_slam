@@ -37,6 +37,7 @@
 // add ros msgs
 #include <nav_msgs/OccupancyGrid.h>
 #include "nav_msgs/MapMetaData.h"
+#include <nav_msgs/Path.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Header.h>
 #include <std_msgs/Int32.h>
@@ -165,6 +166,10 @@ public:
     */
   void updateSensorPose(std::string _frame_id);
 
+  void updateTrajectoryTimerCallback(const ros::TimerEvent& event);
+
+  void publishTrajectoryTimerCallback(const ros::TimerEvent& event);
+
 protected:
   CMetricMapBuilderICP mapBuilder;  ///< icp slam class
   ros::NodeHandle n_;               ///< Node Handle
@@ -176,6 +181,16 @@ protected:
   std::string global_frame_id;  ///< /map frame
   std::string odom_frame_id;    ///< /odom frame
   std::string base_frame_id;    ///< robot frame
+  geometry_msgs::PoseStamped pose;
+
+  ros::Publisher trajectory_pub_;  ///< trajectory publisher
+  nav_msgs::Path path;             ///< trajectory path
+
+  ros::Timer update_trajector_timer;
+  ros::Timer publish_trajectory_timer;
+
+  double trajectory_update_rate;
+  double trajectory_publish_rate;
 
   // Sensor source
   std::string sensor_source;                                 ///< 2D laser scans
