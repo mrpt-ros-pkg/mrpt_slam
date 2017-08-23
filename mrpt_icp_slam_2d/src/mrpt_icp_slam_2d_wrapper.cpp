@@ -103,6 +103,12 @@ void ICPslamWrapper::get_param()
 
   n_.param<std::string>("sensor_source", sensor_source, "scan");
   ROS_INFO("sensor_source: %s", sensor_source.c_str());
+
+  n_.param("trajectory_update_rate", trajectory_update_rate, 10.0);
+  ROS_INFO("trajectory_update_rate: %f", trajectory_update_rate);
+
+  n_.param("trajectory_publish_rate", trajectory_publish_rate, 5.0);
+  ROS_INFO("trajectory_publish_rate: %f", trajectory_publish_rate);
 }
 void ICPslamWrapper::init3Dwindow()
 {
@@ -269,8 +275,16 @@ void ICPslamWrapper::init()
   // publish point map
   pub_point_cloud_ = n_.advertise<sensor_msgs::PointCloud>("PointCloudMap", 1, true);
 
+  trajectory_pub_ = n_.advertise<nav_msgs::Path>("trajectory", 1, true);
+
   // robot pose
   pub_pose_ = n_.advertise<geometry_msgs::PoseStamped>("robot_pose", 1);
+
+  update_trajector_timer = n_.createTimer(ros::Duration(1.0 / trajectory_update_rate),
+          &ICPslamWrapper::updateTrajectoryTimerCallback, this ,false);
+
+  publish_trajectory_timer = n_.createTimer(ros::Duration(1.0 / trajectory_publish_rate),
+          &ICPslamWrapper::publishTrajectoryTimerCallback, this, false);
 
   // read sensor topics
   std::vector<std::string> lstSources;
@@ -355,7 +369,7 @@ void ICPslamWrapper::publishMapPose()
   mapBuilder.getCurrentPoseEstimation()->getMean(robotPose);
 
   // publish pose
-  geometry_msgs::PoseStamped pose;
+  // geometry_msgs::PoseStamped pose;
   pose.header.frame_id = global_frame_id;
 
   // the pose
@@ -456,7 +470,7 @@ bool ICPslamWrapper::rawlogPlay()
         }
 
         // publish pose
-        geometry_msgs::PoseStamped pose;
+        // geometry_msgs::PoseStamped pose;
         pose.header.frame_id = global_frame_id;
 
         // the pose
@@ -469,6 +483,7 @@ bool ICPslamWrapper::rawlogPlay()
       }
 
       run3Dwindow();
+      ros::spinOnce();
     }
 
     // if there is mrpt_gui it will wait until push any key in order to close the window
@@ -508,4 +523,18 @@ void ICPslamWrapper::publishTF()
   tf::StampedTransform tmp_tf_stamped(latest_tf_.inverse(), stamp, global_frame_id, odom_frame_id);
 
   tf_broadcaster_.sendTransform(tmp_tf_stamped);
+}
+
+void ICPslamWrapper::updateTrajectoryTimerCallback(const ros::TimerEvent& event)
+{
+    ROS_DEBUG("update trajectory");
+    path.header.frame_id = global_frame_id;
+    path.header.stamp = ros::Time(0);
+    path.poses.push_back(pose);
+}
+
+void ICPslamWrapper::publishTrajectoryTimerCallback(const ros::TimerEvent& event)
+{
+    ROS_DEBUG("publish trajectory");
+    trajectory_pub_.publish(path);
 }
