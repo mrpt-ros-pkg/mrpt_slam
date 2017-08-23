@@ -8,6 +8,8 @@
   <param name="base_frame_id" value="r1/base_link"/>
   <!--for multiple sensors, place comma eg "r1/front_laser/scan,/beacon" -->
   <param name="sensor_source" value="r1/front_laser/scan"/>
+  <param name="trajectory_update_rate" value="10"/>
+  <param name="trajectory_publish_rate" value="5"/>
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find mrpt_icp_slam_2d)/config/rosconsole.config"/>
 
   <!--PLAY BAG FILE-->
