@@ -165,9 +165,17 @@ public:
     *@param frame_id the frame of the sensors
     */
   void updateSensorPose(std::string _frame_id);
-
+  /**
+    * @brief  the callback for update trajectory
+    *
+    *@param event the event for update trajectory
+    */
   void updateTrajectoryTimerCallback(const ros::TimerEvent& event);
-
+  /**
+    * @brief  the callback for publish trajectory
+    *
+    *@param event the event for publish trajectory
+    */
   void publishTrajectoryTimerCallback(const ros::TimerEvent& event);
 
 protected:
@@ -181,16 +189,16 @@ protected:
   std::string global_frame_id;  ///< /map frame
   std::string odom_frame_id;    ///< /odom frame
   std::string base_frame_id;    ///< robot frame
-  geometry_msgs::PoseStamped pose;
+  geometry_msgs::PoseStamped pose; ///< the robot pose
 
   ros::Publisher trajectory_pub_;  ///< trajectory publisher
   nav_msgs::Path path;             ///< trajectory path
 
-  ros::Timer update_trajector_timer;
-  ros::Timer publish_trajectory_timer;
+  ros::Timer update_trajector_timer;   ///< timer for update trajectory
+  ros::Timer publish_trajectory_timer; ///< timer for publish trajectory
 
-  double trajectory_update_rate;
-  double trajectory_publish_rate;
+  double trajectory_update_rate;    ///< trajectory update rate(Hz)
+  double trajectory_publish_rate;   ///< trajectory publish rate(Hz)
 
   // Sensor source
   std::string sensor_source;                                 ///< 2D laser scans
