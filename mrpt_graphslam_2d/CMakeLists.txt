@@ -22,7 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   multimaster_msgs_fkie
   )
 ## System dependencies are found with CMake's conventions
-find_package(MRPT REQUIRED
+find_package(MRPT 1.5 REQUIRED
   base
   gui
   obs

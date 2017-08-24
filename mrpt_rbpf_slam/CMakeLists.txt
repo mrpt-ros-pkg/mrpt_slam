@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslaunch)
 
 #find mrpt packages
-find_package(MRPT REQUIRED base gui obs slam)
+find_package(MRPT 1.5 REQUIRED base gui obs slam)
 
 #Include directories
 INCLUDE_DIRECTORIES(
