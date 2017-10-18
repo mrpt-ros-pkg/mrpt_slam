@@ -2,8 +2,7 @@
 # Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
 cmake_minimum_required(VERSION 2.8.3)
 project(mrpt_graphslam_2d)
-
-add_definitions(-std=c++11) # Use C++11
+add_definitions(-std=c++14) # Use C++14
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
