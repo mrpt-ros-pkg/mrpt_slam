@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(mrpt_icp_slam_2d)
 # Load catkin and all dependencies required for this package
 # TODO: remove all from COMPONENTS that are not catkin packages.
-add_definitions(-std=c++11) # Use C++11
+add_definitions(-std=c++14) # Use C++14
 
 #find catkin packages
 find_package(catkin REQUIRED COMPONENTS

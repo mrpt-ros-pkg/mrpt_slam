@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(mrpt_rbpf_slam)
 
-add_definitions(-std=c++11) # Use C++11
+add_definitions(-std=c++14) # Use C++14
 
 #find catkin packages
 find_package(catkin REQUIRED COMPONENTS
