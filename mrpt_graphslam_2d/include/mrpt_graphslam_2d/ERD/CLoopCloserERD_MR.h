@@ -50,13 +50,13 @@ public:
 
 	// member implementations
 	bool updateState(
-			mrpt::obs::CActionCollectionPtr action,
-			mrpt::obs::CSensoryFramePtr observations,
-			mrpt::obs::CObservationPtr observation );
+			mrpt::obs::CActionCollection::Ptr action,
+			mrpt::obs::CSensoryFrame::Ptr observations,
+			mrpt::obs::CObservation::Ptr observation );
 	void addBatchOfNodeIDsAndScans(
 			const std::map<
 				mrpt::utils::TNodeID,
-				mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D);
+				mrpt::obs::CObservation2DRangeScan::Ptr>& nodeIDs_to_scans2D);
 	void addScanMatchingEdges(mrpt::utils::TNodeID curr_nodeID);
 	void fetchNodeIDsForScanMatching(
 			const mrpt::utils::TNodeID& curr_nodeID,

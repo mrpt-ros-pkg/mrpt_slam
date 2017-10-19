@@ -20,7 +20,7 @@ std::string mrpt::graphslam::detail::getGridMapAlignmentResultsAsString(
 			const mrpt::poses::CPosePDF& pdf,
 			const mrpt::slam::CGridMapAligner::TReturnInfo& ret_info) {
 
-			CPosePDFSOGPtr pdf_out = CPosePDFSOG::Create();
+			CPosePDFSOG::Ptr pdf_out = CPosePDFSOG::Create();
 			pdf_out->copyFrom(pdf);
 			CPose2D pose_out; CMatrixDouble33 cov_out;
 			pdf_out->getMostLikelyCovarianceAndMean(cov_out, pose_out);

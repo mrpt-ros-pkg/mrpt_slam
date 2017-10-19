@@ -28,7 +28,7 @@ template<class GRAPH_T>
 void CLoopCloserERD_MR<GRAPH_T>::addBatchOfNodeIDsAndScans(
 		const std::map<
 			mrpt::utils::TNodeID,
-			mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D) {
+			mrpt::obs::CObservation2DRangeScan::Ptr>& nodeIDs_to_scans2D) {
 	mr_parent_t::addBatchOfNodeIDsAndScans(nodeIDs_to_scans2D);
 
 	this->updateMapPartitions(/*full update=*/ true,
@@ -79,9 +79,9 @@ CLoopCloserERD_MR<GRAPH_T>::~CLoopCloserERD_MR() {
 // Member methods implementations
 template<class GRAPH_T>
 bool CLoopCloserERD_MR<GRAPH_T>::updateState(
-		mrpt::obs::CActionCollectionPtr action,
-		mrpt::obs::CSensoryFramePtr observations,
-		mrpt::obs::CObservationPtr observation ) {
+		mrpt::obs::CActionCollection::Ptr action,
+		mrpt::obs::CSensoryFrame::Ptr observations,
+		mrpt::obs::CObservation::Ptr observation ) {
 
 	bool success = lc_parent_t::updateState(action, observations, observation);
 

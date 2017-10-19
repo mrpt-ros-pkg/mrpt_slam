@@ -208,7 +208,7 @@ protected:
   std::vector<ros::Subscriber> sensorSub_;  ///< list of sensors topics
 
   const CMultiMetricMap *metric_map_;  ///<receive map after iteration of SLAM to metric map
-  // CPose3DPDFPtr curPDF;          ///<current robot pose
+  // CPose3DPDF::Ptr curPDF;          ///<current robot pose
   ros::Publisher pub_map_, pub_metadata_, pub_pose_, pub_point_cloud_;  ///<publishers for map and pose particles
 
   tf::TransformListener listenerTF_;         ///<transform listener
@@ -216,15 +216,15 @@ protected:
 
   CTicTac tictac;  ///<timer for SLAM performance evaluation
   float t_exec;    ///<the time which take one SLAM update execution
-  CSensoryFramePtr observations;
-  CObservationPtr observation;
+  CSensoryFrame::Ptr observations;
+  CObservation::Ptr observation;
   mrpt::system::TTimeStamp timeLastUpdate_;  ///< last update of the pose and map
 
   ros::Time stamp;  ///< timestamp for observations
 
-  mrpt::gui::CDisplayWindow3DPtr win3D_;  ///<MRPT window
+  mrpt::gui::CDisplayWindow3D::Ptr win3D_;  ///<MRPT window
 
-  std::vector<CObservation2DRangeScanPtr> lst_current_laser_scans;
+  std::vector<CObservation2DRangeScan::Ptr> lst_current_laser_scans;
   bool isObsBasedRawlog;
   bool SHOW_PROGRESS_3D_REAL_TIME;
   int SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS;

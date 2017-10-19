@@ -22,7 +22,7 @@ template<class GRAPH_T>
 void CEdgeRegistrationDecider_MR<GRAPH_T>::addBatchOfNodeIDsAndScans(
 		const std::map<
 			mrpt::utils::TNodeID,
-			mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D) {
+			mrpt::obs::CObservation2DRangeScan::Ptr>& nodeIDs_to_scans2D) {
 
 	this->m_nodes_to_laser_scans2D.insert(
 			nodeIDs_to_scans2D.begin(),

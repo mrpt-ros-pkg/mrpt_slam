@@ -92,7 +92,7 @@ void EKFslamWrapper::init()
   init3Dwindow();
 }
 
-void EKFslamWrapper::odometryForCallback(CObservationOdometryPtr& _odometry, const std_msgs::Header& _msg_header)
+void EKFslamWrapper::odometryForCallback(CObservationOdometry::Ptr& _odometry, const std_msgs::Header& _msg_header)
 {
   mrpt::poses::CPose3D poseOdom;
   if (this->waitForTransform(poseOdom, odom_frame_id, base_frame_id, _msg_header.stamp, ros::Duration(1)))
@@ -164,7 +164,7 @@ void EKFslamWrapper::landmarkCallback(const mrpt_msgs::ObservationRangeBearing& 
 #else
   using namespace mrpt::slam;
 #endif
-  CObservationBearingRangePtr landmark = CObservationBearingRange::Create();
+  CObservationBearingRange::Ptr landmark = CObservationBearingRange::Create();
 
   if (landmark_poses_.find(_msg.header.frame_id) == landmark_poses_.end())
   {
@@ -176,10 +176,10 @@ void EKFslamWrapper::landmarkCallback(const mrpt_msgs::ObservationRangeBearing& 
     mrpt_bridge::convert(_msg, landmark_poses_[_msg.header.frame_id], *landmark);
 
     sf = CSensoryFrame::Create();
-    CObservationOdometryPtr odometry;
+    CObservationOdometry::Ptr odometry;
     odometryForCallback(odometry, _msg.header);
 
-    CObservationPtr obs = CObservationPtr(landmark);
+    CObservation::Ptr obs = CObservation::Ptr(landmark);
     sf->insert(obs);
     observation(sf, odometry);
     timeLastUpdate_ = sf->getObservationByIndex(0)->timestamp;
@@ -207,8 +207,8 @@ bool EKFslamWrapper::rawlogPlay()
   {
     size_t rawlogEntry = 0;
     CFileGZInputStream rawlogFile(rawlog_filename);
-    CActionCollectionPtr action;
-    CSensoryFramePtr observations;
+    CActionCollection::Ptr action;
+    CSensoryFrame::Ptr observations;
 
     for (;;)
     {
@@ -348,7 +348,7 @@ void EKFslamWrapper::viz_dataAssociation()
     CRangeBearingKFSLAM2D::KFArray_FEAT featMean;
     mapping.getLandmarkMean(idxPred, featMean);
 
-    line_strip.points.clear();
+    line_strip.points.reset();
     line_strip.points.push_back(pointRobotPose);
     geometry_msgs::Point pointLm;
     pointLm.z = 0.0;
@@ -372,7 +372,7 @@ void EKFslamWrapper::viz_state()
   marker.lifetime = ros::Duration(0);
 
   // get the covariance matrix 2x2 for each ellipsoid including robot pose
-  mrpt::opengl::CSetOfObjectsPtr objs;
+  mrpt::opengl::CSetOfObjects::Ptr objs;
   objs = mrpt::opengl::CSetOfObjects::Create();
   mapping.getAs3DObject(objs);
 
@@ -383,7 +383,7 @@ void EKFslamWrapper::viz_state()
     objs_counter++;
   }
 
-  mrpt::opengl::CEllipsoidPtr landmark;
+  mrpt::opengl::CEllipsoid::Ptr landmark;
   for (size_t i = 0; i < objs_counter; i++)
   {
     landmark = objs->getByClass<mrpt::opengl::CEllipsoid>(i);

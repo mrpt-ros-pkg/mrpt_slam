@@ -94,7 +94,7 @@ void PFslamWrapper::init()
   init3Dwindow();
 }
 
-void PFslamWrapper::odometryForCallback(CObservationOdometryPtr& _odometry, const std_msgs::Header& _msg_header)
+void PFslamWrapper::odometryForCallback(CObservationOdometry::Ptr& _odometry, const std_msgs::Header& _msg_header)
 {
   mrpt::poses::CPose3D poseOdom;
   if (this->waitForTransform(poseOdom, odom_frame_id, base_frame_id, _msg_header.stamp, ros::Duration(1)))
@@ -137,7 +137,7 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
 #else
   using namespace mrpt::slam;
 #endif
-  CObservation2DRangeScanPtr laser = CObservation2DRangeScan::Create();
+  CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
 
   if (laser_poses_.find(_msg.header.frame_id) == laser_poses_.end())
   {
@@ -149,10 +149,10 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
     mrpt_bridge::convert(_msg, laser_poses_[_msg.header.frame_id], *laser);
 
     sf = CSensoryFrame::Create();
-    CObservationOdometryPtr odometry;
+    CObservationOdometry::Ptr odometry;
     odometryForCallback(odometry, _msg.header);
 
-    CObservationPtr obs = CObservationPtr(laser);
+    CObservation::Ptr obs = CObservation::Ptr(laser);
     sf->insert(obs);
     observation(sf, odometry);
     timeLastUpdate_ = sf->getObservationByIndex(0)->timestamp;
@@ -176,7 +176,7 @@ void PFslamWrapper::callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& _msg
   using namespace mrpt::slam;
 #endif
 
-  CObservationBeaconRangesPtr beacon = CObservationBeaconRanges::Create();
+  CObservationBeaconRanges::Ptr beacon = CObservationBeaconRanges::Create();
   if (beacon_poses_.find(_msg.header.frame_id) == beacon_poses_.end())
   {
     updateSensorPose(_msg.header.frame_id);
@@ -186,10 +186,10 @@ void PFslamWrapper::callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& _msg
     mrpt_bridge::convert(_msg, beacon_poses_[_msg.header.frame_id], *beacon);
 
     sf = CSensoryFrame::Create();
-    CObservationOdometryPtr odometry;
+    CObservationOdometry::Ptr odometry;
     odometryForCallback(odometry, _msg.header);
 
-    CObservationPtr obs = CObservationPtr(beacon);
+    CObservation::Ptr obs = CObservation::Ptr(beacon);
     sf->insert(obs);
     observation(sf, odometry);
     timeLastUpdate_ = sf->getObservationByIndex(0)->timestamp;
@@ -221,7 +221,7 @@ void PFslamWrapper::publishMapPose()
   // if I received new beacon (range only) map
   if (metric_map_->m_beaconMap)
   {
-    mrpt::opengl::CSetOfObjectsPtr objs;
+    mrpt::opengl::CSetOfObjects::Ptr objs;
 
     objs = mrpt::opengl::CSetOfObjects::Create();
     // Get th map as the set of 3D objects
@@ -238,7 +238,7 @@ void PFslamWrapper::publishMapPose()
       objs_counter++;
     }
     poseArrayBeacons.poses.resize(objs_counter);
-    mrpt::opengl::CEllipsoidPtr beacon_particle;
+    mrpt::opengl::CEllipsoid::Ptr beacon_particle;
 
     for (size_t i = 0; i < objs_counter; i++)
     {
@@ -248,7 +248,7 @@ void PFslamWrapper::publishMapPose()
     }
     pub_Particles_Beacons_.publish(poseArrayBeacons);
     vizBeacons();
-    viz_beacons.clear();
+    viz_beacons.reset();
   }
 
   // publish pose
@@ -391,7 +391,7 @@ bool PFslamWrapper::rawlogPlay()
         // if I received new beacon (range only) map
         if (metric_map_->m_beaconMap)
         {
-          mrpt::opengl::CSetOfObjectsPtr objs;
+          mrpt::opengl::CSetOfObjects::Ptr objs;
           objs = mrpt::opengl::CSetOfObjects::Create();
           metric_map_->m_beaconMap->getAs3DObject(objs);
 
@@ -405,7 +405,7 @@ bool PFslamWrapper::rawlogPlay()
             objs_counter++;
           }
           poseArrayBeacons.poses.resize(objs_counter);
-          mrpt::opengl::CEllipsoidPtr beacon_particle;
+          mrpt::opengl::CEllipsoid::Ptr beacon_particle;
 
           for (size_t i = 0; i < objs_counter; i++)
           {
@@ -415,7 +415,7 @@ bool PFslamWrapper::rawlogPlay()
           }
           pub_Particles_Beacons_.publish(poseArrayBeacons);
           vizBeacons();
-          viz_beacons.clear();
+          viz_beacons.reset();
         }
 
         // publish pose

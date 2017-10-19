@@ -93,9 +93,9 @@ void CGraphSlamEngine_ROS<GRAPH_t>::readROSParameters() { }
 
 template<class GRAPH_t>
 bool CGraphSlamEngine_ROS<GRAPH_t>::_execGraphSlamStep(
-		mrpt::obs::CActionCollectionPtr& action,
-		mrpt::obs::CSensoryFramePtr& observations,
-		mrpt::obs::CObservationPtr& observation,
+		mrpt::obs::CActionCollection::Ptr& action,
+		mrpt::obs::CSensoryFrame::Ptr& observations,
+		mrpt::obs::CObservation::Ptr& observation,
 		size_t& rawlog_entry) {
 
 	bool continue_exec = parent::_execGraphSlamStep(

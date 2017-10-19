@@ -273,7 +273,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 	//
 	// run alignment procedure
 	//
-	COccupancyGridMap2DPtr neighbor_gridmap = neighbor->getGridMap();
+	COccupancyGridMap2D::Ptr neighbor_gridmap = neighbor->getGridMap();
 	CGridMapAligner gridmap_aligner;
 	gridmap_aligner.options = m_alignment_options;
 
@@ -290,12 +290,12 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 	//neighbor_gridmap->saveMetricMapRepresentationToFile(this->getLoggerName() + "_other");
 	//this->m_gridmap_cached->saveMetricMapRepresentationToFile(this->getLoggerName() + "_self");
 
-	const CPosePDFPtr pdf_tmp = gridmap_aligner.AlignPDF(
-			this->m_gridmap_cached.pointer(), neighbor_gridmap.pointer(),
+	const CPosePDF::Ptr pdf_tmp = gridmap_aligner.AlignPDF(
+			this->m_gridmap_cached.get(), neighbor_gridmap.get(),
 			init_estim,
 			&run_time, &results);
 	this->logFmt(LVL_INFO, "Elapsed Time: %f", run_time);
-	CPosePDFSOGPtr pdf_out = CPosePDFSOG::Create();
+	CPosePDFSOG::Ptr pdf_out = CPosePDFSOG::Create();
 	pdf_out->copyFrom(*pdf_tmp);
 
 	CPose2D pose_out; CMatrixDouble33 cov_out;
@@ -433,9 +433,9 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 
 template<class GRAPH_T>
 bool CGraphSlamEngine_MR<GRAPH_T>::_execGraphSlamStep(
-		mrpt::obs::CActionCollectionPtr& action,
-		mrpt::obs::CSensoryFramePtr& observations,
-		mrpt::obs::CObservationPtr& observation,
+		mrpt::obs::CActionCollection::Ptr& action,
+		mrpt::obs::CSensoryFrame::Ptr& observations,
+		mrpt::obs::CObservation::Ptr& observation,
 		size_t& rawlog_entry) {
 	MRPT_START;
 	using namespace mrpt::graphslam::deciders;
@@ -945,7 +945,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::getCMGraph(
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::setObjectPropsFromNodeID(
 		const mrpt::utils::TNodeID  nodeID,
-		mrpt::opengl::CSetOfObjectsPtr& viz_object) {
+		mrpt::opengl::CSetOfObjects::Ptr& viz_object) {
 	using namespace mrpt::utils;
 	MRPT_START;
 
@@ -1007,7 +1007,7 @@ template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::
 getAllOwnNodes(std::set<mrpt::utils::TNodeID>* nodes_set) const {
 	ASSERT_(nodes_set);
-	nodes_set->clear();
+	nodes_set->reset();
 
 	for (const auto& n : this->m_graph.nodes) {
 		if (n.second.agent_ID_str == m_conn_manager.getTrimmedNs()) {
@@ -1055,7 +1055,7 @@ CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
 
 	// initialize the occupancy map based on the engine's gridmap properties
   gridmap_cached = mrpt::maps::COccupancyGridMap2D::Create();
-	COccupancyGridMap2DPtr eng_gridmap = engine.m_gridmap_cached;
+	COccupancyGridMap2D::Ptr eng_gridmap = engine.m_gridmap_cached;
 	gridmap_cached->setSize(
 			eng_gridmap->getXMin(),
 			eng_gridmap->getXMax(),
@@ -1231,7 +1231,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
 
 			params.first = *n_it;
 			params.second.pose = *p;
-			CObservation2DRangeScanPtr mrpt_scan = CObservation2DRangeScan::Create();
+			CObservation2DRangeScan::Ptr mrpt_scan = CObservation2DRangeScan::Create();
       const sensor_msgs::LaserScan* ros_laser_scan =
         this->getLaserScanByNodeID(*n_it);
 
@@ -1379,7 +1379,7 @@ computeGridMap() const {
 	using namespace mrpt::math;
 	using namespace std;
 
-	gridmap_cached->clear();
+	gridmap_cached->reset();
 
 	vector_uint nodeIDs;
 	std::map<TNodeID, node_props_t> nodes_params;
@@ -1392,14 +1392,14 @@ computeGridMap() const {
 			it != nodes_params.end();
 			++it) {
 		const CPose3D curr_pose_3d; // do not add the actual pose!
-		gridmap_cached->insertObservation(it->second.scan.pointer(), &curr_pose_3d);
+		gridmap_cached->insertObservation(it->second.scan.get(), &curr_pose_3d);
 	}
 
 	MRPT_END;
 } // end of TNeighborAgentProps::computeGridMap
 
 template<class GRAPH_T>
-const mrpt::maps::COccupancyGridMap2DPtr&
+const mrpt::maps::COccupancyGridMap2D::Ptr&
 CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::
 getGridMap() const { 
 	MRPT_START;
@@ -1413,7 +1413,7 @@ getGridMap() const {
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::
-getGridMap(mrpt::maps::COccupancyGridMap2DPtr& map) const {
+getGridMap(mrpt::maps::COccupancyGridMap2D::Ptr& map) const {
 	MRPT_START;
 	ASSERT_(map.present());
 
@@ -1468,7 +1468,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
 				inter_group_node_count_thresh,
 				inter_group_node_count_thresh_minadv);
 
-		mrpt::system::sleep(2000);
+		std::this_thread::sleep_for(2000);
 	}
 
 

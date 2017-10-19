@@ -44,7 +44,7 @@ public:
 	virtual void addBatchOfNodeIDsAndScans(
 			const std::map<
 				mrpt::utils::TNodeID,
-				mrpt::obs::CObservation2DRangeScanPtr>& nodeIDs_to_scans2D);
+				mrpt::obs::CObservation2DRangeScan::Ptr>& nodeIDs_to_scans2D);
 
 protected:
 };

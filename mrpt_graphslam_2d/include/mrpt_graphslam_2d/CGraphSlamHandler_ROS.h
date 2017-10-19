@@ -163,13 +163,13 @@ class CGraphSlamHandler_ROS :
 	 	 *
 	 	 * \sa _process
 	 	 */
-		void processObservation(mrpt::obs::CObservationPtr& observ);
+		void processObservation(mrpt::obs::CObservation::Ptr& observ);
 		/**\brief Low level wrapper for executing the
 	 	 * CGraphSlamEngine_ROS::execGraphSlamStep method
 	 	 *
 	 	 * \sa processObservation();
 	 	 */
-		void _process(mrpt::obs::CObservationPtr& observ);
+		void _process(mrpt::obs::CObservation::Ptr& observ);
 		/**\brief read configuration parameters from the ROS parameter server.
 	 	 *
 	 	 * \sa readParams
@@ -241,8 +241,8 @@ class CGraphSlamHandler_ROS :
 	 	 */
 		/**\{*/
 		/**\brief Received laser scan - converted into MRPT CObservation* format */
-		mrpt::obs::CObservationOdometryPtr m_mrpt_odom;
-		mrpt::obs::CObservation2DRangeScanPtr m_mrpt_laser_scan;
+		mrpt::obs::CObservationOdometry::Ptr m_mrpt_odom;
+		mrpt::obs::CObservation2DRangeScan::Ptr m_mrpt_laser_scan;
 		/**\}*/
 
 		/**\name Subscribers - Publishers

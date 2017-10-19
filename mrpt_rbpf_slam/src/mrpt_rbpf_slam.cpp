@@ -78,8 +78,8 @@ void PFslam::read_rawlog(std::vector<std::pair<CActionCollection, CSensoryFrame>
 {
   size_t rawlogEntry = 0;
   CFileGZInputStream rawlogFile(rawlog_filename);
-  CActionCollectionPtr action;
-  CSensoryFramePtr observations;
+  CActionCollection::Ptr action;
+  CSensoryFrame::Ptr observations;
 
   for (;;)
   {
@@ -100,7 +100,7 @@ void PFslam::read_rawlog(std::vector<std::pair<CActionCollection, CSensoryFrame>
   }
 }
 
-void PFslam::observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry)
+void PFslam::observation(CSensoryFrame::Ptr _sf, CObservationOdometry::Ptr _odometry)
 {
   action = CActionCollection::Create();
   CActionRobotMovement2D odom_move;
@@ -165,18 +165,18 @@ void PFslam::run3Dwindow()
     // get the current map and pose
     metric_map_ = mapBuilder->mapPDF.getCurrentMostLikelyMetricMap();
     mapBuilder->mapPDF.getEstimatedPosePDF(curPDF);
-    COpenGLScenePtr scene;
+    COpenGLScene::Ptr scene;
     scene = COpenGLScene::Create();
 
     // The ground:
-    mrpt::opengl::CGridPlaneXYPtr groundPlane = mrpt::opengl::CGridPlaneXY::Create(-200, 200, -200, 200, 0, 5);
+    mrpt::opengl::CGridPlaneXY::Ptr groundPlane = mrpt::opengl::CGridPlaneXY::Create(-200, 200, -200, 200, 0, 5);
     groundPlane->setColor(0.4, 0.4, 0.4);
     scene->insert(groundPlane);
 
     // The camera pointing to the current robot pose:
     if (CAMERA_3DSCENE_FOLLOWS_ROBOT)
     {
-      mrpt::opengl::CCameraPtr objCam = mrpt::opengl::CCamera::Create();
+      mrpt::opengl::CCamera::Ptr objCam = mrpt::opengl::CCamera::Create();
       CPose3D robotPose;
       curPDF.getMean(robotPose);
 
@@ -186,13 +186,13 @@ void PFslam::run3Dwindow()
       scene->insert(objCam);
     }
     // Draw the map(s):
-    mrpt::opengl::CSetOfObjectsPtr objs = mrpt::opengl::CSetOfObjects::Create();
+    mrpt::opengl::CSetOfObjects::Ptr objs = mrpt::opengl::CSetOfObjects::Create();
     metric_map_->getAs3DObject(objs);
     scene->insert(objs);
 
     // Draw the robot particles:
     size_t M = mapBuilder->mapPDF.particlesCount();
-    mrpt::opengl::CSetOfLinesPtr objLines = mrpt::opengl::CSetOfLines::Create();
+    mrpt::opengl::CSetOfLines::Ptr objLines = mrpt::opengl::CSetOfLines::Create();
     objLines->setColor(0, 1, 1);
     for (size_t i = 0; i < M; i++)
     {
@@ -229,7 +229,7 @@ void PFslam::run3Dwindow()
 
         minDistBtwPoses = 6 * sqrt(COV3(0, 0) + COV3(1, 1));
 
-        opengl::CEllipsoidPtr objEllip = opengl::CEllipsoid::Create();
+        opengl::CEllipsoid::Ptr objEllip = opengl::CEllipsoid::Create();
         objEllip->setLocation(meanPose.x(), meanPose.y(), meanPose.z() + 0.001);
         objEllip->setCovMatrix(COV3, COV3(2, 2) == 0 ? 2 : 3);
 
@@ -241,7 +241,7 @@ void PFslam::run3Dwindow()
       }
     }
 
-    COpenGLScenePtr &scenePtr = win3D->get3DSceneAndLock();
+    COpenGLScene::Ptr &scenePtr = win3D->get3DSceneAndLock();
     scenePtr = scene;
     win3D->unlockAccess3DScene();
     win3D->forceRepaint();

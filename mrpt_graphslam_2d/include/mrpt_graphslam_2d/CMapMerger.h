@@ -47,14 +47,14 @@ namespace mrpt { namespace graphslam {
 class CMapMerger
 {
 public:
-	typedef std::map<TNeighborAgentMapProps*, COccupancyGridMap2DPtr> maps_t;
+	typedef std::map<TNeighborAgentMapProps*, COccupancyGridMap2D::Ptr> maps_t;
 	typedef std::map<TNeighborAgentMapProps*, bool> neighbor_to_is_used_t;
 	typedef std::map<TNeighborAgentMapProps*, mrpt::poses::CPose2D> neighbor_to_rel_pose_t;
 
 	/**\brief Robot trajectory visual object type */
 	typedef std::map<
 		TNeighborAgentMapProps*,
-		mrpt::opengl::CSetOfLinesPtr> trajectories_t;
+		mrpt::opengl::CSetOfLines::Ptr> trajectories_t;
 	typedef std::vector<TNeighborAgentMapProps*> neighbors_t;
 	CMapMerger(
 			mrpt::utils::COutputLogger* logger_in,

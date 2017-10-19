@@ -59,7 +59,7 @@ void EKFslam::read_iniFile(std::string ini_filename)
   CAMERA_3DSCENE_FOLLOWS_ROBOT = iniFile.read_bool("MappingApplication", "CAMERA_3DSCENE_FOLLOWS_ROBOT", false);
 }
 
-void EKFslam::observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry)
+void EKFslam::observation(CSensoryFrame::Ptr _sf, CObservationOdometry::Ptr _odometry)
 {
   action = CActionCollection::Create();
   CActionRobotMovement2D odom_move;
@@ -109,13 +109,13 @@ void EKFslam::run3Dwindow()
     meanPath.push_back(TPose3D(robotPoseMean3D));
 
     // create the scene
-    COpenGLScenePtr scene3D = COpenGLScene::Create();
-    opengl::CGridPlaneXYPtr grid = opengl::CGridPlaneXY::Create(-1000, 1000, -1000, 1000, 0, 5);
+    COpenGLScene::Ptr scene3D = COpenGLScene::Create();
+    opengl::CGridPlaneXY::Ptr grid = opengl::CGridPlaneXY::Create(-1000, 1000, -1000, 1000, 0, 5);
     grid->setColor(0.4, 0.4, 0.4);
     scene3D->insert(grid);
 
     // Robot path:
-    opengl::CSetOfLinesPtr linesPath = opengl::CSetOfLines::Create();
+    opengl::CSetOfLines::Ptr linesPath = opengl::CSetOfLines::Create();
     linesPath->setColor(1, 0, 0);
     TPose3D init_pose;
     if (!meanPath.empty())
@@ -129,7 +129,7 @@ void EKFslam::run3Dwindow()
         if (++path_decim > 10)
         {
           path_decim = 0;
-          mrpt::opengl::CSetOfObjectsPtr xyz = mrpt::opengl::stock_objects::CornerXYZSimple(0.3f, 2.0f);
+          mrpt::opengl::CSetOfObjects::Ptr xyz = mrpt::opengl::stock_objects::CornerXYZSimple(0.3f, 2.0f);
           xyz->setPose(CPose3D(*it));
           scene3D->insert(xyz);
         }
@@ -138,7 +138,7 @@ void EKFslam::run3Dwindow()
     }
 
     // finally a big corner for the latest robot pose:
-    mrpt::opengl::CSetOfObjectsPtr xyz = mrpt::opengl::stock_objects::CornerXYZSimple(1.0, 2.5);
+    mrpt::opengl::CSetOfObjects::Ptr xyz = mrpt::opengl::stock_objects::CornerXYZSimple(1.0, 2.5);
     xyz->setPose(robotPoseMean3D);
     scene3D->insert(xyz);
 
@@ -150,7 +150,7 @@ void EKFslam::run3Dwindow()
 
     // Draw latest data association:
     const CRangeBearingKFSLAM2D::TDataAssocInfo &da = mapping.getLastDataAssociation();
-    mrpt::opengl::CSetOfLinesPtr lins = mrpt::opengl::CSetOfLines::Create();
+    mrpt::opengl::CSetOfLines::Ptr lins = mrpt::opengl::CSetOfLines::Create();
     lins->setLineWidth(1.2);
     lins->setColor(1, 1, 1);
     for (std::map<observation_index_t, prediction_index_t>::const_iterator it = da.results.associations.begin();
@@ -170,11 +170,11 @@ void EKFslam::run3Dwindow()
     scene3D->insert(lins);
 
     // The current state of KF-SLAM:
-    opengl::CSetOfObjectsPtr objs = opengl::CSetOfObjects::Create();
+    opengl::CSetOfObjects::Ptr objs = opengl::CSetOfObjects::Create();
     mapping.getAs3DObject(objs);
     scene3D->insert(objs);
 
-    mrpt::opengl::COpenGLScenePtr &scn = win3d->get3DSceneAndLock();
+    mrpt::opengl::COpenGLScene::Ptr &scn = win3d->get3DSceneAndLock();
     scn = scene3D;
 
     win3d->unlockAccess3DScene();

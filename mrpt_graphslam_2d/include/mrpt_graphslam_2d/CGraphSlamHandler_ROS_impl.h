@@ -539,7 +539,7 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
   if (this->m_engine->getGraph().nodeCount() > m_graph_nodes_last_size) {
 		std_msgs::Header h;
 		mrpt::system::TTimeStamp mrpt_time;
-		mrpt::maps::COccupancyGridMap2DPtr mrpt_gridmap =
+		mrpt::maps::COccupancyGridMap2D::Ptr mrpt_gridmap =
 	  	mrpt::maps::COccupancyGridMap2D::Create();
 		this->m_engine->getMap(mrpt_gridmap, &mrpt_time);
 
@@ -716,7 +716,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniff3DPointCloud() {
 }
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::processObservation(
-		mrpt::obs::CObservationPtr& observ) {
+		mrpt::obs::CObservation::Ptr& observ) {
   using namespace mrpt::utils;
   using namespace std;
 
@@ -727,7 +727,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::processObservation(
 
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::_process(
-		mrpt::obs::CObservationPtr& observ) {
+		mrpt::obs::CObservation::Ptr& observ) {
   using namespace mrpt::utils;
 
   //this->m_logger->logFmt(LVL_DEBUG, "Calling execGraphSlamStep...");

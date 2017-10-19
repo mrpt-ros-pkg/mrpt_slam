@@ -90,22 +90,22 @@ public:
   * @param _sf  current observation
   * @param _odometry raw odometry
   */
-  void observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry);
+  void observation(CSensoryFrame::Ptr _sf, CObservationOdometry::Ptr _odometry);
 
 protected:
   CRangeBearingKFSLAM mapping;  ///<EKF slam 3d class
 
   mrpt::system::TTimeStamp timeLastUpdate_;  ///< last update of the pose and map
 
-  CActionCollectionPtr action;  ///< actions
-  CSensoryFramePtr sf;          ///< observations
+  CActionCollection::Ptr action;  ///< actions
+  CSensoryFrame::Ptr sf;          ///< observations
 
   mrpt::poses::CPose3D odomLastObservation_;  ///< last observation of odometry
 #if MRPT_VERSION >= 0x150
   CActionRobotMovement3D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion noise
 #endif
 
-  mrpt::gui::CDisplayWindow3DPtr win3d;  ///<MRPT window
+  mrpt::gui::CDisplayWindow3D::Ptr win3d;  ///<MRPT window
   bool SHOW_3D_LIVE;
   bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
   vector<TPose3D> meanPath;
