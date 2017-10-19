@@ -35,7 +35,7 @@
 #include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt/obs/CObservationOdometry.h>
 #include <mrpt/obs/CObservation2DRangeScan.h>
-#include <mrpt/system/threads.h>
+
 #include <mrpt/system/string_utils.h>
 #include <mrpt/system/filesystem.h>
 #include <mrpt/system/os.h>

@@ -623,7 +623,8 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffLaserScan(
   mrpt_bridge::convert(*ros_laser_scan, rel_pose, *m_mrpt_laser_scan);
 
   m_received_laser_scan = true;
-  this->processObservation(m_mrpt_laser_scan);
+  CObservation::Ptr tmp = mrpt::ptr_cast<CObservation>::from(m_mrpt_laser_scan);
+  this->processObservation(tmp);
 } // end of sniffLaserScan
 
 template<class GRAPH_T>
@@ -701,7 +702,8 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
   this->m_logger->logFmt(LVL_DEBUG, "%s", ss.str().c_str());
 
   m_received_odom = true;
-  this->processObservation(m_mrpt_odom);
+  CObservation::Ptr tmp = std::dynamic_pointer_cast<mrpt::obs::CObservation>(m_mrpt_odom);
+  this->processObservation(tmp);
 } // end of sniffOdom
 
 template<class GRAPH_T>

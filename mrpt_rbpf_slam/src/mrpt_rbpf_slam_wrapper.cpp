@@ -248,7 +248,7 @@ void PFslamWrapper::publishMapPose()
     }
     pub_Particles_Beacons_.publish(poseArrayBeacons);
     vizBeacons();
-    viz_beacons.reset();
+    viz_beacons.clear();
   }
 
   // publish pose
@@ -415,7 +415,7 @@ bool PFslamWrapper::rawlogPlay()
           }
           pub_Particles_Beacons_.publish(poseArrayBeacons);
           vizBeacons();
-          viz_beacons.reset();
+          viz_beacons.clear();
         }
 
         // publish pose

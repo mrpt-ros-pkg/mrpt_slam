@@ -160,7 +160,7 @@ void PFslam::init3Dwindow()
 void PFslam::run3Dwindow()
 {
   // Save a 3D scene view of the mapping process:
-  if (SHOW_PROGRESS_IN_WINDOW && win3D.present())
+  if (SHOW_PROGRESS_IN_WINDOW && win3D)
   {
     // get the current map and pose
     metric_map_ = mapBuilder->mapPDF.getCurrentMostLikelyMetricMap();
