@@ -91,15 +91,15 @@ public:
   * @param _sf  current observation
   * @param _odometry raw odometry
   */
-  void observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry);
+  void observation(CSensoryFrame::Ptr _sf, CObservationOdometry::Ptr _odometry);
 
 protected:
   CRangeBearingKFSLAM2D mapping;  ///<EKF slam 2d class
 
   mrpt::system::TTimeStamp timeLastUpdate_;  ///< last update of the pose and map
 
-  CActionCollectionPtr action;  ///< actions
-  CSensoryFramePtr sf;          ///< observations
+  CActionCollection::Ptr action;  ///< actions
+  CSensoryFrame::Ptr sf;          ///< observations
 
   mrpt::poses::CPose2D odomLastObservation_;                                  ///< last observation of odometry
   bool use_motion_model_default_options_;                                     ///< used default odom_params
@@ -112,7 +112,7 @@ protected:
   CMatrixDouble fullCov_;                                  ///< full covariance matrix
   CVectorDouble fullState_;                                ///< full state vector
 
-  mrpt::gui::CDisplayWindow3DPtr win3d;  ///<MRPT window
+  mrpt::gui::CDisplayWindow3D::Ptr win3d;  ///<MRPT window
   bool SHOW_3D_LIVE;
   bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
   vector<TPose3D> meanPath;

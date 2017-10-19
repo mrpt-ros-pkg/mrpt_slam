@@ -35,14 +35,14 @@ bool removeObjectFrom3DScene(
 	using namespace mrpt::opengl;
 	ASSERT_(win);
 	bool res = true;
-	COpenGLScenePtr& scene = win->get3DSceneAndLock();
+	COpenGLScene::Ptr& scene = win->get3DSceneAndLock();
 
 	if (obj_name.empty()) {
 		cout << "Clearing entire scene." << endl;
-		scene->clear();
+		scene->reset();
 	}
 	else {
-		CRenderizablePtr obj = scene->getByName(obj_name);
+		CRenderizable::Ptr obj = scene->getByName(obj_name);
 		if (obj) {
 			scene->removeObject(obj);
 		}
@@ -71,8 +71,8 @@ void addToWindow(mrpt::gui::CDisplayWindow3D* win,
 		const mrpt::poses::CPose3D& obj_pose=EMPTY_POSE) {
 	using namespace mrpt::opengl;
 
-	COpenGLScenePtr &scene = win->get3DSceneAndLock();
-	CSetOfObjectsPtr obj = CSetOfObjects::Create();
+	COpenGLScene::Ptr &scene = win->get3DSceneAndLock();
+	CSetOfObjects::Ptr obj = CSetOfObjects::Create();
 
 	o.getAs3DObject(obj);
 	obj->setPose(obj_pose);
@@ -92,8 +92,8 @@ void addAxis(mrpt::gui::CDisplayWindow3D* win) {
 	using namespace mrpt::opengl;
 	ASSERT_(win);
 
-	COpenGLScenePtr &scene = win->get3DSceneAndLock();
-	opengl::CAxisPtr obj = opengl::CAxis::Create(-6, -6, -6, 6, 6, 6, 2, 2, true);
+	COpenGLScene::Ptr &scene = win->get3DSceneAndLock();
+	opengl::CAxis::Ptr obj = opengl::CAxis::Create(-6, -6, -6, 6, 6, 6, 2, 2, true);
 	obj->setLocation(0, 0, 0);
 	scene->insert(obj);
 	win->unlockAccess3DScene();
@@ -105,8 +105,8 @@ void addGrid(mrpt::gui::CDisplayWindow3D* win) {
 	using namespace mrpt::opengl;
 	ASSERT_(win);
 
-	COpenGLScenePtr &scene = win->get3DSceneAndLock();
-	opengl::CGridPlaneXYPtr obj = opengl::CGridPlaneXY::Create(-20, 20, -20, 20, 0, 1);
+	COpenGLScene::Ptr &scene = win->get3DSceneAndLock();
+	opengl::CGridPlaneXY::Ptr obj = opengl::CGridPlaneXY::Create(-20, 20, -20, 20, 0, 1);
 	obj->setColor(0.7, 0.7, 0.7);
 	obj->setLocation(0, 0, 0);
 	scene->insert(obj);
@@ -304,7 +304,7 @@ void CMapMerger::mergeMaps() {
 			//
 			// map
 			//
-			COccupancyGridMap2DPtr map = COccupancyGridMap2D::Create();
+			COccupancyGridMap2D::Ptr map = COccupancyGridMap2D::Create();
 			m_logger->logFmt(LVL_INFO, "Adding map of agent \"%s\" to the stack",
 					neighbor.agent.topic_namespace.data.c_str());
 			convert(*neighbor.nav_map, *map);
@@ -316,7 +316,7 @@ void CMapMerger::mergeMaps() {
 			//
 			// trajectory
 			//
-			CSetOfLinesPtr curr_traj = CSetOfLines::Create();
+			CSetOfLines::Ptr curr_traj = CSetOfLines::Create();
 			curr_traj->setPose(CPose3D(0,0,0.3,0,0,0));
 			curr_traj->setLineWidth(1.5);
 			curr_traj->setColor(TColorf(0,0,1));
@@ -334,7 +334,7 @@ void CMapMerger::mergeMaps() {
 			}
 			// visualize trajectory
 			{
-				COpenGLScenePtr &scene = neighbor_win_manager->win->get3DSceneAndLock();
+				COpenGLScene::Ptr &scene = neighbor_win_manager->win->get3DSceneAndLock();
 				scene->insert(curr_traj);
 
 				neighbor_win_manager->win->unlockAccess3DScene();
@@ -345,8 +345,8 @@ void CMapMerger::mergeMaps() {
 			{
 				// operate on copy of object - it is already inserted and used in
 				// another window
-				CObjectPtr tmp = curr_traj->duplicateGetSmartPtr();
-				CSetOfLinesPtr curr_traj = static_cast<CSetOfLinesPtr>(tmp);
+				CObject::Ptr tmp = curr_traj->duplicateGetSmartPtr();
+				CSetOfLines::Ptr curr_traj = static_cast<CSetOfLines::Ptr>(tmp);
 				ASSERT_(curr_traj);
 				mrpt_trajectories.insert(make_pair(&neighbor, curr_traj));
 			}
@@ -383,20 +383,20 @@ void CMapMerger::mergeMaps() {
 		}
 
 		// initialize final fused map
-		COccupancyGridMap2DPtr fused_map = COccupancyGridMap2D::Create();
+		COccupancyGridMap2D::Ptr fused_map = COccupancyGridMap2D::Create();
 		fused_map->copyMapContentFrom(*mrpt_gridmaps.begin()->second);
 		ASSERT_(fused_map.present());
 
 		{
 			// clear the fused map visuals
-			COpenGLScenePtr& fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
-			fused_scene->clear();
+			COpenGLScene::Ptr& fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
+			fused_scene->reset();
 			m_logger->logFmt(LVL_INFO, "Clearing the fused map visuals");
 
 			addSupWidgets(m_fused_map_win_manager->win);
 
 			// add first map
-			CSetOfObjectsPtr first_map_obj = CSetOfObjects::Create();
+			CSetOfObjects::Ptr first_map_obj = CSetOfObjects::Create();
 			fused_map->getAs3DObject(first_map_obj);
 			// each map in the fused display will have a different name - based on
 			// the topic namespace
@@ -445,7 +445,7 @@ void CMapMerger::mergeMaps() {
 				++m_it, ++merge_counter) {
 
 			TNeighborAgentMapProps* curr_neighbor = m_it->first;
-			COccupancyGridMap2D* curr_gridmap = m_it->second.pointer();
+			COccupancyGridMap2D* curr_gridmap = m_it->second.get();
 
 			// run alignment procedure
 			CGridMapAligner::TReturnInfo results;
@@ -454,14 +454,14 @@ void CMapMerger::mergeMaps() {
 			m_logger->logFmt(LVL_INFO,
 					"Trying to align the maps, initial estimation: %s",
 					init_estim.mean.asString().c_str());
-			const CPosePDFPtr pdf_tmp = gridmap_aligner.AlignPDF(
-					fused_map.pointer(), curr_gridmap,
+			const CPosePDF::Ptr pdf_tmp = gridmap_aligner.AlignPDF(
+					fused_map.get(), curr_gridmap,
 					init_estim,
 					&run_time, &results);
 			m_logger->logFmt(LVL_INFO, "Elapsed Time: %f", run_time);
 
 
-			CPosePDFSOGPtr pdf_out = CPosePDFSOG::Create();
+			CPosePDFSOG::Ptr pdf_out = CPosePDFSOG::Create();
 			pdf_out->copyFrom(*pdf_tmp);
 
 			CPose2D pose_out; CMatrixDouble33 cov_out;
@@ -491,18 +491,18 @@ void CMapMerger::mergeMaps() {
 				ss << output_dir_fname << "/" << "fusing_proc_with"
 					<< "_" << merge_counter;
 				COccupancyGridMap2D::saveAsEMFTwoMapsWithCorrespondences(
-						ss.str(), fused_map.pointer(), curr_gridmap, results.correspondences);
+						ss.str(), fused_map.get(), curr_gridmap, results.correspondences);
 			}
 
 			// Add current map to the fused map visualization
 			{
-				COpenGLScenePtr fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
+				COpenGLScene::Ptr fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
 
 				// insert current map
 				m_logger->logFmt(LVL_INFO,
 						"Adding map to the fused map visualiztion using transformation %s",
 						pose_out.asString().c_str());
-				CSetOfObjectsPtr curr_map_obj = CSetOfObjects::Create();
+				CSetOfObjects::Ptr curr_map_obj = CSetOfObjects::Create();
 				curr_gridmap->getAs3DObject(curr_map_obj);
 				curr_map_obj->setName(format("map_%s",
 						curr_neighbor->agent.topic_namespace.data.c_str()));
@@ -534,7 +534,7 @@ void CMapMerger::mergeMaps() {
 				continue;
 			}
 
-			CSetOfLinesPtr curr_traj = it->second;
+			CSetOfLines::Ptr curr_traj = it->second;
 			m_logger->logFmt(LVL_WARN, "Adding #%lu lines...",
 					static_cast<unsigned long>(curr_traj->getLineCount()));
 
@@ -547,7 +547,7 @@ void CMapMerger::mergeMaps() {
 			curr_traj->setPose(rel_pose);
 			curr_traj->setName(format("traj_%s", curr_neighbor->agent.topic_namespace.data.c_str()));
 			{ // save 3D Scene
-				COpenGLScenePtr fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
+				COpenGLScene::Ptr fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
 				fused_scene->insert(curr_traj);
 
 				m_fused_map_win_manager->win->unlockAccess3DScene();
@@ -559,7 +559,7 @@ void CMapMerger::mergeMaps() {
 
 		{ // save the COpenGLScene
 
-			COpenGLScenePtr fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
+			COpenGLScene::Ptr fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
 			std::string fname = output_dir_fname + "/" + "output_scene.3DScene";
 			fused_scene->saveToFile(fname);
 
@@ -596,14 +596,14 @@ void CMapMerger::initWindowVisuals(
 	win->setPos(400, 200);
 	win_observer->observeBegin(*win);
 	{
-		COpenGLScenePtr &scene = win->get3DSceneAndLock();
-		COpenGLViewportPtr main_view = scene->getViewport("main");
+		COpenGLScene::Ptr &scene = win->get3DSceneAndLock();
+		COpenGLViewport::Ptr main_view = scene->getViewport("main");
 		win_observer->observeBegin(*main_view);
 		win->unlockAccess3DScene();
 	}
 
 	// pass the window and the observer pointers to the CWindowManager instance
-	win_manager->setCDisplayWindow3DPtr(win);
+	win_manager->setCDisplayWindow3D::Ptr(win);
 	win_manager->setWindowObserverPtr(win_observer);
 
 	addSupWidgets(win_manager->win);

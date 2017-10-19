@@ -56,10 +56,10 @@ public:
 	typedef typename constraint_t::type_value pose_t;
 	typedef std::pair<
 		mrpt::utils::TNodeID,
-		mrpt::obs::CObservation2DRangeScanPtr> MRPT_NodeIDWithLaserScan;
+		mrpt::obs::CObservation2DRangeScan::Ptr> MRPT_NodeIDWithLaserScan;
 	typedef std::map<
 		mrpt::utils::TNodeID,
-		mrpt::obs::CObservation2DRangeScanPtr> nodes_to_scans2D_t;
+		mrpt::obs::CObservation2DRangeScan::Ptr> nodes_to_scans2D_t;
 	typedef std::vector<mrpt::vector_uint> partitions_t;
 	typedef typename mrpt::graphs::detail::THypothesis<GRAPH_T> hypot_t;
 	typedef std::vector<hypot_t> hypots_t;
@@ -84,9 +84,9 @@ public:
 	~CGraphSlamEngine_MR();
 
 	bool _execGraphSlamStep(
-			mrpt::obs::CActionCollectionPtr& action,
-			mrpt::obs::CSensoryFramePtr& observations,
-			mrpt::obs::CObservationPtr& observation,
+			mrpt::obs::CActionCollection::Ptr& action,
+			mrpt::obs::CSensoryFrame::Ptr& observations,
+			mrpt::obs::CObservation::Ptr& observation,
 			size_t& rawlog_entry);
 
 	void initClass();
@@ -154,10 +154,10 @@ public:
 		 * occupancy gridmap of the given neighbor
 		 */
 		void computeGridMap() const;
-		const mrpt::maps::COccupancyGridMap2DPtr& getGridMap() const;
+		const mrpt::maps::COccupancyGridMap2D::Ptr& getGridMap() const;
 		/**\brief Fill the given occupancy gridmap object with the current neighbor's grdmap.
 		 */
-		void getGridMap(mrpt::maps::COccupancyGridMap2DPtr& map) const;
+		void getGridMap(mrpt::maps::COccupancyGridMap2D::Ptr& map) const;
 		/**\brief Return True if there are new data (node positions and
 		 * corresponding LaserScans available)
 		 *
@@ -245,7 +245,7 @@ public:
 
 		/**\brief Pointer to the gridmap object of the neighbor
 		 */
-		mutable mrpt::maps::COccupancyGridMap2DPtr gridmap_cached;
+		mutable mrpt::maps::COccupancyGridMap2D::Ptr gridmap_cached;
 
 		mutable bool has_new_nodes;
 		mutable bool has_new_scans;
@@ -371,7 +371,7 @@ private:
 			const mrpt::utils::TNodeID nodeID) const;
 	void setObjectPropsFromNodeID(
 			const mrpt::utils::TNodeID nodeID,
-			mrpt::opengl::CSetOfObjectsPtr& viz_object);
+			mrpt::opengl::CSetOfObjects::Ptr& viz_object);
 	/**\brief Overriden method that takes in account registration of multiple
 	 * nodes of other running graphSLAM agents
 	 *

@@ -125,7 +125,7 @@ public:
   * @param _odometry odometry for received observation
   * @param _msg_header timestamp of the observation
   */
-  void odometryForCallback(CObservationOdometryPtr& _odometry, const std_msgs::Header& _msg_header);
+  void odometryForCallback(CObservationOdometry::Ptr& _odometry, const std_msgs::Header& _msg_header);
   /**
   * @brief callback function for the landmarks
   *

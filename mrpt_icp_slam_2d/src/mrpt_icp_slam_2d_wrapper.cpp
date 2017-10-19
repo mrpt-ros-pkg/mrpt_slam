@@ -131,15 +131,15 @@ void ICPslamWrapper::run3Dwindow()
     // get currently builded map
     metric_map_ = mapBuilder.getCurrentlyBuiltMetricMap();
 
-    lst_current_laser_scans.clear();
+    lst_current_laser_scans.reset();
 
     CPose3D robotPose;
     mapBuilder.getCurrentPoseEstimation()->getMean(robotPose);
-    COpenGLScenePtr scene = COpenGLScene::Create();
+    COpenGLScene::Ptr scene = COpenGLScene::Create();
 
-    COpenGLViewportPtr view = scene->getViewport("main");
+    COpenGLViewport::Ptr view = scene->getViewport("main");
 
-    COpenGLViewportPtr view_map = scene->createViewport("mini-map");
+    COpenGLViewport::Ptr view_map = scene->createViewport("mini-map");
     view_map->setBorderSize(2);
     view_map->setViewportPosition(0.01, 0.01, 0.35, 0.35);
     view_map->setTransparent(false);
@@ -154,10 +154,10 @@ void ICPslamWrapper::run3Dwindow()
     }
 
     // The ground:
-    mrpt::opengl::CGridPlaneXYPtr groundPlane = mrpt::opengl::CGridPlaneXY::Create(-200, 200, -200, 200, 0, 5);
+    mrpt::opengl::CGridPlaneXY::Ptr groundPlane = mrpt::opengl::CGridPlaneXY::Create(-200, 200, -200, 200, 0, 5);
     groundPlane->setColor(0.4, 0.4, 0.4);
     view->insert(groundPlane);
-    view_map->insert(CRenderizablePtr(groundPlane));  // A copy
+    view_map->insert(CRenderizable::Ptr(groundPlane));  // A copy
 
     // The camera pointing to the current robot pose:
     if (CAMERA_3DSCENE_FOLLOWS_ROBOT)
@@ -172,12 +172,12 @@ void ICPslamWrapper::run3Dwindow()
 
     // The maps:
     {
-      opengl::CSetOfObjectsPtr obj = opengl::CSetOfObjects::Create();
+      opengl::CSetOfObjects::Ptr obj = opengl::CSetOfObjects::Create();
       metric_map_->getAs3DObject(obj);
       view->insert(obj);
 
       // Only the point map:
-      opengl::CSetOfObjectsPtr ptsMap = opengl::CSetOfObjects::Create();
+      opengl::CSetOfObjects::Ptr ptsMap = opengl::CSetOfObjects::Create();
       if (metric_map_->m_pointsMaps.size())
       {
         metric_map_->m_pointsMaps[0]->getAs3DObject(ptsMap);
@@ -186,21 +186,21 @@ void ICPslamWrapper::run3Dwindow()
     }
 
     // Draw the robot path:
-    CPose3DPDFPtr posePDF = mapBuilder.getCurrentPoseEstimation();
+    CPose3DPDF::Ptr posePDF = mapBuilder.getCurrentPoseEstimation();
     CPose3D curRobotPose;
     posePDF->getMean(curRobotPose);
     {
-      opengl::CSetOfObjectsPtr obj = opengl::stock_objects::RobotPioneer();
+      opengl::CSetOfObjects::Ptr obj = opengl::stock_objects::RobotPioneer();
       obj->setPose(curRobotPose);
       view->insert(obj);
     }
     {
-      opengl::CSetOfObjectsPtr obj = opengl::stock_objects::RobotPioneer();
+      opengl::CSetOfObjects::Ptr obj = opengl::stock_objects::RobotPioneer();
       obj->setPose(curRobotPose);
       view_map->insert(obj);
     }
 
-    opengl::COpenGLScenePtr &ptrScene = win3D_->get3DSceneAndLock();
+    opengl::COpenGLScene::Ptr &ptrScene = win3D_->get3DSceneAndLock();
     ptrScene = scene;
 
     win3D_->unlockAccess3DScene();
@@ -219,7 +219,7 @@ void ICPslamWrapper::run3Dwindow()
       {
         if (IS_CLASS(observation, CObservation2DRangeScan))
         {
-          lst_current_laser_scans.push_back(CObservation2DRangeScanPtr(observation));
+          lst_current_laser_scans.push_back(CObservation2DRangeScan::Ptr(observation));
         }
       }
       else
@@ -227,7 +227,7 @@ void ICPslamWrapper::run3Dwindow()
         // Rawlog in the Actions-SF format:
         for (size_t i = 0;; i++)
         {
-          CObservation2DRangeScanPtr new_obs = observations->getObservationByClass<CObservation2DRangeScan>(i);
+          CObservation2DRangeScan::Ptr new_obs = observations->getObservationByClass<CObservation2DRangeScan>(i);
           if (!new_obs)
             break;  // There're no more scans
           else
@@ -242,7 +242,7 @@ void ICPslamWrapper::run3Dwindow()
       for (size_t i = 0; i < lst_current_laser_scans.size(); i++)
       {
         // Create opengl object and load scan data from the scan observation:
-        opengl::CPlanarLaserScanPtr obj = opengl::CPlanarLaserScan::Create();
+        opengl::CPlanarLaserScan::Ptr obj = opengl::CPlanarLaserScan::Create();
         obj->setScan(*lst_current_laser_scans[i]);
         obj->setPose(curRobotPose);
         obj->setSurfaceColor(1.0f, 0.0f, 0.0f, 0.5f);
@@ -318,7 +318,7 @@ void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg)
 #else
   using namespace mrpt::slam;
 #endif
-  CObservation2DRangeScanPtr laser = CObservation2DRangeScan::Create();
+  CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
   if (laser_poses_.find(_msg.header.frame_id) == laser_poses_.end())
   {
     updateSensorPose(_msg.header.frame_id);
@@ -327,8 +327,8 @@ void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan &_msg)
   {
     mrpt::poses::CPose3D pose = laser_poses_[_msg.header.frame_id];
     mrpt_bridge::convert(_msg, laser_poses_[_msg.header.frame_id], *laser);
-    // CObservationPtr obs = CObservationPtr(laser);
-    observation = CObservationPtr(laser);
+    // CObservation::Ptr obs = CObservation::Ptr(laser);
+    observation = CObservation::Ptr(laser);
     stamp = ros::Time(0);
     tictac.Tic();
     mapBuilder.processObservation(observation);
@@ -418,7 +418,7 @@ bool ICPslamWrapper::rawlogPlay()
   {
     size_t rawlogEntry = 0;
     CFileGZInputStream rawlogFile(rawlog_filename);
-    CActionCollectionPtr action;
+    CActionCollection::Ptr action;
 
     for (;;)
     {

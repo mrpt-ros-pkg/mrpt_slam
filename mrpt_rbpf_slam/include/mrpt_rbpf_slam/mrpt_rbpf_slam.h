@@ -109,12 +109,12 @@ public:
   * @param _sf  current observation
   * @param _odometry raw odometry
   */
-  void observation(CSensoryFramePtr _sf, CObservationOdometryPtr _odometry);
+  void observation(CSensoryFrame::Ptr _sf, CObservationOdometry::Ptr _odometry);
 
 protected:
   CMetricMapBuilderRBPF* mapBuilder;  ///< map builder
-  CActionCollectionPtr action;        ///< actions
-  CSensoryFramePtr sf;                ///< observations
+  CActionCollection::Ptr action;        ///< actions
+  CSensoryFrame::Ptr sf;                ///< observations
 
   mrpt::poses::CPose2D odomLastObservation_;                                  ///< last observation of odometry
   bool use_motion_model_default_options_;                                     ///< used default odom_params
@@ -127,7 +127,7 @@ protected:
   const CMultiMetricMap* metric_map_;  ///<receive map after iteration of SLAM to metric map
   CPose3DPDFParticles curPDF;    ///<current robot pose
 
-  mrpt::gui::CDisplayWindow3DPtr win3D;  ///<MRPT window
+  mrpt::gui::CDisplayWindow3D::Ptr win3D;  ///<MRPT window
   bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
   bool SHOW_PROGRESS_IN_WINDOW;
   int SHOW_PROGRESS_IN_WINDOW_DELAY_MS;

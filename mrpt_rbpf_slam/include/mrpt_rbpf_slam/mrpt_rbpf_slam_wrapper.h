@@ -135,7 +135,7 @@ public:
   * @param _odometry odometry for received observation
   * @param _msg_header timestamp of the observation
   */
-  void odometryForCallback(CObservationOdometryPtr& _odometry, const std_msgs::Header& _msg_header);
+  void odometryForCallback(CObservationOdometry::Ptr& _odometry, const std_msgs::Header& _msg_header);
 
   /**
   * @brief  update the pose of the sensor with respect to the robot
@@ -179,7 +179,7 @@ private:
   std::vector<std::pair<CActionCollection, CSensoryFrame>> data;  ///< vector of pairs of actions and obsrvations from
                                                                   ///rawlog file
 
-  std::vector<mrpt::opengl::CEllipsoidPtr> viz_beacons;
+  std::vector<mrpt::opengl::CEllipsoid::Ptr> viz_beacons;
 
   ros::Publisher pub_map_, pub_metadata_, pub_Particles_, pub_Particles_Beacons_,
       beacon_viz_pub_;  ///<publishers for map and pose particles
