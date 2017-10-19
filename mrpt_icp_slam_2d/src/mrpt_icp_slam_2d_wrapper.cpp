@@ -126,12 +126,12 @@ void ICPslamWrapper::init3Dwindow()
 void ICPslamWrapper::run3Dwindow()
 {
   // Create 3D window if requested (the code is copied from ../mrpt/apps/icp-slam/icp-slam_main.cpp):
-  if (SHOW_PROGRESS_3D_REAL_TIME && win3D_.present())
+  if (SHOW_PROGRESS_3D_REAL_TIME && win3D_)
   {
     // get currently builded map
     metric_map_ = mapBuilder.getCurrentlyBuiltMetricMap();
 
-    lst_current_laser_scans.reset();
+    lst_current_laser_scans.clear();
 
     CPose3D robotPose;
     mapBuilder.getCurrentPoseEstimation()->getMean(robotPose);
@@ -219,7 +219,7 @@ void ICPslamWrapper::run3Dwindow()
       {
         if (IS_CLASS(observation, CObservation2DRangeScan))
         {
-          lst_current_laser_scans.push_back(CObservation2DRangeScan::Ptr(observation));
+          lst_current_laser_scans.push_back(CObservation2DRangeScan::Ptr(std::dynamic_pointer_cast<CObservation2DRangeScan>(observation)));
         }
       }
       else
@@ -428,7 +428,7 @@ bool ICPslamWrapper::rawlogPlay()
         {
           break;  // file EOF
         }
-        isObsBasedRawlog = observation.present();
+        isObsBasedRawlog = (bool)observation;
         // Execute:
         // ----------------------------------------
         tictac.Tic();

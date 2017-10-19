@@ -1007,7 +1007,7 @@ template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::
 getAllOwnNodes(std::set<mrpt::utils::TNodeID>* nodes_set) const {
 	ASSERT_(nodes_set);
-	nodes_set->reset();
+	nodes_set->clear();
 
 	for (const auto& n : this->m_graph.nodes) {
 		if (n.second.agent_ID_str == m_conn_manager.getTrimmedNs()) {
@@ -1379,7 +1379,7 @@ computeGridMap() const {
 	using namespace mrpt::math;
 	using namespace std;
 
-	gridmap_cached->reset();
+	gridmap_cached->clear();
 
 	vector_uint nodeIDs;
 	std::map<TNodeID, node_props_t> nodes_params;
@@ -1415,7 +1415,7 @@ template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::
 getGridMap(mrpt::maps::COccupancyGridMap2D::Ptr& map) const {
 	MRPT_START;
-	ASSERT_(map.present());
+	ASSERT_(map);
 
 	if (hasNewData()) {
 		this->computeGridMap();
@@ -1468,7 +1468,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
 				inter_group_node_count_thresh,
 				inter_group_node_count_thresh_minadv);
 
-		std::this_thread::sleep_for(2000);
+		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 	}
 
 

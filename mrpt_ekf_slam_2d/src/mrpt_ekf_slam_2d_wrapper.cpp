@@ -348,7 +348,7 @@ void EKFslamWrapper::viz_dataAssociation()
     CRangeBearingKFSLAM2D::KFArray_FEAT featMean;
     mapping.getLandmarkMean(idxPred, featMean);
 
-    line_strip.points.reset();
+    line_strip.points.clear();
     line_strip.points.push_back(pointRobotPose);
     geometry_msgs::Point pointLm;
     pointLm.z = 0.0;

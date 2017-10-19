@@ -100,7 +100,7 @@ void EKFslam::init3Dwindow()
 void EKFslam::run3Dwindow()
 {
   // Save 3D view of the filter state:
-  if (SHOW_3D_LIVE && win3d.present())
+  if (SHOW_3D_LIVE && win3d)
   {
     mapping.getCurrentState(robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
     // Most of this code was copy and pase from ros::amcl

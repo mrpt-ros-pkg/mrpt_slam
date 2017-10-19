@@ -39,7 +39,7 @@ bool removeObjectFrom3DScene(
 
 	if (obj_name.empty()) {
 		cout << "Clearing entire scene." << endl;
-		scene->reset();
+		scene.reset();
 	}
 	else {
 		CRenderizable::Ptr obj = scene->getByName(obj_name);
@@ -345,8 +345,8 @@ void CMapMerger::mergeMaps() {
 			{
 				// operate on copy of object - it is already inserted and used in
 				// another window
-				CObject::Ptr tmp = curr_traj->duplicateGetSmartPtr();
-				CSetOfLines::Ptr curr_traj = static_cast<CSetOfLines::Ptr>(tmp);
+			  CObject::Ptr tmp(curr_traj->clone());
+				CSetOfLines::Ptr curr_traj = std::dynamic_pointer_cast<CSetOfLines>(tmp);
 				ASSERT_(curr_traj);
 				mrpt_trajectories.insert(make_pair(&neighbor, curr_traj));
 			}
@@ -385,12 +385,13 @@ void CMapMerger::mergeMaps() {
 		// initialize final fused map
 		COccupancyGridMap2D::Ptr fused_map = COccupancyGridMap2D::Create();
 		fused_map->copyMapContentFrom(*mrpt_gridmaps.begin()->second);
-		ASSERT_(fused_map.present());
+
+		ASSERT_(fused_map);
 
 		{
 			// clear the fused map visuals
 			COpenGLScene::Ptr& fused_scene = m_fused_map_win_manager->win->get3DSceneAndLock();
-			fused_scene->reset();
+			fused_scene.reset();
 			m_logger->logFmt(LVL_INFO, "Clearing the fused map visuals");
 
 			addSupWidgets(m_fused_map_win_manager->win);
@@ -603,7 +604,7 @@ void CMapMerger::initWindowVisuals(
 	}
 
 	// pass the window and the observer pointers to the CWindowManager instance
-	win_manager->setCDisplayWindow3D::Ptr(win);
+	win_manager->setCDisplayWindow3DPtr(win);
 	win_manager->setWindowObserverPtr(win_observer);
 
 	addSupWidgets(win_manager->win);
