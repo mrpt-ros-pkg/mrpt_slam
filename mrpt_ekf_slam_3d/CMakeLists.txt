@@ -1,8 +1,8 @@
 # Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
 # Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1)
+set (CMAKE_CXX_STANDARD 14)
 project(mrpt_ekf_slam_3d)
-add_definitions(-std=c++14) # Use C++14
 #find catkin packages
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
