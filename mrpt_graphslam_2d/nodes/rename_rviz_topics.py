@@ -12,11 +12,26 @@ possible a real-time setup.
 """
 
 import os
+import sys
 import logging
 import socket
 
-logging.basicConfig(level=logging.DEBUG)
+from colorlog import ColoredFormatter
+
+LOG_LEVEL = logging.DEBUG
+LOGFORMAT = ("%(log_color)s%(levelname)-5s%(reset)s "
+             "| %(log_color)s%(message)s%(reset)s")
+
+logging.root.setLevel(LOG_LEVEL)
+formatter = ColoredFormatter(LOGFORMAT)
+stream = logging.StreamHandler()
+stream.setLevel(LOG_LEVEL)
+stream.setFormatter(formatter)
+
 logger = logging.getLogger("RvizRenamer")
+logger.setLevel(LOG_LEVEL)
+logger.addHandler(stream)
+
 
 
 def rename_topics_in_rviz_file(templ_file, replace_dict):
@@ -37,11 +52,23 @@ def rename_topics_in_rviz_file(templ_file, replace_dict):
             f.writelines([l.format(**replace_dict) for l in templ_lines])
 
 
+def validate_args():
+    """Make sure that the user understands what the script does."""
+
+    if len(sys.argv) > 1:
+        logger.warning("Current script modifies the template rviz files "
+                       "found in rviz/templates so that their topics match the "
+                       "running computer's hostname.\n"
+                       "Run this without any additional arguments.")
+        logger.warning("Exiting...")
+        sys.exit(-1)
+
 
 def main():
     """Main."""
 
     logger.info("Initializing...")
+    validate_args()
 
     # fetch the rviz files that topics renaming is to happen
     script_dir = os.path.dirname(os.path.realpath(__file__))

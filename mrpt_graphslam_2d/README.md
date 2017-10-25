@@ -1,7 +1,9 @@
-# Description
+# General Information
 
-Algorithm utilizes the MRPT mrpt-graphslam  library to execute single-robot
-graphSLAM using information from odometry and LaserScan ROS topics.
+[![GitPitch](https://gitpitch.com/assets/badge.svg)](https://gitpitch.com/bergercookie/mastert_present/master?grs=github)
+
+Algorithm utilizes the MRPT mrpt-graphslam library to execute single,
+multi-robot graphSLAM using information from odometry and LaserScan ROS topics.
 
 mrpt\_graphslam\_2d is heavily based on the native MRPT *graphslam-engine*
 application. Furthermore the command-line arguments offered by the latter can
