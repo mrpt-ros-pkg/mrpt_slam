@@ -59,7 +59,7 @@ void CLoopCloserERD_MR<GRAPH_T>::fetchNodeIDsForScanMatching(
 
 	size_t fetched_nodeIDs = 0;
 	for (int nodeID_i = static_cast<int>(curr_nodeID)-1;
-			((fetched_nodeIDs <= this->prev_nodes_for_ICP) &&
+			((fetched_nodeIDs <= this->m_laser_params.prev_nodes_for_ICP) &&
 			 (nodeID_i >= 0));
 			--nodeID_i) {
 		bool is_own = this->m_engine->isOwnNodeID(nodeID_i);
