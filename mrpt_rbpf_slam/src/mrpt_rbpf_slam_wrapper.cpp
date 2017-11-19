@@ -122,7 +122,7 @@ bool PFslamWrapper::waitForTransform(mrpt::poses::CPose3D& des, const std::strin
   catch (tf::TransformException ex)
   {
     ROS_ERROR(
-      "Failed to subtract global_frame (%s) from odom_frame (%s). TransformException: %s",
+      "Failed to get transform target_frame (%s) to source_frame (%s). TransformException: %s",
       target_frame.c_str(),
       source_frame.c_str(),
       ex.what());
