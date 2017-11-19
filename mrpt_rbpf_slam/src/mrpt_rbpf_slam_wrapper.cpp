@@ -116,13 +116,16 @@ bool PFslamWrapper::waitForTransform(mrpt::poses::CPose3D& des, const std::strin
   tf::StampedTransform transform;
   try
   {
-    listenerTF_.waitForTransform(target_frame, source_frame, time, polling_sleep_duration);
+    listenerTF_.waitForTransform(target_frame, source_frame, time, timeout, polling_sleep_duration);
     listenerTF_.lookupTransform(target_frame, source_frame, time, transform);
   }
-  catch (tf::TransformException)
+  catch (tf::TransformException ex)
   {
-    ROS_INFO("Failed to get transform target_frame (%s) to source_frame (%s)", target_frame.c_str(),
-             source_frame.c_str());
+    ROS_ERROR(
+      "Failed to subtract global_frame (%s) from odom_frame (%s). TransformException: %s",
+      target_frame.c_str(),
+      source_frame.c_str(),
+      ex.what());
     return false;
   }
   mrpt_bridge::convert(transform, des);
@@ -460,10 +463,13 @@ void PFslamWrapper::publishTF()
     tf::Stamped<tf::Pose> tmp_tf_stamped(tmp_tf.inverse(), stamp, base_frame_id);
     listenerTF_.transformPose(odom_frame_id, tmp_tf_stamped, odom_to_map);
   }
-  catch (tf::TransformException)
+  catch (tf::TransformException ex)
   {
-    ROS_INFO("Failed to subtract global_frame (%s) from odom_frame (%s)", global_frame_id.c_str(),
-             odom_frame_id.c_str());
+    ROS_ERROR(
+      "Failed to subtract global_frame (%s) from odom_frame (%s). TransformException: %s",
+      global_frame_id.c_str(),
+      odom_frame_id.c_str(),
+      ex.what());
     return;
   }
 
