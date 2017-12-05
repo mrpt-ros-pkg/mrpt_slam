@@ -345,8 +345,8 @@ void CMapMerger::mergeMaps() {
 			{
 				// operate on copy of object - it is already inserted and used in
 				// another window
-			  CObject::Ptr tmp(curr_traj->clone());
-				CSetOfLines::Ptr curr_traj = std::dynamic_pointer_cast<CSetOfLines>(tmp);
+			  auto tmp = curr_traj->clone();
+				auto curr_traj = mrpt::ptr_cast<CSetOfLines>::from(tmp);
 				ASSERT_(curr_traj);
 				mrpt_trajectories.insert(make_pair(&neighbor, curr_traj));
 			}
@@ -354,7 +354,7 @@ void CMapMerger::mergeMaps() {
 		} // end if both nav_map and nav_robot_trajectory exist
 	} // end for all neighbors traversal
 
-	// join all gathered MRPT gridmaps 
+	// join all gathered MRPT gridmaps
 	if (mrpt_gridmaps.size() >= 2) {
 
 		m_logger->logFmt(LVL_INFO, "Executing map merging for [%lu] gridmaps",

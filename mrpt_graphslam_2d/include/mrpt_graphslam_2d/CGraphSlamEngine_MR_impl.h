@@ -9,6 +9,9 @@
 #ifndef CGRAPHSLAMENGINE_MR_IMPL_H
 #define CGRAPHSLAMENGINE_MR_IMPL_H
 
+#include <thread>
+#include <chrono>
+
 namespace mrpt { namespace graphslam {
 
 template<class GRAPH_T>
@@ -1019,7 +1022,7 @@ getAllOwnNodes(std::set<mrpt::utils::TNodeID>* nodes_set) const {
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::
 getNodeIDsOfEstimatedTrajectory(
-		std::set<mrpt::utils::TNodeID>* nodes_set) const { 
+		std::set<mrpt::utils::TNodeID>* nodes_set) const {
 	ASSERT_(nodes_set);
 	this->getAllOwnNodes(nodes_set);
 } // end of getNodeIDsOfEstimatedTrajectory
@@ -1401,7 +1404,7 @@ computeGridMap() const {
 template<class GRAPH_T>
 const mrpt::maps::COccupancyGridMap2D::Ptr&
 CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::
-getGridMap() const { 
+getGridMap() const {
 	MRPT_START;
 	if (hasNewData()) {
 		this->computeGridMap();
