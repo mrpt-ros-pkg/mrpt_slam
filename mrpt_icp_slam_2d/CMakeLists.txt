@@ -32,6 +32,10 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	endif()
 endif()
 
+IF(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
+  add_compile_options(-O3)
+ENDIF()
+
 #Include directories
 INCLUDE_DIRECTORIES(
    ${CMAKE_SOURCE_DIR}/src

@@ -219,7 +219,7 @@ void ICPslamWrapper::run3Dwindow()
       {
         if (IS_CLASS(observation, CObservation2DRangeScan))
         {
-          lst_current_laser_scans.push_back(CObservation2DRangeScan::Ptr(std::dynamic_pointer_cast<CObservation2DRangeScan>(observation)));
+          lst_current_laser_scans.push_back(mrpt::ptr_cast<CObservation2DRangeScan>::from(observation));
         }
       }
       else

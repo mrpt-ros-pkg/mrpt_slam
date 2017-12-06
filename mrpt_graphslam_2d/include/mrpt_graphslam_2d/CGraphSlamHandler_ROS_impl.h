@@ -144,7 +144,7 @@ template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::readStaticTFs() { }
 
 template<class GRAPH_T>
-void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_ROS() { 
+void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_ROS() {
 
 	this->m_logger->logFmt(LVL_WARN,
 			"Initializing CGraphSlamEngine_ROS instance...");
@@ -219,7 +219,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::getROSParameters(std::string* str_out) {
   ss << "Enable MRPT visuals?      = " <<
 	(this->m_enable_visuals? "TRUE" : "FALSE")
 	<< endl;
-  ss << "Logging verbosity Level   = " << 
+  ss << "Logging verbosity Level   = " <<
 	COutputLogger::logging_levels_to_names[m_min_logging_level] << endl;;
   ss << endl;
 
@@ -702,7 +702,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
   this->m_logger->logFmt(LVL_DEBUG, "%s", ss.str().c_str());
 
   m_received_odom = true;
-  CObservation::Ptr tmp = std::dynamic_pointer_cast<mrpt::obs::CObservation>(m_mrpt_odom);
+  CObservation::Ptr tmp = mrpt::ptr_cast<mrpt::obs::CObservation>::from(m_mrpt_odom);
   this->processObservation(tmp);
 } // end of sniffOdom
 
