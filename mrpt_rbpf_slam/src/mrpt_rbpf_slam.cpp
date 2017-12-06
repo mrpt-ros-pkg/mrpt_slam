@@ -139,7 +139,11 @@ void PFslam::init_slam()
   mapBuilder->options.enableMapUpdating = true;
   mapBuilder->options.debugForceInsertion = false;
 
-  randomGenerator.randomize();
+#if MRPT_VERSION >= 0x199
+  getRandomGenerator().randomize();
+#else
+randomGenerator.randomize();
+#endif
 }
 
 void PFslam::init3Dwindow()

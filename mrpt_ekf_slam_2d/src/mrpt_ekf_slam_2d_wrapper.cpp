@@ -120,7 +120,6 @@ void EKFslamWrapper::updateSensorPose(std::string _frame_id)
     pose.x() = translation.x();
     pose.y() = translation.y();
     pose.z() = translation.z();
-    double roll, pitch, yaw;
     tf::Matrix3x3 Rsrc(quat);
     CMatrixDouble33 Rdes;
     for (int c = 0; c < 3; c++)
@@ -377,7 +376,7 @@ void EKFslamWrapper::viz_state()
   mapping.getAs3DObject(objs);
 
   // Count the number of landmarks
-  int objs_counter = 0;
+  unsigned int objs_counter = 0;
   while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter))
   {
     objs_counter++;

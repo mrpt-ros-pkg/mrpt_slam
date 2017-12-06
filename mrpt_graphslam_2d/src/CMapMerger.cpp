@@ -345,7 +345,7 @@ void CMapMerger::mergeMaps() {
 			{
 				// operate on copy of object - it is already inserted and used in
 				// another window
-			  auto tmp = curr_traj->clone();
+				auto tmp = CSetOfLines::Ptr(dynamic_cast<CSetOfLines*>(curr_traj->clone()));
 				auto curr_traj = mrpt::ptr_cast<CSetOfLines>::from(tmp);
 				ASSERT_(curr_traj);
 				mrpt_trajectories.insert(make_pair(&neighbor, curr_traj));
@@ -368,7 +368,7 @@ void CMapMerger::mergeMaps() {
 					"Saving map-merging results to \"%s\"",
 					output_dir_fname.c_str());
 
-			mrpt::system::TTimeStamp cur_date(getCurrentTime());
+			//mrpt::system::TTimeStamp cur_date(getCurrentTime());
 			//string cur_date_str(dateTimeToString(cur_date));
 			//string cur_date_validstr(fileNameStripInvalidChars(cur_date_str));
 			//std::string output_dir_fname = "map_merger_results_" + cur_date_validstr;

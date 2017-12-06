@@ -235,7 +235,7 @@ void PFslamWrapper::publishMapPose()
     poseArrayBeacons.header.stamp = ros::Time::now();
 
     // Count the number of beacons
-    int objs_counter = 0;
+    unsigned int objs_counter = 0;
     while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter))
     {
       objs_counter++;
@@ -297,7 +297,7 @@ void PFslamWrapper::vizBeacons()
   marker.color.r = 1.0;
   marker.color.g = 0.0;
 
-  for (int i = 0; i < viz_beacons.size(); i++)
+  for (unsigned int i = 0; i < viz_beacons.size(); i++)
   {
     CPose3D meanPose(viz_beacons[i]->getPose());
     marker.type = visualization_msgs::Marker::SPHERE;
@@ -342,7 +342,6 @@ void PFslamWrapper::updateSensorPose(std::string _frame_id)
     pose.x() = translation.x();
     pose.y() = translation.y();
     pose.z() = translation.z();
-    double roll, pitch, yaw;
     tf::Matrix3x3 Rsrc(quat);
     CMatrixDouble33 Rdes;
     for (int c = 0; c < 3; c++)
@@ -367,7 +366,7 @@ bool PFslamWrapper::rawlogPlay()
   }
   else
   {
-    for (int i = 0; i < data.size(); i++)
+    for (unsigned int i = 0; i < data.size(); i++)
     {
       if (ros::ok())
       {
@@ -402,7 +401,7 @@ bool PFslamWrapper::rawlogPlay()
           poseArrayBeacons.header.frame_id = global_frame_id;
           poseArrayBeacons.header.stamp = ros::Time::now();
 
-          int objs_counter = 0;
+          unsigned int objs_counter = 0;
           while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter))
           {
             objs_counter++;
