@@ -10,11 +10,18 @@
 #include <mrpt/math/utils.h>
 #include "mrpt_graphslam_2d/misc/common.h"
 
+#include <mrpt/version.h>
+#if MRPT_VERSION>=0x199
+#include <mrpt/containers/stl_containers_utils.h>
+using namespace mrpt::containers;
+#else
+using namespace mrpt::utils;
+#endif
+
 using namespace mrpt::poses;
 using namespace mrpt::math;
 using namespace std;
 using namespace mrpt::math;
-using namespace mrpt::utils;
 
 std::string mrpt::graphslam::detail::getGridMapAlignmentResultsAsString(
 			const mrpt::poses::CPosePDF& pdf,

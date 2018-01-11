@@ -6,6 +6,11 @@
 
 #include "mrpt_ekf_slam_3d/mrpt_ekf_slam_3d_wrapper.h"
 
+#include <mrpt/version.h>
+#if MRPT_VERSION>=0x199
+#include <mrpt/serialization/CArchive.h>
+#endif
+
 EKFslamWrapper::EKFslamWrapper()
 {
   rawlog_play_ = false;
@@ -204,7 +209,13 @@ bool EKFslamWrapper::rawlogPlay()
   else
   {
     size_t rawlogEntry = 0;
-    CFileGZInputStream rawlogFile(rawlog_filename);
+#if MRPT_VERSION>=0x199
+	CFileGZInputStream f(rawlog_filename);
+	auto rawlogFile = mrpt::serialization::archiveFrom(f);
+#else
+	CFileGZInputStream rawlogFile(rawlog_filename);
+#endif
+
     CActionCollection::Ptr action;
     CSensoryFrame::Ptr observations;
 

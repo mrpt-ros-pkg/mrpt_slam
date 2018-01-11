@@ -30,12 +30,21 @@
 #include <mrpt/poses/CPosePDFSOG.h>
 
 #include <mrpt/math/utils.h>
-#include <mrpt/utils/TColorManager.h>
 #include <mrpt/system/os.h>
 #include <mrpt/slam/CGridMapAligner.h>
 #include <mrpt/graphs/TMRSlamNodeAnnotations.h>
 #include <mrpt/graphslam/misc/TUncertaintyPath.h>
 #include <mrpt/graphslam/misc/TNodeProps.h>
+
+#include <mrpt/version.h>
+#if MRPT_VERSION>=0x199
+#include <mrpt/img/TColorManager.h>
+using namespace mrpt::img;
+#else
+#include <mrpt/utils/TColorManager.h>
+using namespace mrpt::utils;
+#endif
+
 
 #include <set>
 #include <iterator>

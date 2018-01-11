@@ -18,7 +18,6 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
 #include <mrpt_msgs/GraphSlamAgents.h>
-#include <mrpt/utils/COutputLogger.h>
 #include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt/maps/CSimplePointsMap.h>
 #include <mrpt/slam/CGridMapAligner.h>
@@ -29,8 +28,21 @@
 #include <mrpt/graphslam/misc/CWindowManager.h>
 #include <mrpt/opengl/CAxis.h>
 #include <mrpt/opengl/CGridPlaneXY.h>
-#include <mrpt/utils/TColorManager.h>
 #include <mrpt/opengl/CSetOfLines.h>
+
+#include <mrpt/version.h>
+#if MRPT_VERSION>=0x199
+#include <mrpt/system/COutputLogger.h>
+#include <mrpt/img/TColorManager.h>
+using namespace mrpt::system;
+using namespace mrpt::img;
+#else
+#include <mrpt/utils/COutputLogger.h>
+#include <mrpt/utils/TColorManager.h>
+using namespace mrpt::utils;
+#endif
+
+
 
 #include <iterator>
 

@@ -51,7 +51,12 @@ void EKFslam::read_iniFile(std::string ini_filename)
   log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
   mapping.setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
   mapping.logging_enable_console_output = false;
+
+#if MRPT_VERSION >= 0x199
   mapping.logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback));
+#else
+  mapping.logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback_mrpt_15));
+#endif
 #endif
 
   // read display variables
@@ -106,7 +111,7 @@ void EKFslam::run3Dwindow()
     const CPose3D robotPoseMean3D = CPose3D(robotPose_.mean);
 
     // Build the path:
-    meanPath.push_back(TPose3D(robotPoseMean3D));
+	meanPath.push_back(mrpt_bridge::p2t(robotPoseMean3D));
 
     // create the scene
     COpenGLScene::Ptr scene3D = COpenGLScene::Create();
@@ -120,7 +125,7 @@ void EKFslam::run3Dwindow()
     TPose3D init_pose;
     if (!meanPath.empty())
     {
-      init_pose = TPose3D(CPose3D(meanPath[0]));
+	  init_pose = mrpt_bridge::p2t(CPose3D(meanPath[0]));
       int path_decim = 0;
       for (vector<TPose3D>::iterator it = meanPath.begin(); it != meanPath.end(); ++it)
       {

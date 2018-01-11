@@ -21,13 +21,13 @@ find_package(catkin REQUIRED COMPONENTS
   multimaster_msgs_fkie
   )
 ## System dependencies are found with CMake's conventions
-find_package(MRPT 1.5 REQUIRED
-  base
-  gui
-  obs
-  maps
-  opengl
-  graphslam)
+find_package(MRPT 1.5 REQUIRED)
+message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
+if (MRPT_VERSION VERSION_LESS 1.9.9)
+	find_package(MRPT REQUIRED base gui obs maps opengl graphslam)
+else()
+	find_package(MRPT REQUIRED gui obs maps opengl graphslam)
+endif()
 
 if (MRPT_VERSION VERSION_LESS 2.0.0)
 	set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_CXX_FLAGS}")

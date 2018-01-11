@@ -16,7 +16,14 @@ find_package(catkin REQUIRED COMPONENTS
   roslaunch)
 
 #find mrpt packages
-find_package(MRPT 1.5 REQUIRED base gui obs slam)
+find_package(MRPT 1.5 REQUIRED)
+message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
+if (MRPT_VERSION VERSION_LESS 1.9.9)
+	find_package(MRPT REQUIRED base gui obs slam)
+else()
+	find_package(MRPT REQUIRED gui obs slam)
+endif()
+
 if (CMAKE_COMPILER_IS_GNUCXX)
 	# High level of warnings.
 	# The -Wno-long-long is required in 64bit systems when including sytem headers.

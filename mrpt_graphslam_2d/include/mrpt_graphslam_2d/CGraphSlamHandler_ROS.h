@@ -39,7 +39,6 @@
 #include <mrpt/system/string_utils.h>
 #include <mrpt/system/filesystem.h>
 #include <mrpt/system/os.h>
-#include <mrpt/utils/mrpt_macros.h>
 #include <mrpt/utils/COutputLogger.h>
 #include <mrpt/graphslam/apps_related/CGraphSlamHandler.h>
 
