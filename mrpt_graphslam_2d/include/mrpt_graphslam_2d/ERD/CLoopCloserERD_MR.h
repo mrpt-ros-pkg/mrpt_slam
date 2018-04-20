@@ -55,12 +55,12 @@ public:
 			mrpt::obs::CObservation::Ptr observation );
 	void addBatchOfNodeIDsAndScans(
 			const std::map<
-				mrpt::utils::TNodeID,
+				TNodeID,
 				mrpt::obs::CObservation2DRangeScan::Ptr>& nodeIDs_to_scans2D);
-	void addScanMatchingEdges(mrpt::utils::TNodeID curr_nodeID);
+	void addScanMatchingEdges(TNodeID curr_nodeID);
 	void fetchNodeIDsForScanMatching(
-			const mrpt::utils::TNodeID& curr_nodeID,
-			std::set<mrpt::utils::TNodeID>* nodes_set);
+			const TNodeID& curr_nodeID,
+			std::set<TNodeID>* nodes_set);
 
 protected:
 

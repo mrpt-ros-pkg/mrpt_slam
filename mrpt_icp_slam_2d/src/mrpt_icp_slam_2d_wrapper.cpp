@@ -416,7 +416,13 @@ bool ICPslamWrapper::rawlogPlay()
   else
   {
     size_t rawlogEntry = 0;
+#if MRPT_VERSION>=0x199
+    #include <mrpt/serialization/CArchive.h>
+    CFileGZInputStream rawlog_stream(rawlog_filename);
+    auto rawlogFile = mrpt::serialization::archiveFrom(rawlog_stream);
+#else
     CFileGZInputStream rawlogFile(rawlog_filename);
+#endif
     CActionCollection::Ptr action;
 
     for (;;)

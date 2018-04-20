@@ -27,7 +27,7 @@ CLoopCloserERD_MR<GRAPH_T>::CLoopCloserERD_MR() {
 template<class GRAPH_T>
 void CLoopCloserERD_MR<GRAPH_T>::addBatchOfNodeIDsAndScans(
 		const std::map<
-			mrpt::utils::TNodeID,
+			TNodeID,
 			mrpt::obs::CObservation2DRangeScan::Ptr>& nodeIDs_to_scans2D) {
 	mr_parent_t::addBatchOfNodeIDsAndScans(nodeIDs_to_scans2D);
 
@@ -38,7 +38,7 @@ void CLoopCloserERD_MR<GRAPH_T>::addBatchOfNodeIDsAndScans(
 
 template<class GRAPH_T>
 void CLoopCloserERD_MR<GRAPH_T>::addScanMatchingEdges(
-		mrpt::utils::TNodeID curr_nodeID) {
+		TNodeID curr_nodeID) {
 	MRPT_START;
 
 	// Do scan-matching only if I have initially registered curr_nodeID in the
@@ -53,8 +53,8 @@ void CLoopCloserERD_MR<GRAPH_T>::addScanMatchingEdges(
 
 template<class GRAPH_T>
 void CLoopCloserERD_MR<GRAPH_T>::fetchNodeIDsForScanMatching(
-		const mrpt::utils::TNodeID& curr_nodeID,
-		std::set<mrpt::utils::TNodeID>* nodes_set) {
+		const TNodeID& curr_nodeID,
+		std::set<TNodeID>* nodes_set) {
 	ASSERT_(nodes_set);
 
 	size_t fetched_nodeIDs = 0;
