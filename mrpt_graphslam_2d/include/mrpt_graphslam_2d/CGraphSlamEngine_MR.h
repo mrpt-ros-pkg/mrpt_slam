@@ -39,7 +39,16 @@
 #include <mrpt/version.h>
 #if MRPT_VERSION>=0x199
 #include <mrpt/img/TColorManager.h>
+#include <mrpt/img/TColor.h>
+#include <mrpt/graphs/TNodeID.h>
+#include <mrpt/config/CConfigFileBase.h>
+#include <mrpt/system/COutputLogger.h>
+#include <mrpt/containers/stl_containers_utils.h>
 using namespace mrpt::img;
+using namespace mrpt::graphs;
+using namespace mrpt::config;
+using namespace mrpt::system;
+using namespace mrpt::containers;
 #else
 #include <mrpt/utils/TColorManager.h>
 using namespace mrpt::utils;
@@ -64,12 +73,12 @@ public:
 	typedef typename GRAPH_T::constraint_t constraint_t;
 	typedef typename constraint_t::type_value pose_t;
 	typedef std::pair<
-		mrpt::utils::TNodeID,
+		TNodeID,
 		mrpt::obs::CObservation2DRangeScan::Ptr> MRPT_NodeIDWithLaserScan;
 	typedef std::map<
-		mrpt::utils::TNodeID,
+		TNodeID,
 		mrpt::obs::CObservation2DRangeScan::Ptr> nodes_to_scans2D_t;
-	typedef std::vector<mrpt::vector_uint> partitions_t;
+	typedef std::vector<std::vector<uint32_t>> partitions_t;
 	typedef typename mrpt::graphs::detail::THypothesis<GRAPH_T> hypot_t;
 	typedef std::vector<hypot_t> hypots_t;
 	typedef std::vector<hypot_t*> hypotsp_t;
@@ -149,15 +158,15 @@ public:
 		 * \sa resetFlags
 		 */
 		void getCachedNodes(
-				mrpt::vector_uint* nodeIDs=NULL,
+				std::vector<uint32_t>* nodeIDs=NULL,
 				std::map<
-					mrpt::utils::TNodeID,
+					TNodeID,
 					node_props_t>* nodes_params=NULL,
 				bool only_unused=true) const;
 		/**\brief Fill the optimal paths for each combination of the given nodeIDs.
 		 */
 		void fillOptPaths(
-				const std::set<mrpt::utils::TNodeID>& nodeIDs,
+				const std::set<TNodeID>& nodeIDs,
 				paths_t* opt_paths) const;
 		/**\brief Using the fetched LaserScans and nodeID positions, compute the
 		 * occupancy gridmap of the given neighbor
@@ -189,7 +198,7 @@ public:
 		 * a nodeID
 		 */
 		const sensor_msgs::LaserScan* getLaserScanByNodeID(
-				const mrpt::utils::TNodeID nodeID) const;
+				const TNodeID nodeID) const;
 
 		/**\brief GraphSlamAgent instance of the neighbor
 		 *
@@ -210,15 +219,15 @@ public:
 		 *
 		 * Handy in visualization operations
 		 */
-		void setTColor(const mrpt::utils::TColor& color_in) { color = color_in; }
+		void setTColor(const TColor& color_in) { color = color_in; }
 		/**\brief Unique color of current TNeighborAgentProps instance
 		 */
-		mrpt::utils::TColor color;
+		TColor color;
 
 		/**\name Neighbor cached properties */
 		/**\{ */
 		/**\brief NodeIDs that I have received from this graphSLAM agent. */
-		std::set<mrpt::utils::TNodeID> nodeIDs_set;
+		std::set<TNodeID> nodeIDs_set;
 		/**\brief Poses that I have received from this graphSLAM agent. */
 		typename GRAPH_T::global_poses_t poses;
 		/**\brief ROS LaserScans that I have received from this graphSLAM agent. */
@@ -227,7 +236,7 @@ public:
 		 * \note CGraphSlamEngine_MR instance is responsible of setting these values to
 		 * true when it integrates them in own graph
 		 */
-		std::map<mrpt::utils::TNodeID, bool> nodeID_to_is_integrated;
+		std::map<TNodeID, bool> nodeID_to_is_integrated;
 		/**\} */
 
 		/**\name Subscriber/Services Instances */
@@ -274,7 +283,7 @@ public:
 		 * with regards to neighbor's frame of reference.
 		 */
 		std::pair<
-			mrpt::utils::TNodeID,
+			TNodeID,
 			mrpt::poses::CPose2D> last_integrated_pair_neighbor_frame;
 
 	};
@@ -290,7 +299,7 @@ public:
 	 * graph
 	 */
 	bool isOwnNodeID(
-			const mrpt::utils::TNodeID nodeID,
+			const TNodeID nodeID,
 			const global_pose_t* pose_out=NULL) const;
 
 
@@ -377,9 +386,9 @@ private:
 	void readROSParameters();
 	void printParams() const;
 	mrpt::poses::CPose3D getLSPoseForGridMapVisualization(
-			const mrpt::utils::TNodeID nodeID) const;
+			const TNodeID nodeID) const;
 	void setObjectPropsFromNodeID(
-			const mrpt::utils::TNodeID nodeID,
+			const TNodeID nodeID,
 			mrpt::opengl::CSetOfObjects::Ptr& viz_object);
 	/**\brief Overriden method that takes in account registration of multiple
 	 * nodes of other running graphSLAM agents
@@ -392,9 +401,9 @@ private:
 	 * the current graphSLAM engine (and not by any neighboring agent.
 	 */
 	void getAllOwnNodes(
-		std::set<mrpt::utils::TNodeID>* nodes_set) const;
+		std::set<TNodeID>* nodes_set) const;
 	void getNodeIDsOfEstimatedTrajectory(
-		std::set<mrpt::utils::TNodeID>* nodes_set) const;
+		std::set<TNodeID>* nodes_set) const;
 	void getRobotEstimatedTrajectory(
 			typename GRAPH_T::global_poses_t* graph_poses) const;
 
@@ -516,21 +525,21 @@ private:
 	 */
 	mrpt::slam::CGridMapAligner::TConfigParams m_alignment_options;
 
-	mrpt::utils::TColorManager m_neighbor_colors_manager;
+	TColorManager m_neighbor_colors_manager;
 
 	std::string m_sec_alignment_params;
 	std::string m_sec_mr_slam_params;
 
-	struct TOptions : mrpt::utils::CLoadableOptions {
+	struct TOptions : CLoadableOptions {
 
 		typedef self_t engine_mr_t;
 
 		TOptions(const engine_mr_t& engine_in);
 		~TOptions();
 		void loadFromConfigFile(
-				const mrpt::utils::CConfigFileBase& source,
+				const CConfigFileBase& source,
 				const std::string& section);
-		void dumpToTextStream(mrpt::utils::CStream& out) const;
+		void dumpToTextStream(std::ostream& out) const;
 
 
 		/**\brief Be conservative when it comes to deciding the initial

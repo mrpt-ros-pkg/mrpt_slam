@@ -1,7 +1,8 @@
 /* +---------------------------------------------------------------------------+
 	 |                     Mobile Robot Programming Toolkit (MRPT)               |
 	 |                          http://www.mrpt.org/                             |
-	 |                                                                           | | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
+	 |                                                                           |
+	 | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
 	 | See: http://www.mrpt.org/Authors - All rights reserved.                   |
 	 | Released under BSD License. See details in http://www.mrpt.org/License    |
 	 +---------------------------------------------------------------------------+ */
@@ -93,8 +94,8 @@ addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor) {
 	using namespace std;
 
 
-	vector_uint nodeIDs;
-	std::map<mrpt::utils::TNodeID, node_props_t> nodes_params;
+	std::vector<uint32_t> nodeIDs;
+	std::map<TNodeID, node_props_t> nodes_params;
 	neighbor->getCachedNodes(&nodeIDs, &nodes_params, /*only unused=*/ true);
 
 	//
@@ -165,7 +166,7 @@ addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor) {
 	//
 	MRPT_LOG_WARN_STREAM("Marking used nodes as integrated - Integrating LSs");
 	nodes_to_scans2D_t new_nodeIDs_to_scans_pairs;
-	for (typename vector_uint::const_iterator
+	for (typename std::vector<uint32_t>::const_iterator
 			n_cit = nodeIDs.begin();
 			n_cit != nodeIDs.end();
 			++n_cit) {
@@ -265,8 +266,8 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 
 	bool ret_val = false;
 
-	vector_uint neighbor_nodes;
-	std::map<mrpt::utils::TNodeID, node_props_t> nodes_params;
+	std::vector<uint32_t> neighbor_nodes;
+	std::map<TNodeID, node_props_t> nodes_params;
 	neighbor->getCachedNodes(&neighbor_nodes, &nodes_params, /*only unused=*/ false);
 	if (neighbor_nodes.size() < m_opts.inter_group_node_count_thresh ||
 			!neighbor->hasNewData()) {
@@ -328,7 +329,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 
 	// which nodes to ask the condensed graph for
 	// I assume that no nodes of the other graph have been integrated yet.
-	for (typename vector_uint::const_iterator
+	for (typename std::vector<uint32_t>::const_iterator
 			n_cit = neighbor_nodes.begin();
 			n_cit != neighbor_nodes.end();
 			++n_cit) {
@@ -379,7 +380,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 	//
 	MRPT_LOG_WARN_STREAM("Marking used nodes as integrated - Integrating LSs");
 	nodes_to_scans2D_t new_nodeIDs_to_scans_pairs;
-	for (typename vector_uint::const_iterator
+	for (typename std::vector<uint32_t>::const_iterator
 			n_cit = neighbor_nodes.begin();
 			n_cit != neighbor_nodes.end();
 			++n_cit) {
@@ -590,7 +591,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::initClass() {
 template<class GRAPH_T>
 mrpt::poses::CPose3D CGraphSlamEngine_MR<GRAPH_T>::
 getLSPoseForGridMapVisualization(
-		const mrpt::utils::TNodeID nodeID) const {
+		const TNodeID nodeID) const {
 	MRPT_START;
 	using namespace mrpt::graphs::detail;
 
@@ -808,7 +809,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubLastRegdIDScan() {
 
 template<class GRAPH_T>
 bool CGraphSlamEngine_MR<GRAPH_T>::isOwnNodeID(
-		const mrpt::utils::TNodeID nodeID,
+		const TNodeID nodeID,
 		const global_pose_t* pose_out/*=NULL*/) const {
 	MRPT_START;
 	using namespace mrpt::graphs::detail;
@@ -947,7 +948,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::getCMGraph(
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::setObjectPropsFromNodeID(
-		const mrpt::utils::TNodeID  nodeID,
+		const TNodeID  nodeID,
 		mrpt::opengl::CSetOfObjects::Ptr& viz_object) {
 	using namespace mrpt::utils;
 	MRPT_START;
@@ -1008,7 +1009,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::getRobotEstimatedTrajectory(
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::
-getAllOwnNodes(std::set<mrpt::utils::TNodeID>* nodes_set) const {
+getAllOwnNodes(std::set<TNodeID>* nodes_set) const {
 	ASSERT_(nodes_set);
 	nodes_set->clear();
 
@@ -1022,7 +1023,7 @@ getAllOwnNodes(std::set<mrpt::utils::TNodeID>* nodes_set) const {
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::
 getNodeIDsOfEstimatedTrajectory(
-		std::set<mrpt::utils::TNodeID>* nodes_set) const {
+		std::set<TNodeID>* nodes_set) const {
 	ASSERT_(nodes_set);
 	this->getAllOwnNodes(nodes_set);
 } // end of getNodeIDsOfEstimatedTrajectory
@@ -1202,9 +1203,9 @@ fetchLastRegdIDScan(
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
-		vector_uint* nodeIDs/*=NULL*/,
+		std::vector<uint32_t>* nodeIDs/*=NULL*/,
 		std::map<
-			mrpt::utils::TNodeID,
+			TNodeID,
 			node_props_t>* nodes_params/*=NULL*/,
 		bool only_unused/*=true*/) const {
 	MRPT_START;
@@ -1285,7 +1286,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::
 hasNewNodesBatch(int new_batch_size) {
 	MRPT_START;
 
-	auto is_not_integrated = [this](const std::pair<mrpt::utils::TNodeID, bool> pair) {
+	auto is_not_integrated = [this](const std::pair<TNodeID, bool> pair) {
 		return (pair.second == false && getLaserScanByNodeID(pair.first));
 	};
 	int not_integrated_num = count_if(
@@ -1303,7 +1304,7 @@ template<class GRAPH_T>
 const sensor_msgs::LaserScan*
 CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::
 getLaserScanByNodeID(
-		const mrpt::utils::TNodeID nodeID) const {
+		const TNodeID nodeID) const {
 	MRPT_START;
 
 	// assert that the current nodeID exists in the nodeIDs_set
@@ -1326,7 +1327,7 @@ getLaserScanByNodeID(
 template<class GRAPH_T>
 void
 CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::fillOptPaths(
-		const std::set<mrpt::utils::TNodeID>& nodeIDs,
+		const std::set<TNodeID>& nodeIDs,
 		paths_t* opt_paths) const {
 	MRPT_START;
 	using namespace std;
@@ -1384,7 +1385,7 @@ computeGridMap() const {
 
 	gridmap_cached->clear();
 
-	vector_uint nodeIDs;
+	std::vector<uint32_t> nodeIDs;
 	std::map<TNodeID, node_props_t> nodes_params;
 	// get list of nodes, laser scans
 	this->getCachedNodes(&nodeIDs, &nodes_params, false);
@@ -1451,7 +1452,7 @@ CGraphSlamEngine_MR<GRAPH_T>::TOptions::~TOptions() {
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
-		const mrpt::utils::CConfigFileBase& source,
+		const CConfigFileBase& source,
 		const std::string& section) {
 
 	MRPT_LOAD_CONFIG_VAR(nodes_integration_batch_size, int, source, section);
@@ -1465,7 +1466,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
 	MRPT_LOAD_CONFIG_VAR(inter_group_node_count_thresh, int, source, section);
 	// warn user if they choose smaller threshold.
 	if (inter_group_node_count_thresh < inter_group_node_count_thresh_minadv) {
-		engine.logFmt(mrpt::utils::LVL_ERROR,
+		engine.logFmt(LVL_ERROR,
 				"inter_group_node_count_thresh [%d]"
 				"is set lower than the advised minimum [%d]",
 				inter_group_node_count_thresh,
@@ -1479,7 +1480,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TOptions::dumpToTextStream(
-		mrpt::utils::CStream& out) const {
+		std::ostream& out) const {
 
 	LOADABLEOPTS_DUMP_VAR(nodes_integration_batch_size, int);
 	LOADABLEOPTS_DUMP_VAR(num_last_regd_nodes, int);

@@ -11,11 +11,6 @@
 
 namespace mrpt { namespace graphslam { namespace apps {
 
-using mrpt::utils::LVL_DEBUG;
-using mrpt::utils::LVL_INFO;
-using mrpt::utils::LVL_WARN;
-using mrpt::utils::LVL_ERROR;
-
 // static member variables
 template<class GRAPH_T>
 const std::string CGraphSlamHandler_ROS<GRAPH_T>::sep_header(40, '=');
@@ -299,7 +294,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::verifyUserInput() {
 	this->m_options_checker->dumpOptimizersToConsole();
 	failed = true;
   }
-  ASSERT_(!failed)
+  ASSERT_(!failed);
 
 	// verify that the path to the files is correct
 	// .ini file
@@ -486,7 +481,11 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
 		this->m_logger->logFmt(LVL_DEBUG,
 				"Publishing the current robot trajectory");
 		typename GRAPH_T::global_poses_t graph_poses;
+#if MRPT_VERSION>=0x199
+		this->m_engine->getRobotEstimatedTrajectory();
+#else
 		this->m_engine->getRobotEstimatedTrajectory(&graph_poses);
+#endif
 
 		nav_msgs::Path path;
 

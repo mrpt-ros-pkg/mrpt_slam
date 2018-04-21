@@ -15,6 +15,13 @@
 
 #include <string>
 
+#if MRPT_VERSION>=0x199
+#include <mrpt/graphs/TNodeID.h>
+using namespace mrpt::graphs;
+#else
+using namespace mrpt::utils;
+#endif
+
 namespace mrpt { namespace graphslam { namespace deciders {
 
 /**\brief Edge Registration Decider virtual method.
@@ -43,7 +50,7 @@ public:
 	~CEdgeRegistrationDecider_MR ();
 	virtual void addBatchOfNodeIDsAndScans(
 			const std::map<
-				mrpt::utils::TNodeID,
+				TNodeID,
 				mrpt::obs::CObservation2DRangeScan::Ptr>& nodeIDs_to_scans2D);
 
 protected:
