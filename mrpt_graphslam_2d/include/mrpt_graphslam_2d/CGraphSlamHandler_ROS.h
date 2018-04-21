@@ -219,7 +219,7 @@ class CGraphSlamHandler_ROS :
 	 	 * \note Value is fetched from the ROS Parameter Server (not from the
 	 	 * external .ini file.
 	 	 */
-        VerbosityLevel m_min_logging_level;
+		VerbosityLevel m_min_logging_level;
 
 		/**\name Received measurements - boolean flags
 	 	 *

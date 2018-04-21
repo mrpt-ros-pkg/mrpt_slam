@@ -50,7 +50,7 @@ public:
 	~CEdgeRegistrationDecider_MR ();
 	virtual void addBatchOfNodeIDsAndScans(
 			const std::map<
-                TNodeID,
+				TNodeID,
 				mrpt::obs::CObservation2DRangeScan::Ptr>& nodeIDs_to_scans2D);
 
 protected:

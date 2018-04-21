@@ -1,7 +1,8 @@
 /* +---------------------------------------------------------------------------+
 	 |                     Mobile Robot Programming Toolkit (MRPT)               |
 	 |                          http://www.mrpt.org/                             |
-	 |                                                                           | | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
+	 |                                                                           |
+	 | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
 	 | See: http://www.mrpt.org/Authors - All rights reserved.                   |
 	 | Released under BSD License. See details in http://www.mrpt.org/License    |
 	 +---------------------------------------------------------------------------+ */
@@ -93,7 +94,7 @@ addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor) {
 	using namespace std;
 
 
-    std::vector<uint32_t> nodeIDs;
+	std::vector<uint32_t> nodeIDs;
 	std::map<TNodeID, node_props_t> nodes_params;
 	neighbor->getCachedNodes(&nodeIDs, &nodes_params, /*only unused=*/ true);
 
@@ -165,7 +166,7 @@ addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor) {
 	//
 	MRPT_LOG_WARN_STREAM("Marking used nodes as integrated - Integrating LSs");
 	nodes_to_scans2D_t new_nodeIDs_to_scans_pairs;
-    for (typename std::vector<uint32_t>::const_iterator
+	for (typename std::vector<uint32_t>::const_iterator
 			n_cit = nodeIDs.begin();
 			n_cit != nodeIDs.end();
 			++n_cit) {
@@ -265,7 +266,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 
 	bool ret_val = false;
 
-    std::vector<uint32_t> neighbor_nodes;
+	std::vector<uint32_t> neighbor_nodes;
 	std::map<TNodeID, node_props_t> nodes_params;
 	neighbor->getCachedNodes(&neighbor_nodes, &nodes_params, /*only unused=*/ false);
 	if (neighbor_nodes.size() < m_opts.inter_group_node_count_thresh ||
@@ -328,7 +329,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 
 	// which nodes to ask the condensed graph for
 	// I assume that no nodes of the other graph have been integrated yet.
-    for (typename std::vector<uint32_t>::const_iterator
+	for (typename std::vector<uint32_t>::const_iterator
 			n_cit = neighbor_nodes.begin();
 			n_cit != neighbor_nodes.end();
 			++n_cit) {
@@ -379,7 +380,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 	//
 	MRPT_LOG_WARN_STREAM("Marking used nodes as integrated - Integrating LSs");
 	nodes_to_scans2D_t new_nodeIDs_to_scans_pairs;
-    for (typename std::vector<uint32_t>::const_iterator
+	for (typename std::vector<uint32_t>::const_iterator
 			n_cit = neighbor_nodes.begin();
 			n_cit != neighbor_nodes.end();
 			++n_cit) {
@@ -1202,7 +1203,7 @@ fetchLastRegdIDScan(
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
-        std::vector<uint32_t>* nodeIDs/*=NULL*/,
+		std::vector<uint32_t>* nodeIDs/*=NULL*/,
 		std::map<
 			TNodeID,
 			node_props_t>* nodes_params/*=NULL*/,
@@ -1384,7 +1385,7 @@ computeGridMap() const {
 
 	gridmap_cached->clear();
 
-    std::vector<uint32_t> nodeIDs;
+	std::vector<uint32_t> nodeIDs;
 	std::map<TNodeID, node_props_t> nodes_params;
 	// get list of nodes, laser scans
 	this->getCachedNodes(&nodeIDs, &nodes_params, false);
@@ -1451,7 +1452,7 @@ CGraphSlamEngine_MR<GRAPH_T>::TOptions::~TOptions() {
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
-        const CConfigFileBase& source,
+		const CConfigFileBase& source,
 		const std::string& section) {
 
 	MRPT_LOAD_CONFIG_VAR(nodes_integration_batch_size, int, source, section);
@@ -1465,7 +1466,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
 	MRPT_LOAD_CONFIG_VAR(inter_group_node_count_thresh, int, source, section);
 	// warn user if they choose smaller threshold.
 	if (inter_group_node_count_thresh < inter_group_node_count_thresh_minadv) {
-        engine.logFmt(LVL_ERROR,
+		engine.logFmt(LVL_ERROR,
 				"inter_group_node_count_thresh [%d]"
 				"is set lower than the advised minimum [%d]",
 				inter_group_node_count_thresh,
@@ -1479,7 +1480,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TOptions::dumpToTextStream(
-        std::ostream& out) const {
+		std::ostream& out) const {
 
 	LOADABLEOPTS_DUMP_VAR(nodes_integration_batch_size, int);
 	LOADABLEOPTS_DUMP_VAR(num_last_regd_nodes, int);
