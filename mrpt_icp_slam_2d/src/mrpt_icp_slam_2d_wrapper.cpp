@@ -64,7 +64,11 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename)
   log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
   mapBuilder.setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
   mapBuilder.logging_enable_console_output = false;
+#if MRPT_VERSION < 0x199
+  mapBuilder.logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback_mrpt_15));
+#else
   mapBuilder.logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback));
+#endif
 #endif
   mapBuilder.options.alwaysInsertByClass.fromString(
       iniFile.read_string("MappingApplication", "alwaysInsertByClass", ""));
