@@ -482,7 +482,7 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters() {
 				"Publishing the current robot trajectory");
 		typename GRAPH_T::global_poses_t graph_poses;
 #if MRPT_VERSION>=0x199
-		this->m_engine->getRobotEstimatedTrajectory();
+		graph_poses = this->m_engine->getRobotEstimatedTrajectory();
 #else
 		this->m_engine->getRobotEstimatedTrajectory(&graph_poses);
 #endif

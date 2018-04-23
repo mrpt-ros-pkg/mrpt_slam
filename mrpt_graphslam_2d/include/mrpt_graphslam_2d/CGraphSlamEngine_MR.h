@@ -539,7 +539,11 @@ private:
 		void loadFromConfigFile(
 				const CConfigFileBase& source,
 				const std::string& section);
+#if MRPT_VERSION>=0x199
 		void dumpToTextStream(std::ostream& out) const;
+#else
+		void dumpToTextStream(mrpt::utils::CStream& out) const;
+#endif
 
 
 		/**\brief Be conservative when it comes to deciding the initial

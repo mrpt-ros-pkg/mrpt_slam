@@ -1480,7 +1480,11 @@ void CGraphSlamEngine_MR<GRAPH_T>::TOptions::loadFromConfigFile(
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TOptions::dumpToTextStream(
+#if MRPT_VERSION>=0x199
 		std::ostream& out) const {
+#else
+		mrpt::utils::CStream& out) const {
+#endif
 
 	LOADABLEOPTS_DUMP_VAR(nodes_integration_batch_size, int);
 	LOADABLEOPTS_DUMP_VAR(num_last_regd_nodes, int);
