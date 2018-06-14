@@ -2,8 +2,8 @@
 Changelog for package mrpt_icp_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.6 (2018-06-14)
+------------------
 * Fixed compilation with MRPT 1.5
 * Fixed indents
 * Fixed build with mrpt 2.0
