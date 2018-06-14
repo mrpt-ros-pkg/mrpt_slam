@@ -2,6 +2,20 @@
 Changelog for package mrpt_ekf_slam_3d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed compilation with MRPT 1.5
+* fix build in mrpt 2.0
+* fix build; add optimized builds (-O3)
+* use consistent cmake conventions for c++14
+* Fixes and cleanups for config files
+* [mrpt_ekf_slam_3d] Update description and dependencies of package.xml
+  Add test for *.launch files.
+* Move transforms to callbacks.
+* Define C++11 avoiding direct manipulation of CXX_FLAGS
+* catkin_lint error fixes
+* Contributors: Jose Luis Blanco, Jose Luis Blanco Claraco, Jose Luis Blanco-Claraco, Logrus, Magnus Gärtner, Max Kuzmin, Vladislav Tananaev
+
 0.1.5 (2016-11-18)
 ------------------
 * Don't instruct cmake to search eigen3, mrpt has it

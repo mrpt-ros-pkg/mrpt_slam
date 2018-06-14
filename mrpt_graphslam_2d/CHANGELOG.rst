@@ -2,6 +2,128 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed compilation with MRPT 1.5
+* Merge pull request `#41 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/41>`_ from MaxGsomGsom/master
+  Fixed build with mrpt 2.0
+* Fixed indents
+* Fixed build with mrpt 2.0
+* partial fix build w mrpt 2.0
+* fix build in mrpt 2.0
+* fix build; add optimized builds (-O3)
+* fix build against mrpt 1.5 series
+* Merge pull request `#32 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/32>`_ from bergercookie/master
+  Correct prev_nodes_ICP error
+* Correct prev_nodes_ICP member var
+* mrpt_graphslam_2d: Add link to GitPitch slideshow
+* mrpt_graphslam_2d: Validate user args in rename_rviz_topics.py
+* use consistent cmake conventions for c++14
+* all but mrpt_graphslam_2d compiling against mrpt2.0
+* porting to mrpt2
+* fix `#28 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/28>`_, compiling all nodes using -std=c++14
+* CMake finds MRPT >=1.5 in branch master
+* Merge pull request `#23 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/23>`_ from bergercookie/graphslam-devel
+  mrpt_graphslam_2d:Add to ini config files, instructions
+* mrpt_graphslam_2d:Fix broken links in README
+* mrpt_graphslam_2d:Use template files and python script to generate rviz files for rosbag, gazebo runs
+* mrpt_graphslam_2d:Add to the instructions for running graphSLAM from rosbags
+* mrpt_graphslam_2d:Update graphslam_real_2.rviz file
+* mrpt_graphslam_2d:Tweak config for real-time usage
+* mrpt_graphslam_2d:Have .ini file specifically for gazebo simulations
+* mrpt_graphslam_2d:CGraphSlamEngine_MR to have its own struct for config variables
+* mrpt_graphslam_2d:Finish configuration for mr-slam with rosbags
+* mrpt_graphslam_2d:Add initial setup and instructions for running mr-slam from rosbags
+* mrpt_graphslam_2d:Correct sr_graphslam_demo_gt execution
+* mrpt-graphslam:Modify parameters of mr-slam .ini file
+* mrpt_graphslam:Add rviz file for 4 agents
+* mrpt-graphslam:Remove deprecated .ini argument
+* mrpt-graphslam_2d:Add using directives when needed
+* Merge pull request `#22 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/22>`_ from bergercookie/graphslam-devel
+  Add support for 2D multi-robot SLAM
+* mrpt_graphslam_2d:Comply to MRPT changes
+* Comply to new MRPT_LOG\_*_STREAM format
+* Update rviz files, launchfiles
+* mrpt_graphslam_2d: Correct error in visualization of robot orientation in rviz
+* mrpt_graphslam_2d: Publish current robot_position to topic
+* Update rviz file
+* mrpt_graphslam_2d: Visualize compressed versions of images
+* mrpt_graphslam_2d: Update documentation
+* mrpt_graphslam_2d: Add local .gitignore
+* mrpt_graphslam_2d: Skip first unecessary seconds of demo_short_loop rosbag
+* Fix bug when running with more than 2 agents
+  Bug occurred due to a dangling reference after rewriting the contents of a
+  vector
+* mrpt_graphslam_2d: Successful mr-graphslam real-time experiment
+* Add configuration file for real-time mr-graphSLAM
+* mrpt_graphslam_2d: Have topic_namespace of agent be the same as its name
+* mrpt_graphslam_2d: Add rest of nodes in batches
+  Knowing the transformation from own graph to neighbor's graph I
+  integrate into own map the rest of the received nodes in batches of X
+  nodes (default=4)
+* Change names of files and classes *_CM -> *_MR
+  Multi-robot SLAM is no longer (heavily) based on Condensed Measurements,
+  thus the corresponding files/classes are named appropriately.
+  MR: Multi-robot
+* mrpt_graphslam_2d: Finish first working version of mr-graphSLAM
+* mrpt-graphslam: Add more rviz files for gazebo
+  Commit also temporarily deals with the segfault when running with more
+  than 2 robots
+* Finish first working version of map_merger node
+  map_merger node subscribes to all the published maps and trajectories,
+  fetches the results and upon user request computes an appropriate
+  occupancy-grid map merging and joins all available maps and robot
+  trajectories
+* Start work on map_merger script
+* mrpt_graphslam_2d: Class app to properly inherit from CGraphSlamHandler
+  Add to mr-graphSLAM execution, various bug fixes
+  Robot agents can now communicate LaserScans, modified node lists as well
+  as condensed-measurements maps and upon successful matching integrate
+  local map of other agent into own map.
+* mrpt-graphslam-2d: Implement mr-graphSLAM communication system and structs
+  Commit adds the necessary structures for basic communication of nodes,
+  current LaserScan in a multi-robot graphSLAM application.
+  Each graphSLAM agent publishes the last X nodes (node ID + pose) and its
+  latest registered laser scan into corresponding topics under its own
+  namespace. Furthermore each agent reads the aforementioned stats off the
+  topics of all other agents that are currently running in the experiment.
+  P.S. In the current implementation, each graphSLAM agent keeps a
+  TNeighborAgentProps instance structure for each one of its found neighbors
+  (*not* including self).
+* mrpt_graphslam_2d: Add copyright string
+* mrpt_graphslam_2d: Add to multi-robot CGraphSlamEngine
+* mrpt_graphslam_2d: Implement conversion methods TSlamAgent <=> RosMaster
+* mrpt_graphslam_2d: Have two different executables for sr, mr slam
+  mrpt_graphslam_2d_node => single-robot graphSLAM
+  mrpt_graphslam_2d_cm_node => multi-robot graphSLAM based on Condensed Measurements
+* mrpt_graphslam_2d: Name classes, files in a consistent manner
+* mrpt_graphslam_2d: Add ROS-specific, CondensedMeasurements-specific classes
+  To facilitate polymorphism, task delegation, we implement class
+  templates specific to the MR-graphSLAM strategy that inherit from
+  mrpt-graphslam lib class templates
+* mrpt_graphslam_2d: Add mr related class and executable
+* mrpt_graphslam_2d: Add graphSLAM statistics topic -> feedback/graphslam_stats
+* mrpt_graphslam_2d: Uncomment actual code snippet in main executable
+* mrpt-graphslam-2d: Depend on multimaster_fkie pkg
+* mrpt_graphslam_2d: Add draft version of CConnectionManager class
+  CConnectionManager should be responsible for handling the inter-robot
+  communication in an mr-slam setup. it basically provides a wrapper
+  around the Multimaster package for finding other ROS masters in the same
+  network over multicast
+* mrpt_graphslam_2d: Abide to changes in mrpt-graphslam API
+* mrpt-graphslam-2d: Add specialized versions of rviz files for Gazebo sim
+* mrpt_graphslam_2d: Change script names
+* mrpt_graphslam_2d: Add boilerplate code for multi-robot decider/optimizer classes.
+  Multi-robot case is going to be implemented on the ROS side. Current
+  commit adds code for the new multi-robot deciders/optimizer classes as
+  well as verifying that the classes that are inputted by the user
+  actually exist.
+* Edit README.md file
+* fix project name
+* Define C++11 avoiding direct manipulation of CXX_FLAGS
+* catkin_lint error fixes
+* Contributors: Jose Luis Blanco, Jose Luis Blanco Claraco, Jose Luis Blanco-Claraco, Magnus Gärtner, Max Kuzmin, Nikos Koukis
+
 0.1.5 (2016-11-18)
 ------------------
 * mrpt_graphslam_2d: Correct syntax in README file

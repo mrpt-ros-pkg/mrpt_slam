@@ -2,6 +2,24 @@
 Changelog for package mrpt_ekf_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed build with mrpt 2.0
+* fix build; add optimized builds (-O3)
+* fix build against mrpt 1.5 series
+* use consistent cmake conventions for c++14
+* all but mrpt_graphslam_2d compiling against mrpt2.0
+* porting to mrpt2
+  Fixes and cleanups for config files
+* [mrpt_ekf_slam_2d] Update description in package.xml.
+* [mrpt_ekf_slam_2d] Fix comment in launch file.
+* [mrpt_ekf_slam_2d] Add missing dependencies to package.xml
+  Add test of *.launch files for the node.
+* Move transforms to callbacks.
+* Move publishTF to callback.
+* catkin_lint error fixes
+* Contributors: Jose Luis Blanco, Jose Luis Blanco Claraco, Jose Luis Blanco-Claraco, Logrus, Magnus Gärtner, Max Kuzmin, Vladislav Tananaev
+
 0.1.5 (2016-11-18)
 ------------------
 * Fix cmakelists typo

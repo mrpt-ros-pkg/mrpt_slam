@@ -2,6 +2,39 @@
 Changelog for package mrpt_rbpf_slam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#42 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/42>`_ from MaxGsomGsom/master
+  Fixed build with MRPT 1.5
+* Fixed compilation with MRPT 1.5
+* Merge pull request `#41 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/41>`_ from MaxGsomGsom/master
+  Fixed build with mrpt 2.0
+* Fixed build with mrpt 2.0
+* partial fix build w mrpt 2.0
+* fix build in mrpt 2.0
+* fix build; add optimized builds (-O3)
+* fix build against mrpt 1.5 series
+* Fixed wrong timeout for waitForTransform.
+* Fixed wrong timeout for waitForTransform.
+* use consistent cmake conventions for c++14
+* all but mrpt_graphslam_2d compiling against mrpt2.0
+* porting to mrpt2
+* fix `#28 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/28>`_, compiling all nodes using -std=c++14
+* CMake finds MRPT >=1.5 in branch master
+* Merge pull request `#22 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/22>`_ from bergercookie/graphslam-devel
+  Add support for 2D multi-robot SLAM
+* mrpt_rbpf:Correct include guard
+* fix build with MRPT 1.5.0
+* Merge pull request `#20 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/20>`_ from Logrus/master
+  Fixes and cleanups for config files
+* [mrpt_rbpf_slam] Update description and dependencies of package.xml
+  Add test for *.launch files.
+* Move transforms to callbacks.
+* Define C++11 avoiding direct manipulation of CXX_FLAGS
+* catkin_lint error fixes
+* Fix build against latest dev mrpt 1.5.0
+* Contributors: Albert Kasdorf, Jose Luis Blanco, Jose Luis Blanco Claraco, Jose Luis Blanco-Claraco, Logrus, Magnus Gärtner, Max Kuzmin, Nikos Koukis, Vladislav Tananaev
+
 0.1.5 (2016-11-18)
 ------------------
 * Include ros/console hdr
