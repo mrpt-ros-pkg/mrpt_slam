@@ -155,7 +155,6 @@ else()
   # Mark other files for installation (e.g. launch and bag files, etc.)
   install(DIRECTORY
     launch
-    demo
     config
     rviz
     rosbags
