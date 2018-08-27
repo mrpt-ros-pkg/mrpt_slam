@@ -44,9 +44,7 @@ public:
 	typedef typename GRAPH_T::global_pose_t global_pose_t;
 	/**\}*/
 
-	// Ctor, Dtor
 	CLoopCloserERD_MR();
-	~CLoopCloserERD_MR();
 
 	// member implementations
 	bool updateState(

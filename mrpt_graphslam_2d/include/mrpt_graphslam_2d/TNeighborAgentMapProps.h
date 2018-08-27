@@ -52,6 +52,7 @@ struct TNeighborAgentMapProps
 	 */
 	size_t getNodeCount() { return nav_robot_trajectory->poses.size(); }
 
+	mrpt::utils::COutputLogger* m_logger;
 	ros::NodeHandle* nh;
 	/**\brief Pointer to the GraphSlamAgent instance of the neighbor */
 	const mrpt_msgs::GraphSlamAgent& agent;
@@ -74,7 +75,6 @@ struct TNeighborAgentMapProps
 	size_t queue_size;
 	bool has_init_class;
 	bool has_setup_comm;
-	mrpt::utils::COutputLogger* m_logger;
 
 
 }; // end of TNeighborAgentMapProps

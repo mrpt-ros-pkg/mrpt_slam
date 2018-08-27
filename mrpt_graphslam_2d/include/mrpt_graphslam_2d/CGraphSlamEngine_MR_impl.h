@@ -40,7 +40,6 @@ CGraphSlamEngine_MR<GRAPH_T>::CGraphSlamEngine_MR(
 	m_graph_nodes_last_size(0),
 	m_registered_multiple_nodes(false),
 	cm_graph_async_spinner(/* threads_num: */ 1, &this->custom_service_queue),
-	m_pause_exec_on_mr_registration(false),
 	m_sec_alignment_params("AlignmentParameters"),
 	m_sec_mr_slam_params("MultiRobotParameters"),
 	m_opts(*this)
@@ -94,7 +93,7 @@ addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor) {
 	using namespace std;
 
 
-	std::vector<uint32_t> nodeIDs;
+	std::vector<TNodeID> nodeIDs;
 	std::map<TNodeID, node_props_t> nodes_params;
 	neighbor->getCachedNodes(&nodeIDs, &nodes_params, /*only unused=*/ true);
 
@@ -166,7 +165,7 @@ addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor) {
 	//
 	MRPT_LOG_WARN_STREAM("Marking used nodes as integrated - Integrating LSs");
 	nodes_to_scans2D_t new_nodeIDs_to_scans_pairs;
-	for (typename std::vector<uint32_t>::const_iterator
+	for (typename std::vector<TNodeID>::const_iterator
 			n_cit = nodeIDs.begin();
 			n_cit != nodeIDs.end();
 			++n_cit) {
@@ -202,7 +201,6 @@ addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor) {
 				nodes_params.at(last_node).pose);
 	}
 
-	if (m_pause_exec_on_mr_registration) this->pauseExec();
 	return true;
 	MRPT_END;
 } // end of addNodeBatchFromNeighbor
@@ -266,7 +264,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 
 	bool ret_val = false;
 
-	std::vector<uint32_t> neighbor_nodes;
+	std::vector<TNodeID> neighbor_nodes;
 	std::map<TNodeID, node_props_t> nodes_params;
 	neighbor->getCachedNodes(&neighbor_nodes, &nodes_params, /*only unused=*/ false);
 	if (neighbor_nodes.size() < m_opts.inter_group_node_count_thresh ||
@@ -329,7 +327,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 
 	// which nodes to ask the condensed graph for
 	// I assume that no nodes of the other graph have been integrated yet.
-	for (typename std::vector<uint32_t>::const_iterator
+	for (typename std::vector<TNodeID>::const_iterator
 			n_cit = neighbor_nodes.begin();
 			n_cit != neighbor_nodes.end();
 			++n_cit) {
@@ -380,7 +378,7 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 	//
 	MRPT_LOG_WARN_STREAM("Marking used nodes as integrated - Integrating LSs");
 	nodes_to_scans2D_t new_nodeIDs_to_scans_pairs;
-	for (typename std::vector<uint32_t>::const_iterator
+	for (typename std::vector<TNodeID>::const_iterator
 			n_cit = neighbor_nodes.begin();
 			n_cit != neighbor_nodes.end();
 			++n_cit) {
@@ -428,7 +426,6 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 	MRPT_LOG_WARN_STREAM("Nodes of neighbor [" << neighbor->getAgentNs()
 		<< "] have been integrated successfully");
 
-	if (m_pause_exec_on_mr_registration) this->pauseExec();
 	ret_val = true;
 
 	return ret_val;
@@ -925,25 +922,19 @@ bool CGraphSlamEngine_MR<GRAPH_T>::getCMGraph(
 	using namespace mrpt::utils;
 	using namespace mrpt::math;
 
-	const size_t min_nodeIDs = 2;
-
 	set<TNodeID> nodes_set(req.nodeIDs.begin(), req.nodeIDs.end());
 	MRPT_LOG_INFO_STREAM("Called the GetCMGraph service for nodeIDs: "
 		<< getSTLContainerAsString(nodes_set));
 
-	bool ret_val = false;
-	if (nodes_set.size() < 2) { }
-	else {
-		// fill the given Response with the ROS NetworkOfPoses
-		GRAPH_T mrpt_subgraph;
-		this->m_graph.extractSubGraph(nodes_set, &mrpt_subgraph,
-				/*root_node = */ INVALID_NODEID,
-				/*auto_expand_set=*/false);
-		mrpt_bridge::convert(mrpt_subgraph, res.cm_graph);
-		ret_val = true;
-	}
+	if (nodes_set.size() < 2) { return false; }
 
-	return ret_val;
+	// fill the given Response with the ROS NetworkOfPoses
+	GRAPH_T mrpt_subgraph;
+	this->m_graph.extractSubGraph(nodes_set, &mrpt_subgraph,
+			/*root_node = */ INVALID_NODEID,
+			/*auto_expand_set=*/false);
+	mrpt_bridge::convert(mrpt_subgraph, res.cm_graph);
+	return true;
 } // end of getCMGraph
 
 template<class GRAPH_T>
@@ -1038,7 +1029,7 @@ CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
 	agent(agent_in),
 	has_setup_comm(false)
 {
-    using namespace mrpt::utils;
+	using namespace mrpt::utils;
 
 	nh = engine.m_nh;
 	m_queue_size = engine.m_queue_size;
@@ -1053,9 +1044,9 @@ CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
 	this->cm_graph_service = "/" + agent.topic_namespace.data + "/" +
 		engine.m_cm_graph_service;
 
-  engine.logFmt(LVL_DEBUG,
-      "In constructor of TNeighborAgentProps for topic namespace: %s",
-      agent.topic_namespace.data.c_str());
+	engine.logFmt(LVL_DEBUG,
+			"In constructor of TNeighborAgentProps for topic namespace: %s",
+			agent.topic_namespace.data.c_str());
 
 	// initialize the occupancy map based on the engine's gridmap properties
   gridmap_cached = mrpt::maps::COccupancyGridMap2D::Create();
@@ -1188,10 +1179,6 @@ fetchLastRegdIDScan(
 	ASSERT_(last_regd_id_scan);
   engine.logFmt(LVL_DEBUG, "In fetchLastRegdIDScan method.");
 
-	// make sure I haven't received any LaserScan for the current nodeID
-	// TODO
-	TNodeID curr_node = static_cast<TNodeID>(last_regd_id_scan->nodeID);
-
 	// Pose may not be available due to timing in publishing of the corresponding
 	// topics. Just keep it in ROS form and then convert them to MRPT form when
 	// needed.
@@ -1203,7 +1190,7 @@ fetchLastRegdIDScan(
 
 template<class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
-		std::vector<uint32_t>* nodeIDs/*=NULL*/,
+		std::vector<TNodeID>* nodeIDs/*=NULL*/,
 		std::map<
 			TNodeID,
 			node_props_t>* nodes_params/*=NULL*/,
@@ -1385,7 +1372,7 @@ computeGridMap() const {
 
 	gridmap_cached->clear();
 
-	std::vector<uint32_t> nodeIDs;
+	std::vector<TNodeID> nodeIDs;
 	std::map<TNodeID, node_props_t> nodes_params;
 	// get list of nodes, laser scans
 	this->getCachedNodes(&nodeIDs, &nodes_params, false);
@@ -1437,11 +1424,11 @@ bool CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::hasNewData() const {
 
 template<class GRAPH_T>
 CGraphSlamEngine_MR<GRAPH_T>::TOptions::TOptions(const engine_mr_t& engine_in):
+	conservative_find_initial_tfs_to_neighbors(false),
 	nodes_integration_batch_size(4),
 	num_last_regd_nodes(10),
-	conservative_find_initial_tfs_to_neighbors(false),
-	inter_group_node_count_thresh_minadv(25),
 	inter_group_node_count_thresh(40),
+	inter_group_node_count_thresh_minadv(25),
 	engine(engine_in)
 {
 } // end of TOptions::TOptions
@@ -1489,7 +1476,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TOptions::dumpToTextStream(
 	LOADABLEOPTS_DUMP_VAR(nodes_integration_batch_size, int);
 	LOADABLEOPTS_DUMP_VAR(num_last_regd_nodes, int);
 	LOADABLEOPTS_DUMP_VAR(conservative_find_initial_tfs_to_neighbors, bool);
-	LOADABLEOPTS_DUMP_VAR(inter_group_node_count_thresh, int)
+	LOADABLEOPTS_DUMP_VAR(static_cast<int>(inter_group_node_count_thresh), int)
 	LOADABLEOPTS_DUMP_VAR(inter_group_node_count_thresh_minadv, int)
 
 } // end of TOptions::dumpToTextStream
