@@ -20,9 +20,10 @@
 
 
   <!-- Dependencies needed after this package is compiled. -->
-  <run_depend>mrpt_icp_slam_2d</run_depend>
   <run_depend>mrpt_ekf_slam_3d</run_depend>
   <run_depend>mrpt_ekf_slam_2d</run_depend>
+  <run_depend>mrpt_icp_slam_2d</run_depend>
+  <run_depend>mrpt_graphslam_2d</run_depend>
   <run_depend>mrpt_rbpf_slam</run_depend>
 
   <export>
