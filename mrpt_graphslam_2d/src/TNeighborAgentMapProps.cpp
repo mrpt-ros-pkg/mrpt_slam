@@ -27,7 +27,7 @@ using namespace std;
 TNeighborAgentMapProps::TNeighborAgentMapProps(
 		mrpt::utils::COutputLogger* logger_in,
 		const mrpt_msgs::GraphSlamAgent& agent_in,
-		ros::NodeHandle* nh_in): 
+		ros::NodeHandle* nh_in):
 	m_logger(logger_in),
 	nh(nh_in),
 	agent(agent_in),

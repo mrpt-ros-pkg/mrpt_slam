@@ -24,8 +24,8 @@ CGraphSlamHandler_ROS<GRAPH_T>::CGraphSlamHandler_ROS(
 	mrpt::utils::COutputLogger* logger,
 	TUserOptionsChecker<GRAPH_T>* options_checker,
 	ros::NodeHandle* nh_in):
-  m_nh(nh_in),
-  parent_t(logger, options_checker, /*enable_visuals=*/ false)
+  parent_t(logger, options_checker, /*enable_visuals=*/ false),
+  m_nh(nh_in)
 {
   using namespace mrpt::obs;
 

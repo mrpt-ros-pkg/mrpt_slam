@@ -78,7 +78,7 @@ public:
 	typedef std::map<
 		TNodeID,
 		mrpt::obs::CObservation2DRangeScan::Ptr> nodes_to_scans2D_t;
-	typedef std::vector<std::vector<uint32_t>> partitions_t;
+	typedef std::vector<std::vector<TNodeID>> partitions_t;
 	typedef typename mrpt::graphs::detail::THypothesis<GRAPH_T> hypot_t;
 	typedef std::vector<hypot_t> hypots_t;
 	typedef std::vector<hypot_t*> hypotsp_t;
@@ -144,7 +144,7 @@ public:
 		/**\} */
 
 		/**\brief Return cached list of nodeIDs (with their corresponding poses,
-		 * LaserScans) 
+		 * LaserScans)
 		 *
 		 * \param[in] only_unused Include only the nodes that have not already been
 		 * used in the current CGraphSlamEngine's graph
@@ -158,7 +158,7 @@ public:
 		 * \sa resetFlags
 		 */
 		void getCachedNodes(
-				std::vector<uint32_t>* nodeIDs=NULL,
+				std::vector<TNodeID>* nodeIDs=NULL,
 				std::map<
 					TNodeID,
 					node_props_t>* nodes_params=NULL,
@@ -194,20 +194,22 @@ public:
 				const TNeighborAgentProps& other) const {
 			return (this->agent < other.agent);
 		}
-		/**\brief Utility method for fetching the ROS LaserScan that corresponds to
-		 * a nodeID
+		/** Utility method for fetching the ROS LaserScan that corresponds to a
+		 * nodeID.
 		 */
 		const sensor_msgs::LaserScan* getLaserScanByNodeID(
 				const TNodeID nodeID) const;
 
-		/**\brief GraphSlamAgent instance of the neighbor
-		 *
-		 * UPDATE: This should be a real instance instead of a reference
+		/** Ref to the outer class.  */
+		CGraphSlamEngine_MR<GRAPH_T>& engine;
+
+		/** GraphSlamAgent instance of the neighbor.
+		 * @note This should be an actual instance instead of a ref
 		 */
 		const mrpt_msgs::GraphSlamAgent agent;
 		/**\brief Decide whether there are enough new nodes + scans that have not been
 		 * integrated in the graph yet.
-		 * 
+		 *
 		 * Method takes in account only the nodeIDs that have a valid LaserScan
 		 *
 		 * \return True if there are more than \a new_batch_size valid nodes + scans
@@ -247,9 +249,6 @@ public:
 		ros::ServiceClient cm_graph_srvclient;
 		/**\} */
 
-		/**\brief Constant reference to the outer class
-		 */
-		CGraphSlamEngine_MR<GRAPH_T>& engine;
 		/**\name Full topic names / service names
 		 * \brief Names of the full topic paths that the neighbor publishes nodes,
 		 * LaserScans at.
@@ -269,8 +268,7 @@ public:
 		mutable bool has_new_scans;
 
 		int m_queue_size;
-		/**\brief NodeHandle passed by the calling CGraphSlamEngine_MR class
-		 */
+		/**\brief NodeHandle passed by the calling CGraphSlamEngine_MR class */
 		ros::NodeHandle* nh;
 		bool has_setup_comm;
 
@@ -288,7 +286,7 @@ public:
 
 	};
 	typedef std::vector<TNeighborAgentProps*> neighbors_t;
-	
+
 	const neighbors_t& getVecOfNeighborAgentProps() const {
 		return m_neighbors;
 	}
@@ -470,12 +468,8 @@ private:
 
 	/**\}*/
 
-	/**\brief Last known size of the m_nodes_to_laser_scans2D map 
-	 */
+	/**\brief Last known size of the m_nodes_to_laser_scans2D map */
 	size_t m_nodes_to_laser_scans2D_last_size;
-	/**\brief Last known size of the m_nodes map
-	 */
-	size_t m_graph_nodes_last_size;
 
 	/**\brief CConnectionManager instance */
 	mrpt::graphslam::detail::CConnectionManager m_conn_manager;
@@ -485,6 +479,8 @@ private:
 	 * convenience.
 	 */
 	ros::NodeHandle* m_nh;
+	/**\brief Last known size of the m_nodes map */
+	size_t m_graph_nodes_last_size;
 
 	/**\brief Display the Deciders/Optimizers with which we are running as well
 	 * as the namespace of the current agent.
@@ -511,15 +507,6 @@ private:
 	 * new request arrives
 	 */
 	ros::AsyncSpinner cm_graph_async_spinner;
-
-	/**\brief Indicates if the program is going to pause on
-	 * multiple-robot nodes registration
-	 *
-	 * \note For debugging reasons only, 
-	 * \todo Consider having this as a macro that is to be disabled on release
-	 * code
-	 */
-	bool m_pause_exec_on_mr_registration;
 
 	/**\brief Parameters used during the alignment operation
 	 */
@@ -571,11 +558,11 @@ private:
 	 	 * \note This should be set >= 3
 	 	 * \sa inter_group_node_count_thresh_minadv
 	 	 */
-		int inter_group_node_count_thresh;
+		size_t inter_group_node_count_thresh;
 		/**\brief Minimum advised limit of inter_group_node_count_thresh
 	 	 * \sa inter_group_node_count_thresh
 	 	 */
-		int inter_group_node_count_thresh_minadv;
+		size_t inter_group_node_count_thresh_minadv;
 
 		/** Instance of engine which uses this struct */
 		const engine_mr_t& engine;
