@@ -2,6 +2,11 @@
 Changelog for package mrpt_icp_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make catkin_lint clean
+* Contributors: Jose Luis Blanco Claraco
+
 0.1.7 (2018-09-20)
 ------------------
 

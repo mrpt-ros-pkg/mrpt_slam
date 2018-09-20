@@ -2,6 +2,11 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make catkin_lint clean
+* Contributors: Jose Luis Blanco Claraco
+
 0.1.7 (2018-09-20)
 ------------------
 * mrpt_graphslam_2d: Fix compilation warnings
