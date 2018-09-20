@@ -2,8 +2,8 @@
 Changelog for package mrpt_rbpf_slam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.8 (2018-09-21)
+------------------
 * Make catkin_lint clean
 * Contributors: Jose Luis Blanco Claraco
 
