@@ -2,8 +2,8 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.7 (2018-09-20)
+------------------
 * mrpt_graphslam_2d: Fix compilation warnings
 * Remove installation of the demo directory from mrpt_graphslam_2d.
   It doesn't exist, so causes problems at the last stage of cmake.

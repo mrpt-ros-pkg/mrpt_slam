@@ -2,8 +2,8 @@
 Changelog for package mrpt_slam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.7 (2018-09-20)
+------------------
 * metapkg: Add missing graphslam
 * Contributors: Jose Luis Blanco Claraco
 
