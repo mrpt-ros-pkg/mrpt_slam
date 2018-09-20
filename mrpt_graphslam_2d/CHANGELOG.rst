@@ -2,6 +2,14 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* mrpt_graphslam_2d: Fix compilation warnings
+* Remove installation of the demo directory from mrpt_graphslam_2d.
+  It doesn't exist, so causes problems at the last stage of cmake.
+  Signed-off-by: Chris Lalancette <clalancette@openrobotics.org>
+* Contributors: Chris Lalancette, Jose Luis Blanco-Claraco, Nikos Koukis
+
 0.1.6 (2018-06-14)
 ------------------
 * Fixed compilation with MRPT 1.5

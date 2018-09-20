@@ -2,6 +2,9 @@
 Changelog for package mrpt_ekf_slam_3d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.1.6 (2018-06-14)
 ------------------
 * Fixed compilation with MRPT 1.5
