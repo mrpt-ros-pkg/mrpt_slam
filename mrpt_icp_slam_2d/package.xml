@@ -1,4 +1,5 @@
-<package>
+<?xml version="1.0"?>
+<package format="2">
   <name>mrpt_icp_slam_2d</name>
   <version>0.1.7</version>
   <description>mrpt_icp_slam_2d contains a wrapper on MRPT's 2D ICP-SLAM algorithms.</description>
@@ -14,31 +15,19 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_depend>roslib</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>visualization_msgs</build_depend>
-  <build_depend>nav_msgs</build_depend>
-  <build_depend>mrpt_bridge</build_depend>
-  <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>rviz</build_depend>
-  <build_depend>mrpt_rawlog</build_depend>
-  <build_depend>mrpt</build_depend> <!-- Depend on mrpt system pkgs -->
+  <depend>roslaunch</depend>
+  <depend>roscpp</depend>
+  <depend>roslib</depend>
+  <depend>tf</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>mrpt_bridge</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>mrpt1</depend>
 
-  <run_depend>roscpp</run_depend>
-  <run_depend>roslib</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <build_depend>visualization_msgs</build_depend>
-  <run_depend>nav_msgs</run_depend>
-  <run_depend>mrpt_bridge</run_depend>
-  <run_depend>dynamic_reconfigure</run_depend>
-  <run_depend>rviz</run_depend>
-  <run_depend>mrpt_rawlog</run_depend>
-  <run_depend>mrpt</run_depend> <!-- Depend on mrpt system pkgs -->
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>mrpt_rawlog</exec_depend>
 
 </package>

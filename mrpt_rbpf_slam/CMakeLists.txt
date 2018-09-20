@@ -16,13 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
   roslaunch)
 
 #find mrpt packages
-find_package(MRPT 1.5 REQUIRED)
+find_package(MRPT 1.5 REQUIRED gui obs slam)
 message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
-if (MRPT_VERSION VERSION_LESS 1.9.9)
-	find_package(MRPT REQUIRED base gui obs slam)
-else()
-	find_package(MRPT REQUIRED gui obs slam)
-endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	# High level of warnings.
@@ -39,16 +34,12 @@ IF(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   add_compile_options(-O3)
 ENDIF()
 
-#Include directories
-INCLUDE_DIRECTORIES(
-   ${CMAKE_SOURCE_DIR}/src
-   ${CMAKE_CURRENT_BINARY_DIR}
-)
-
-
 catkin_package(
 	CATKIN_DEPENDS
-	nav_msgs sensor_msgs std_msgs
+  nav_msgs
+  sensor_msgs
+  std_msgs
+  visualization_msgs
 )
 
 ###########
