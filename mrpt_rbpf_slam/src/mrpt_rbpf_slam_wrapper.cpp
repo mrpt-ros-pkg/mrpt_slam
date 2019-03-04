@@ -261,7 +261,7 @@ void PFslamWrapper::publishMapPose()
   poseArray.poses.resize(curPDF.particlesCount());
   for (size_t i = 0; i < curPDF.particlesCount(); i++)
   {
-    mrpt::poses::CPose3D p = curPDF.getParticlePose(i);
+	const auto p = mrpt::poses::CPose3D(curPDF.getParticlePose(i));
     mrpt_bridge::convert(p, poseArray.poses[i]);
   }
 
@@ -427,7 +427,7 @@ bool PFslamWrapper::rawlogPlay()
         poseArray.poses.resize(curPDF.particlesCount());
         for (size_t i = 0; i < curPDF.particlesCount(); i++)
         {
-          mrpt::poses::CPose3D p = curPDF.getParticlePose(i);
+          const auto p = mrpt::poses::CPose3D(curPDF.getParticlePose(i));
           mrpt_bridge::convert(p, poseArray.poses[i]);
         }
 
