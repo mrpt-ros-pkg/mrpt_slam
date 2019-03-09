@@ -13,20 +13,20 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>dynamic_reconfigure</depend>
+  <depend>mrpt1</depend>
+  <depend>mrpt_bridge</depend>
+  <depend>nav_msgs</depend>
   <depend>roscpp</depend>
   <depend>roslaunch</depend>
   <depend>roslib</depend>
-  <depend>tf</depend>
-  <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
   <depend>visualization_msgs</depend>
-  <depend>nav_msgs</depend>
-  <depend>mrpt_bridge</depend>
-  <depend>dynamic_reconfigure</depend>
-  <depend>mrpt1</depend>
 
-  <exec_depend>rviz</exec_depend>
   <exec_depend>mrpt_rawlog</exec_depend>
   <exec_depend>mvsim</exec_depend>
+  <exec_depend>rviz</exec_depend>
 
 </package>

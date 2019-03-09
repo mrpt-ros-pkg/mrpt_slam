@@ -49,7 +49,7 @@ void PFslamWrapper::init()
     ROS_ERROR_STREAM("CAN'T READ INI FILE");
     return;
   }
-  PFslam::read_iniFile(ini_filename);
+  PFslam::readIniFile(ini_filename);
   // read rawlog file if it  exists
   if (is_file_exists(rawlog_filename))
   {
@@ -90,16 +90,17 @@ void PFslamWrapper::init()
 
   // init slam
   mapBuilder = new mrpt::slam::CMetricMapBuilderRBPF(rbpfMappingOptions);
-  init_slam();
+  initSlam();
   init3Dwindow();
 }
 
-void PFslamWrapper::odometryForCallback(CObservationOdometry::Ptr& _odometry, const std_msgs::Header& _msg_header)
+void PFslamWrapper::odometryForCallback(mrpt::obs::CObservationOdometry::Ptr& _odometry,
+                                        const std_msgs::Header& _msg_header)
 {
   mrpt::poses::CPose3D poseOdom;
   if (this->waitForTransform(poseOdom, odom_frame_id, base_frame_id, _msg_header.stamp, ros::Duration(1)))
   {
-    _odometry = CObservationOdometry::Create();
+    _odometry = mrpt::obs::CObservationOdometry::Create();
     _odometry->sensorLabel = odom_frame_id;
     _odometry->hasEncodersInfo = false;
     _odometry->hasVelocities = false;
@@ -121,11 +122,8 @@ bool PFslamWrapper::waitForTransform(mrpt::poses::CPose3D& des, const std::strin
   }
   catch (tf::TransformException ex)
   {
-    ROS_ERROR(
-      "Failed to get transform target_frame (%s) to source_frame (%s). TransformException: %s",
-      target_frame.c_str(),
-      source_frame.c_str(),
-      ex.what());
+    ROS_ERROR("Failed to get transform target_frame (%s) to source_frame (%s). TransformException: %s",
+              target_frame.c_str(), source_frame.c_str(), ex.what());
     return false;
   }
   mrpt_bridge::convert(transform, des);
@@ -261,7 +259,7 @@ void PFslamWrapper::publishMapPose()
   poseArray.poses.resize(curPDF.particlesCount());
   for (size_t i = 0; i < curPDF.particlesCount(); i++)
   {
-	const auto p = mrpt::poses::CPose3D(curPDF.getParticlePose(i));
+    const auto p = mrpt::poses::CPose3D(curPDF.getParticlePose(i));
     mrpt_bridge::convert(p, poseArray.poses[i]);
   }
 
@@ -299,7 +297,7 @@ void PFslamWrapper::vizBeacons()
 
   for (unsigned int i = 0; i < viz_beacons.size(); i++)
   {
-    CPose3D meanPose(viz_beacons[i]->getPose());
+    mrpt::poses::CPose3D meanPose(viz_beacons[i]->getPose());
     marker.type = visualization_msgs::Marker::SPHERE;
 
     marker.pose.position.x = meanPose.x();
@@ -331,7 +329,7 @@ void PFslamWrapper::vizBeacons()
 
 void PFslamWrapper::updateSensorPose(std::string _frame_id)
 {
-  CPose3D pose;
+  mrpt::poses::CPose3D pose;
   tf::StampedTransform transform;
   try
   {
@@ -343,7 +341,7 @@ void PFslamWrapper::updateSensorPose(std::string _frame_id)
     pose.y() = translation.y();
     pose.z() = translation.z();
     tf::Matrix3x3 Rsrc(quat);
-    CMatrixDouble33 Rdes;
+    mrpt::math::CMatrixDouble33 Rdes;
     for (int c = 0; c < 3; c++)
       for (int r = 0; r < 3; r++)
         Rdes(r, c) = Rsrc.getRow(r)[c];
@@ -464,11 +462,8 @@ void PFslamWrapper::publishTF()
   }
   catch (tf::TransformException ex)
   {
-    ROS_ERROR(
-      "Failed to subtract global_frame (%s) from odom_frame (%s). TransformException: %s",
-      global_frame_id.c_str(),
-      odom_frame_id.c_str(),
-      ex.what());
+    ROS_ERROR("Failed to subtract global_frame (%s) from odom_frame (%s). TransformException: %s",
+              global_frame_id.c_str(), odom_frame_id.c_str(), ex.what());
     return;
   }
 

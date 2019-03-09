@@ -38,13 +38,7 @@
 #include <mrpt_bridge/beacon.h>
 #include <mrpt_bridge/time.h>
 
-#if MRPT_VERSION >= 0x130
 #include <mrpt/obs/CObservationBeaconRanges.h>
-using namespace mrpt::obs;
-#else
-#include <mrpt/slam/CObservationBeaconRanges.h>
-using namespace mrpt::slam;
-#endif
 
 /**
  * @brief The PFslamWrapper class provides  the ROS wrapper for Rao-Blackwellized Particle filter SLAM from MRPT
@@ -55,62 +49,62 @@ class PFslamWrapper : PFslam
 {
 public:
   /**
-  * @brief constructor
-  */
+   * @brief constructor
+   */
   PFslamWrapper();
   /**
- * @brief destructor
- */
+   * @brief destructor
+   */
   ~PFslamWrapper();
   /**
- * @brief read the parameters from launch file
- */
+   * @brief read the parameters from launch file
+   */
   void get_param();
   /**
-  * @brief initialize publishers subscribers and RBPF slam
-  */
+   * @brief initialize publishers subscribers and RBPF slam
+   */
   void init();
   /**
-  * @brief play rawlog file
-  *
-  * @return true if rawlog file exists and played
-  */
+   * @brief play rawlog file
+   *
+   * @return true if rawlog file exists and played
+   */
   bool rawlogPlay();
   /**
-  * @brief publish beacon or grid map and robot pose
-  *
-  */
+   * @brief publish beacon or grid map and robot pose
+   *
+   */
   void publishMapPose();
 
   /**
-  * @brief check the existance of the file
-  *
-  * @return true if file exists
-  */
+   * @brief check the existance of the file
+   *
+   * @return true if file exists
+   */
   bool is_file_exists(const std::string& name);
 
   /**
-  * @brief callback function for the beacons
-  *
-  * Given the range only observation wait for odometry,
-  * create the pair of action and observation,
-  * implement one SLAM update,
-  * publish map and pose.
-  *
-  * @param _msg  the beacon message
-  */
+   * @brief callback function for the beacons
+   *
+   * Given the range only observation wait for odometry,
+   * create the pair of action and observation,
+   * implement one SLAM update,
+   * publish map and pose.
+   *
+   * @param _msg  the beacon message
+   */
   void callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& _msg);
 
   /**
-  * @brief callback function for the laser scans
-  *
-  * Given the laser scans  wait for odometry,
-  * create the pair of action and observation,
-  * implement one SLAM update,
-  * publish map and pose.
-  *
-  * @param _msg  the laser scan message
-  */
+   * @brief callback function for the laser scans
+   *
+   * Given the laser scans  wait for odometry,
+   * create the pair of action and observation,
+   * implement one SLAM update,
+   * publish map and pose.
+   *
+   * @param _msg  the laser scan message
+   */
   void laserCallback(const sensor_msgs::LaserScan& _msg);
 
   /**
@@ -130,29 +124,29 @@ public:
                         const ros::Duration& polling_sleep_duration = ros::Duration(0.01));
 
   /**
-  * @brief  get  the odometry for received observation
-  *
-  * @param _odometry odometry for received observation
-  * @param _msg_header timestamp of the observation
-  */
-  void odometryForCallback(CObservationOdometry::Ptr& _odometry, const std_msgs::Header& _msg_header);
+   * @brief  get  the odometry for received observation
+   *
+   * @param _odometry odometry for received observation
+   * @param _msg_header timestamp of the observation
+   */
+  void odometryForCallback(mrpt::obs::CObservationOdometry::Ptr& _odometry, const std_msgs::Header& _msg_header);
 
   /**
-  * @brief  update the pose of the sensor with respect to the robot
-  *
-  *@param frame_id the frame of the sensors
-  */
+   * @brief  update the pose of the sensor with respect to the robot
+   *
+   *@param frame_id the frame of the sensors
+   */
   void updateSensorPose(std::string frame_id);
 
   /**
-  * @brief  publis tf tree
-  *
-  */
+   * @brief  publis tf tree
+   *
+   */
   void publishTF();
   /**
-  * @brief  correct visualization for ro slam (under development)
-  *
-  */
+   * @brief  correct visualization for ro slam (under development)
+   *
+   */
   void vizBeacons();
 
 private:
@@ -176,19 +170,20 @@ private:
   std::vector<ros::Subscriber> sensorSub_;  ///< list of sensors topics
 
   // read rawlog file
-  std::vector<std::pair<CActionCollection, CSensoryFrame>> data;  ///< vector of pairs of actions and obsrvations from
-                                                                  ///rawlog file
+  std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>> data;  ///< vector of pairs of actions
+                                                                                        ///< and obsrvations from
+                                                                                        /// rawlog file
 
   std::vector<mrpt::opengl::CEllipsoid::Ptr> viz_beacons;
 
   ros::Publisher pub_map_, pub_metadata_, pub_Particles_, pub_Particles_Beacons_,
-      beacon_viz_pub_;  ///<publishers for map and pose particles
+      beacon_viz_pub_;  ///< publishers for map and pose particles
 
-  tf::TransformListener listenerTF_;         ///<transform listener
-  tf::TransformBroadcaster tf_broadcaster_;  ///<transform broadcaster
+  tf::TransformListener listenerTF_;         ///< transform listener
+  tf::TransformBroadcaster tf_broadcaster_;  ///< transform broadcaster
 
-  CTicTac tictac;  ///<timer for SLAM performance evaluation
-  float t_exec;    ///<the time which take one SLAM update execution
+  mrpt::system::CTicTac tictac;  ///< timer for SLAM performance evaluation
+  float t_exec;                  ///< the time which take one SLAM update execution
 };
 
 #endif /*MRPT_RBPF_SLAM_WRAPPER_H*/
