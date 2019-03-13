@@ -65,21 +65,22 @@ public:
   void initSlam();
 
   /**
-   * @brief read pairs of actions and observations from rawlog file
+   * @brief Read pairs of actions and observations from rawlog file
    *
-   * @param data vector of pairs of actions and observations
-   * @param rawlog_filename the name of rawlog file to read
+   * @param[in] rawlog_filename the name of rawlog file to read
+   * @param[out] data vector of pairs of actions and observations
    */
-  void readRawlog(std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data,
-                  std::string rawlog_filename);
+  void readRawlog(const std::string& rawlog_filename,
+                  std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data);
 
   /**
-   * @brief calculate the actions from odometry model for current observation
+   * @brief Calculate the actions from odometry model for current observation
    *
-   * @param _sf  current observation
-   * @param _odometry raw odometry
+   * @param[in] sensory_frame  current observation
+   * @param[in] odometry raw odometry
    */
-  void observation(mrpt::obs::CSensoryFrame::Ptr _sf, mrpt::obs::CObservationOdometry::Ptr _odometry);
+  void observation(const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
+                   const mrpt::obs::CObservationOdometry::ConstPtr odometry);
 
 protected:
   mrpt::slam::CMetricMapBuilderRBPF* mapBuilder_;  ///< map builder

@@ -68,8 +68,8 @@ void PFslam::readIniFile(std::string ini_filename)
   MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_HEIGHT_, int, iniFile, "MappingApplication");
 }
 
-void PFslam::readRawlog(std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data,
-                        std::string rawlog_filename)
+void PFslam::readRawlog(const std::string& rawlog_filename,
+                        std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data)
 {
   size_t rawlogEntry = 0;
   mrpt::utils::CFileGZInputStream rawlog_stream(rawlog_filename);
@@ -96,21 +96,22 @@ void PFslam::readRawlog(std::vector<std::pair<mrpt::obs::CActionCollection, mrpt
   }
 }
 
-void PFslam::observation(mrpt::obs::CSensoryFrame::Ptr _sf, mrpt::obs::CObservationOdometry::Ptr _odometry)
+void PFslam::observation(const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
+                         const mrpt::obs::CObservationOdometry::ConstPtr odometry)
 {
   action_ = mrpt::obs::CActionCollection::Create();
   mrpt::obs::CActionRobotMovement2D odom_move;
-  odom_move.timestamp = _sf->getObservationByIndex(0)->timestamp;
+  odom_move.timestamp = sensory_frame->getObservationByIndex(0)->timestamp;
 
-  if (_odometry)
+  if (odometry)
   {
     if (odomLastObservation_.empty())
     {
-      odomLastObservation_ = _odometry->odometry;
+      odomLastObservation_ = odometry->odometry;
     }
 
-    mrpt::poses::CPose2D incOdoPose = _odometry->odometry - odomLastObservation_;
-    odomLastObservation_ = _odometry->odometry;
+    mrpt::poses::CPose2D incOdoPose = odometry->odometry - odomLastObservation_;
+    odomLastObservation_ = odometry->odometry;
     odom_move.computeFromOdometry(incOdoPose, motion_model_options_);
     action_->insert(odom_move);
   }
@@ -136,7 +137,6 @@ void PFslam::initSlam()
 void PFslam::init3Dwindow()
 {
 #if MRPT_HAS_WXWIDGETS
-
   if (SHOW_PROGRESS_IN_WINDOW_)
   {
     win3D_ = mrpt::gui::CDisplayWindow3D::Create("RBPF-SLAM @ MRPT C++ Library", PROGRESS_WINDOW_WIDTH,
@@ -145,7 +145,6 @@ void PFslam::init3Dwindow()
     win3D_->setCameraAzimuthDeg(-50);
     win3D_->setCameraElevationDeg(70);
   }
-
 #endif
 }
 void PFslam::run3Dwindow()
