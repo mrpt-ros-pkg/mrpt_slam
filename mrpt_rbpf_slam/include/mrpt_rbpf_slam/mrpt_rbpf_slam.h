@@ -3,9 +3,7 @@
  *  Author: Vladislav Tananaev
  */
 
-#ifndef MRPT_RBPF_SLAM_H
-#define MRPT_RBPF_SLAM_H
-
+#pragma once
 #include <ros/console.h>
 
 #include <mrpt/gui/CDisplayWindow3D.h>
@@ -101,5 +99,3 @@ protected:
   int SHOW_PROGRESS_IN_WINDOW_DELAY_MS_;
   int PROGRESS_WINDOW_WIDTH, PROGRESS_WINDOW_HEIGHT_;
 };
-
-#endif /*MRPT_RBPF_SLAM_H*/

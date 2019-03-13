@@ -4,8 +4,7 @@
  *
  */
 
-#ifndef MRPT_RBPF_SLAM_WRAPPER_H
-#define MRPT_RBPF_SLAM_WRAPPER_H
+#pragma once
 
 #include <iostream>  // std::cout
 #include <fstream>   // std::ifstream
@@ -185,5 +184,3 @@ private:
   mrpt::system::CTicTac tictac_;  ///< timer for SLAM performance evaluation
   float t_exec_;                  ///< the time which take one SLAM update execution
 };
-
-#endif /*MRPT_RBPF_SLAM_WRAPPER_H*/
