@@ -55,7 +55,7 @@ PFslam::~PFslam()
 
 void PFslam::readIniFile(std::string ini_filename)
 {
-  mrpt::utils::CConfigFile iniFile(ini_filename);
+  mrpt::config::CConfigFile iniFile(ini_filename);
   rbpfMappingOptions_.loadFromConfigFile(iniFile, "MappingApplication");
   rbpfMappingOptions_.dumpToConsole();
 
@@ -72,7 +72,7 @@ void PFslam::readRawlog(const std::string& rawlog_filename,
                         std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data)
 {
   size_t rawlogEntry = 0;
-  mrpt::utils::CFileGZInputStream rawlog_stream(rawlog_filename);
+  mrpt::io::CFileGZInputStream rawlog_stream(rawlog_filename);
   auto rawlogFile = mrpt::serialization::archiveFrom(rawlog_stream);
   mrpt::obs::CActionCollection::Ptr action;
   mrpt::obs::CSensoryFrame::Ptr observations;

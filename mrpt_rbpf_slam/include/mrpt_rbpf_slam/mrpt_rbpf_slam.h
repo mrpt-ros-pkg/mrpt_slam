@@ -11,10 +11,9 @@
 #include <mrpt/gui/CDisplayWindow3D.h>
 #include <mrpt/random.h>
 #include <mrpt/slam/CMetricMapBuilderRBPF.h>
-#include <mrpt/utils/CConfigFile.h>
-//#include <mrpt/config/CConfigFile.h> \\ \todo substitute
-#include <mrpt/utils/CFileGZInputStream.h>
-#include <mrpt/utils/CFileGZOutputStream.h>
+#include <mrpt/config/CConfigFile.h>
+#include <mrpt/io/CFileGZInputStream.h>
+#include <mrpt/io/CFileGZOutputStream.h>
 
 #include <mrpt/opengl/CEllipsoid.h>
 #include <mrpt/opengl/CGridPlaneXY.h>
