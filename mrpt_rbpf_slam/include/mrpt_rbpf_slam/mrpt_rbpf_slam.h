@@ -83,9 +83,9 @@ public:
                    const mrpt::obs::CObservationOdometry::ConstPtr odometry);
 
 protected:
-  mrpt::slam::CMetricMapBuilderRBPF* mapBuilder_;  ///< map builder
-  mrpt::obs::CActionCollection::Ptr action_;       ///< actions
-  mrpt::obs::CSensoryFrame::Ptr sensory_frame_;    ///< observations
+  mrpt::slam::CMetricMapBuilderRBPF mapBuilder_;  ///< map builder
+  mrpt::obs::CActionCollection::Ptr action_;      ///< actions
+  mrpt::obs::CSensoryFrame::Ptr sensory_frame_;   ///< observations
 
   mrpt::poses::CPose2D odomLastObservation_;  ///< last observation of odometry
   bool use_motion_model_default_options_;     ///< used default odom_params

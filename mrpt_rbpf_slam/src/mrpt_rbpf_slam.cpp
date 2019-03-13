@@ -45,7 +45,7 @@ PFslam::~PFslam()
 
     sOutMap = mrpt::system::fileNameStripInvalidChars(sOutMap);
     ROS_INFO("Saving built map to `%s`", sOutMap.c_str());
-    mapBuilder_->saveCurrentMapToFile(sOutMap);
+    mapBuilder_.saveCurrentMapToFile(sOutMap);
   }
   catch (std::exception& e)
   {
@@ -125,11 +125,11 @@ void PFslam::observation(const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
 void PFslam::initSlam()
 {
   log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
-  mapBuilder_->setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
-  mapBuilder_->logging_enable_console_output = false;
-  mapBuilder_->logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback));
-  mapBuilder_->options.enableMapUpdating = true;
-  mapBuilder_->options.debugForceInsertion = false;
+  mapBuilder_.setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+  mapBuilder_.logging_enable_console_output = false;
+  mapBuilder_.logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback));
+  mapBuilder_.options.enableMapUpdating = true;
+  mapBuilder_.options.debugForceInsertion = false;
 
   mrpt::random::getRandomGenerator().randomize();
 }
@@ -153,8 +153,8 @@ void PFslam::run3Dwindow()
   if (SHOW_PROGRESS_IN_WINDOW_ && win3D_)
   {
     // get the current map and pose
-    metric_map_ = mapBuilder_->mapPDF.getCurrentMostLikelyMetricMap();
-    mapBuilder_->mapPDF.getEstimatedPosePDF(curPDF);
+    metric_map_ = mapBuilder_.mapPDF.getCurrentMostLikelyMetricMap();
+    mapBuilder_.mapPDF.getEstimatedPosePDF(curPDF);
     mrpt::opengl::COpenGLScene::Ptr scene;
     scene = mrpt::opengl::COpenGLScene::Create();
 
@@ -181,13 +181,13 @@ void PFslam::run3Dwindow()
     scene->insert(objs);
 
     // Draw the robot particles:
-    size_t M = mapBuilder_->mapPDF.particlesCount();
+    size_t M = mapBuilder_.mapPDF.particlesCount();
     mrpt::opengl::CSetOfLines::Ptr objLines = mrpt::opengl::CSetOfLines::Create();
     objLines->setColor(0, 1, 1);
     for (size_t i = 0; i < M; i++)
     {
       std::deque<mrpt::math::TPose3D> path;
-      mapBuilder_->mapPDF.getPath(i, path);
+      mapBuilder_.mapPDF.getPath(i, path);
 
       float x0 = 0, y0 = 0, z0 = 0;
       for (size_t k = 0; k < path.size(); k++)
@@ -204,11 +204,11 @@ void PFslam::run3Dwindow()
     mrpt::poses::CPose3D lastMeanPose;
     float minDistBtwPoses = -1;
     std::deque<mrpt::math::TPose3D> dummyPath;
-    mapBuilder_->mapPDF.getPath(0, dummyPath);
+    mapBuilder_.mapPDF.getPath(0, dummyPath);
     for (int k = (int)dummyPath.size() - 1; k >= 0; k--)
     {
       mrpt::poses::CPose3DPDFParticles poseParts;
-      mapBuilder_->mapPDF.getEstimatedPosePDFAtTime(k, poseParts);
+      mapBuilder_.mapPDF.getEstimatedPosePDFAtTime(k, poseParts);
       mrpt::poses::CPose3D meanPose;
       mrpt::math::CMatrixDouble66 COV;
       poseParts.getCovarianceAndMean(COV, meanPose);
