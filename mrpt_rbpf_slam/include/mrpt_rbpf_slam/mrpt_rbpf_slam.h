@@ -14,7 +14,6 @@
 #include <mrpt/config/CConfigFile.h>
 #include <mrpt/io/CFileGZInputStream.h>
 #include <mrpt/io/CFileGZOutputStream.h>
-
 #include <mrpt/opengl/CEllipsoid.h>
 #include <mrpt/opengl/CGridPlaneXY.h>
 #include <mrpt/opengl/CSetOfLines.h>
@@ -23,9 +22,7 @@
 #include <mrpt/poses/CPosePDFGaussian.h>
 #include <mrpt/system/filesystem.h>
 #include <mrpt/system/os.h>
-
 #include <mrpt/gui/CDisplayWindow3D.h>
-
 #include <mrpt/version.h>
 #include <mrpt/maps/CMultiMetricMap.h>
 #include <mrpt/obs/CActionCollection.h>
@@ -56,7 +53,7 @@ public:
    *
    * @param ini_filename the name of the ini file to read
    */
-  void readIniFile(std::string ini_filename);
+  void readIniFile(const std::string& ini_filename);
 
   /**
    * @brief initialize the SLAM

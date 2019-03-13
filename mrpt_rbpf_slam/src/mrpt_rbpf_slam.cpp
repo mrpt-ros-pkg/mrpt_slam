@@ -53,7 +53,7 @@ PFslam::~PFslam()
   }
 }
 
-void PFslam::readIniFile(std::string ini_filename)
+void PFslam::readIniFile(const std::string& ini_filename)
 {
   mrpt::config::CConfigFile iniFile(ini_filename);
   rbpfMappingOptions_.loadFromConfigFile(iniFile, "MappingApplication");
@@ -92,7 +92,7 @@ void PFslam::readRawlog(const std::string& rawlog_filename,
     {
       break;  // file EOF
     }
-    data.push_back(std::make_pair(*action, *observations));
+    data.emplace_back(*action, *observations);
   }
 }
 
