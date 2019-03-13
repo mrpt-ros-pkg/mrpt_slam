@@ -25,10 +25,10 @@ PFslam::PFslam()
   motion_model_options_.gaussianModel.minStdPHI = 0.05;
 
   PROGRESS_WINDOW_WIDTH = 600;
-  PROGRESS_WINDOW_HEIGHT = 500;
-  SHOW_PROGRESS_IN_WINDOW = false;
-  SHOW_PROGRESS_IN_WINDOW_DELAY_MS = 0;
-  CAMERA_3DSCENE_FOLLOWS_ROBOT = false;
+  PROGRESS_WINDOW_HEIGHT_ = 500;
+  SHOW_PROGRESS_IN_WINDOW_ = false;
+  SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ = 0;
+  CAMERA_3DSCENE_FOLLOWS_ROBOT_ = false;
 }
 
 PFslam::~PFslam()
@@ -45,7 +45,7 @@ PFslam::~PFslam()
 
     sOutMap = mrpt::system::fileNameStripInvalidChars(sOutMap);
     ROS_INFO("Saving built map to `%s`", sOutMap.c_str());
-    mapBuilder->saveCurrentMapToFile(sOutMap);
+    mapBuilder_->saveCurrentMapToFile(sOutMap);
   }
   catch (std::exception& e)
   {
@@ -56,16 +56,16 @@ PFslam::~PFslam()
 void PFslam::readIniFile(std::string ini_filename)
 {
   mrpt::utils::CConfigFile iniFile(ini_filename);
-  rbpfMappingOptions.loadFromConfigFile(iniFile, "MappingApplication");
-  rbpfMappingOptions.dumpToConsole();
+  rbpfMappingOptions_.loadFromConfigFile(iniFile, "MappingApplication");
+  rbpfMappingOptions_.dumpToConsole();
 
   // Display variables
-  CAMERA_3DSCENE_FOLLOWS_ROBOT = iniFile.read_bool("MappingApplication", "CAMERA_3DSCENE_FOLLOWS_ROBOT", true);
-  SHOW_PROGRESS_IN_WINDOW = iniFile.read_bool("MappingApplication", "SHOW_PROGRESS_IN_WINDOW", false);
-  SHOW_PROGRESS_IN_WINDOW_DELAY_MS = iniFile.read_int("MappingApplication", "SHOW_PROGRESS_IN_WINDOW_DELAY_MS", 1);
+  CAMERA_3DSCENE_FOLLOWS_ROBOT_ = iniFile.read_bool("MappingApplication", "CAMERA_3DSCENE_FOLLOWS_ROBOT", true);
+  SHOW_PROGRESS_IN_WINDOW_ = iniFile.read_bool("MappingApplication", "SHOW_PROGRESS_IN_WINDOW", false);
+  SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ = iniFile.read_int("MappingApplication", "SHOW_PROGRESS_IN_WINDOW_DELAY_MS", 1);
 
   MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_WIDTH, int, iniFile, "MappingApplication");
-  MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_HEIGHT, int, iniFile, "MappingApplication");
+  MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_HEIGHT_, int, iniFile, "MappingApplication");
 }
 
 void PFslam::readRawlog(std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data,
@@ -98,7 +98,7 @@ void PFslam::readRawlog(std::vector<std::pair<mrpt::obs::CActionCollection, mrpt
 
 void PFslam::observation(mrpt::obs::CSensoryFrame::Ptr _sf, mrpt::obs::CObservationOdometry::Ptr _odometry)
 {
-  action = mrpt::obs::CActionCollection::Create();
+  action_ = mrpt::obs::CActionCollection::Create();
   mrpt::obs::CActionRobotMovement2D odom_move;
   odom_move.timestamp = _sf->getObservationByIndex(0)->timestamp;
 
@@ -112,23 +112,23 @@ void PFslam::observation(mrpt::obs::CSensoryFrame::Ptr _sf, mrpt::obs::CObservat
     mrpt::poses::CPose2D incOdoPose = _odometry->odometry - odomLastObservation_;
     odomLastObservation_ = _odometry->odometry;
     odom_move.computeFromOdometry(incOdoPose, motion_model_options_);
-    action->insert(odom_move);
+    action_->insert(odom_move);
   }
   else if (use_motion_model_default_options_)
   {
     odom_move.computeFromOdometry(mrpt::poses::CPose2D(0, 0, 0), motion_model_default_options_);
-    action->insert(odom_move);
+    action_->insert(odom_move);
   }
 }
 
 void PFslam::initSlam()
 {
   log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
-  mapBuilder->setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
-  mapBuilder->logging_enable_console_output = false;
-  mapBuilder->logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback));
-  mapBuilder->options.enableMapUpdating = true;
-  mapBuilder->options.debugForceInsertion = false;
+  mapBuilder_->setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+  mapBuilder_->logging_enable_console_output = false;
+  mapBuilder_->logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback));
+  mapBuilder_->options.enableMapUpdating = true;
+  mapBuilder_->options.debugForceInsertion = false;
 
   mrpt::random::getRandomGenerator().randomize();
 }
@@ -137,13 +137,13 @@ void PFslam::init3Dwindow()
 {
 #if MRPT_HAS_WXWIDGETS
 
-  if (SHOW_PROGRESS_IN_WINDOW)
+  if (SHOW_PROGRESS_IN_WINDOW_)
   {
-    win3D = mrpt::gui::CDisplayWindow3D::Create("RBPF-SLAM @ MRPT C++ Library", PROGRESS_WINDOW_WIDTH,
-                                                PROGRESS_WINDOW_HEIGHT);
-    win3D->setCameraZoom(40);
-    win3D->setCameraAzimuthDeg(-50);
-    win3D->setCameraElevationDeg(70);
+    win3D_ = mrpt::gui::CDisplayWindow3D::Create("RBPF-SLAM @ MRPT C++ Library", PROGRESS_WINDOW_WIDTH,
+                                                 PROGRESS_WINDOW_HEIGHT_);
+    win3D_->setCameraZoom(40);
+    win3D_->setCameraAzimuthDeg(-50);
+    win3D_->setCameraElevationDeg(70);
   }
 
 #endif
@@ -151,11 +151,11 @@ void PFslam::init3Dwindow()
 void PFslam::run3Dwindow()
 {
   // Save a 3D scene view of the mapping process:
-  if (SHOW_PROGRESS_IN_WINDOW && win3D)
+  if (SHOW_PROGRESS_IN_WINDOW_ && win3D_)
   {
     // get the current map and pose
-    metric_map_ = mapBuilder->mapPDF.getCurrentMostLikelyMetricMap();
-    mapBuilder->mapPDF.getEstimatedPosePDF(curPDF);
+    metric_map_ = mapBuilder_->mapPDF.getCurrentMostLikelyMetricMap();
+    mapBuilder_->mapPDF.getEstimatedPosePDF(curPDF);
     mrpt::opengl::COpenGLScene::Ptr scene;
     scene = mrpt::opengl::COpenGLScene::Create();
 
@@ -165,7 +165,7 @@ void PFslam::run3Dwindow()
     scene->insert(groundPlane);
 
     // The camera pointing to the current robot pose:
-    if (CAMERA_3DSCENE_FOLLOWS_ROBOT)
+    if (CAMERA_3DSCENE_FOLLOWS_ROBOT_)
     {
       mrpt::opengl::CCamera::Ptr objCam = mrpt::opengl::CCamera::Create();
       mrpt::poses::CPose3D robotPose;
@@ -182,13 +182,13 @@ void PFslam::run3Dwindow()
     scene->insert(objs);
 
     // Draw the robot particles:
-    size_t M = mapBuilder->mapPDF.particlesCount();
+    size_t M = mapBuilder_->mapPDF.particlesCount();
     mrpt::opengl::CSetOfLines::Ptr objLines = mrpt::opengl::CSetOfLines::Create();
     objLines->setColor(0, 1, 1);
     for (size_t i = 0; i < M; i++)
     {
       std::deque<mrpt::math::TPose3D> path;
-      mapBuilder->mapPDF.getPath(i, path);
+      mapBuilder_->mapPDF.getPath(i, path);
 
       float x0 = 0, y0 = 0, z0 = 0;
       for (size_t k = 0; k < path.size(); k++)
@@ -205,11 +205,11 @@ void PFslam::run3Dwindow()
     mrpt::poses::CPose3D lastMeanPose;
     float minDistBtwPoses = -1;
     std::deque<mrpt::math::TPose3D> dummyPath;
-    mapBuilder->mapPDF.getPath(0, dummyPath);
+    mapBuilder_->mapPDF.getPath(0, dummyPath);
     for (int k = (int)dummyPath.size() - 1; k >= 0; k--)
     {
       mrpt::poses::CPose3DPDFParticles poseParts;
-      mapBuilder->mapPDF.getEstimatedPosePDFAtTime(k, poseParts);
+      mapBuilder_->mapPDF.getEstimatedPosePDFAtTime(k, poseParts);
       mrpt::poses::CPose3D meanPose;
       mrpt::math::CMatrixDouble66 COV;
       poseParts.getCovarianceAndMean(COV, meanPose);
@@ -232,9 +232,9 @@ void PFslam::run3Dwindow()
       }
     }
 
-    mrpt::opengl::COpenGLScene::Ptr& scenePtr = win3D->get3DSceneAndLock();
+    mrpt::opengl::COpenGLScene::Ptr& scenePtr = win3D_->get3DSceneAndLock();
     scenePtr = scene;
-    win3D->unlockAccess3DScene();
-    win3D->forceRepaint();
+    win3D_->unlockAccess3DScene();
+    win3D_->forceRepaint();
   }
 }

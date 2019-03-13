@@ -82,9 +82,9 @@ public:
   void observation(mrpt::obs::CSensoryFrame::Ptr _sf, mrpt::obs::CObservationOdometry::Ptr _odometry);
 
 protected:
-  mrpt::slam::CMetricMapBuilderRBPF* mapBuilder;  ///< map builder
-  mrpt::obs::CActionCollection::Ptr action;       ///< actions
-  mrpt::obs::CSensoryFrame::Ptr sf;               ///< observations
+  mrpt::slam::CMetricMapBuilderRBPF* mapBuilder_;  ///< map builder
+  mrpt::obs::CActionCollection::Ptr action_;       ///< actions
+  mrpt::obs::CSensoryFrame::Ptr sensory_frame_;    ///< observations
 
   mrpt::poses::CPose2D odomLastObservation_;  ///< last observation of odometry
   bool use_motion_model_default_options_;     ///< used default odom_params
@@ -92,17 +92,17 @@ protected:
                                                                                          ///< odom
   mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion noise
 
-  mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions;  ///< options for SLAM from ini file
-  mrpt::system::TTimeStamp timeLastUpdate_;                                    ///< last update of the pose and map
+  mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions_;  ///< options for SLAM from ini file
+  mrpt::system::TTimeStamp timeLastUpdate_;                                     ///< last update of the pose and map
 
   const mrpt::maps::CMultiMetricMap* metric_map_;  ///< receive map after iteration of SLAM to metric map
   mrpt::poses::CPose3DPDFParticles curPDF;         ///< current robot pose
 
-  mrpt::gui::CDisplayWindow3D::Ptr win3D;  ///< MRPT window
-  bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
-  bool SHOW_PROGRESS_IN_WINDOW;
-  int SHOW_PROGRESS_IN_WINDOW_DELAY_MS;
-  int PROGRESS_WINDOW_WIDTH, PROGRESS_WINDOW_HEIGHT;
+  mrpt::gui::CDisplayWindow3D::Ptr win3D_;  ///< MRPT window
+  bool CAMERA_3DSCENE_FOLLOWS_ROBOT_;
+  bool SHOW_PROGRESS_IN_WINDOW_;
+  int SHOW_PROGRESS_IN_WINDOW_DELAY_MS_;
+  int PROGRESS_WINDOW_WIDTH, PROGRESS_WINDOW_HEIGHT_;
 };
 
 #endif /*MRPT_RBPF_SLAM_H*/

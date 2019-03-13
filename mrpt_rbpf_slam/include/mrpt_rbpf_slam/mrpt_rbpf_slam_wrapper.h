@@ -150,18 +150,18 @@ public:
   void vizBeacons();
 
 private:
-  ros::NodeHandle n_;        ///< Node Handle
-  double rawlog_play_delay;  ///< delay of replay from rawlog file
-  bool rawlog_play_;         ///< true if rawlog file exists
+  ros::NodeHandle n_;         ///< Node Handle
+  double rawlog_play_delay_;  ///< delay of replay from rawlog file
+  bool rawlog_play_;          ///< true if rawlog file exists
 
-  std::string rawlog_filename;  ///< name of rawlog file
-  std::string ini_filename;     ///< name of ini file
-  std::string global_frame_id;  ///< /map frame
-  std::string odom_frame_id;    ///< /odom frame
-  std::string base_frame_id;    ///< robot frame
+  std::string rawlog_filename_;  ///< name of rawlog file
+  std::string ini_filename_;     ///< name of ini file
+  std::string global_frame_id_;  ///< /map frame
+  std::string odom_frame_id_;    ///< /odom frame
+  std::string base_frame_id_;    ///< robot frame
 
   // Sensor source
-  std::string sensor_source;  ///< 2D laser scans
+  std::string sensor_source_;  ///< 2D laser scans
 
   std::map<std::string, mrpt::poses::CPose3D> laser_poses_;   ///< laser scan poses with respect to the map
   std::map<std::string, mrpt::poses::CPose3D> beacon_poses_;  ///< beacon poses with respect to the map
@@ -170,11 +170,11 @@ private:
   std::vector<ros::Subscriber> sensorSub_;  ///< list of sensors topics
 
   // read rawlog file
-  std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>> data;  ///< vector of pairs of actions
-                                                                                        ///< and obsrvations from
-                                                                                        /// rawlog file
+  std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>> data_;  ///< vector of pairs of actions
+                                                                                         ///< and obsrvations from
+                                                                                         /// rawlog file
 
-  std::vector<mrpt::opengl::CEllipsoid::Ptr> viz_beacons;
+  std::vector<mrpt::opengl::CEllipsoid::Ptr> viz_beacons_;
 
   ros::Publisher pub_map_, pub_metadata_, pub_Particles_, pub_Particles_Beacons_,
       beacon_viz_pub_;  ///< publishers for map and pose particles
@@ -182,8 +182,8 @@ private:
   tf::TransformListener listenerTF_;         ///< transform listener
   tf::TransformBroadcaster tf_broadcaster_;  ///< transform broadcaster
 
-  mrpt::system::CTicTac tictac;  ///< timer for SLAM performance evaluation
-  float t_exec;                  ///< the time which take one SLAM update execution
+  mrpt::system::CTicTac tictac_;  ///< timer for SLAM performance evaluation
+  float t_exec_;                  ///< the time which take one SLAM update execution
 };
 
 #endif /*MRPT_RBPF_SLAM_WRAPPER_H*/
