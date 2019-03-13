@@ -59,7 +59,7 @@ public:
   /**
    * @brief read the parameters from launch file
    */
-  void get_param();
+  void getParams();
   /**
    * @brief initialize publishers subscribers and RBPF slam
    */
@@ -81,7 +81,7 @@ public:
    *
    * @return true if file exists
    */
-  bool is_file_exists(const std::string& name);
+  bool isFileExists(const std::string& name);
 
   /**
    * @brief callback function for the beacons

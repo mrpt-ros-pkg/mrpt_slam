@@ -70,8 +70,8 @@ public:
    * @param data vector of pairs of actions and observations
    * @param rawlog_filename the name of rawlog file to read
    */
-  void read_rawlog(std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data,
-                   std::string rawlog_filename);
+  void readRawlog(std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data,
+                  std::string rawlog_filename);
 
   /**
    * @brief calculate the actions from odometry model for current observation

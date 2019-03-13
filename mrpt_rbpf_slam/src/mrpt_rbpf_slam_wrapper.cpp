@@ -10,13 +10,13 @@ PFslamWrapper::~PFslamWrapper()
 {
 }
 
-bool PFslamWrapper::is_file_exists(const std::string& name)
+bool PFslamWrapper::isFileExists(const std::string& name)
 {
   std::ifstream f(name.c_str());
   return f.good();
 }
 
-void PFslamWrapper::get_param()
+void PFslamWrapper::getParams()
 {
   ROS_INFO("READ PARAM FROM LAUNCH FILE");
   n_.param<double>("rawlog_play_delay", rawlog_play_delay, 0.1);
@@ -44,17 +44,17 @@ void PFslamWrapper::get_param()
 void PFslamWrapper::init()
 {
   // get parameters from ini file
-  if (!is_file_exists(ini_filename))
+  if (!isFileExists(ini_filename))
   {
     ROS_ERROR_STREAM("CAN'T READ INI FILE");
     return;
   }
   PFslam::readIniFile(ini_filename);
   // read rawlog file if it  exists
-  if (is_file_exists(rawlog_filename))
+  if (isFileExists(rawlog_filename))
   {
     ROS_WARN_STREAM("PLAY FROM RAWLOG FILE: " << rawlog_filename.c_str());
-    PFslam::read_rawlog(data, rawlog_filename);
+    PFslam::readRawlog(data, rawlog_filename);
     rawlog_play_ = true;
   }
 

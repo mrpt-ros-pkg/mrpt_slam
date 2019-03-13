@@ -68,8 +68,8 @@ void PFslam::readIniFile(std::string ini_filename)
   MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_HEIGHT, int, iniFile, "MappingApplication");
 }
 
-void PFslam::read_rawlog(std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data,
-                         std::string rawlog_filename)
+void PFslam::readRawlog(std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data,
+                        std::string rawlog_filename)
 {
   size_t rawlogEntry = 0;
   mrpt::utils::CFileGZInputStream rawlog_stream(rawlog_filename);
