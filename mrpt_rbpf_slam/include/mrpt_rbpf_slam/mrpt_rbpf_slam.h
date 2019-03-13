@@ -1,8 +1,6 @@
 /*
- *  File: mrpt_slam.h
+ *  File: mrpt_rbpf_slam.h
  *  Author: Vladislav Tananaev
- *
- *
  */
 
 #ifndef MRPT_RBPF_SLAM_H

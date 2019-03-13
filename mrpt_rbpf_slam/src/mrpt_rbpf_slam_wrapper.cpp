@@ -132,12 +132,8 @@ bool PFslamWrapper::waitForTransform(mrpt::poses::CPose3D& des, const std::strin
 
 void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
 {
-#if MRPT_VERSION >= 0x130
   using namespace mrpt::maps;
   using namespace mrpt::obs;
-#else
-  using namespace mrpt::slam;
-#endif
   CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
 
   if (laser_poses_.find(_msg.header.frame_id) == laser_poses_.end())
