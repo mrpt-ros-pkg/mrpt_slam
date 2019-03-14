@@ -47,7 +47,7 @@ PFslam::~PFslam()
     ROS_INFO("Saving built map to `%s`", sOutMap.c_str());
     mapBuilder_.saveCurrentMapToFile(sOutMap);
   }
-  catch (std::exception& e)
+  catch (const std::exception& e)
   {
     ROS_ERROR("Exception: %s", e.what());
   }
