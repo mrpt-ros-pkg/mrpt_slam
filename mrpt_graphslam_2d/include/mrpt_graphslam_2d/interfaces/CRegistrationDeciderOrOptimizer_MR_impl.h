@@ -1,5 +1,4 @@
-#ifndef CREGISTRATIONDECIDEROROPTIMIZER_MR_IMPL_H
-#define CREGISTRATIONDECIDEROROPTIMIZER_MR_IMPL_H
+#pragma once
 
 namespace mrpt { namespace graphslam {
 
@@ -31,4 +30,3 @@ void CRegistrationDeciderOrOptimizer_MR<GRAPH_T>::setCGraphSlamEnginePtr(
 
 } } // end of namespaces
 
-#endif /* end of include guard: CREGISTRATIONDECIDEROROPTIMIZER_MR_IMPL_H */

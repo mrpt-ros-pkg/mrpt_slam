@@ -4,8 +4,7 @@
  *
  */
 
-#ifndef MRPT_EKF_SLAM_3D_WRAPPER_H
-#define MRPT_EKF_SLAM_3D_WRAPPER_H
+#pragma once
 #include <iostream>  // std::cout
 #include <fstream>   // std::ifstream
 #include <string>
@@ -191,4 +190,3 @@ private:
   tf::TransformBroadcaster tf_broadcaster_;  ///<transform broadcaster
 };
 
-#endif /* MRPT_EKF_SLAM_3D_WRAPPER_H */

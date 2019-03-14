@@ -6,8 +6,7 @@
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
-#ifndef TNEIGHBORAGENTMAPPROPS_H
-#define TNEIGHBORAGENTMAPPROPS_H
+#pragma once
 
 #include <ros/ros.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -81,4 +80,3 @@ struct TNeighborAgentMapProps
 
 } } // end of namespaces
 
-#endif /* end of include guard: TNEIGHBORAGENTMAPPROPS_H */

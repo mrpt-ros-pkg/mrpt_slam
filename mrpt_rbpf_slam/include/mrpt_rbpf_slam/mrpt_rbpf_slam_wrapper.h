@@ -4,8 +4,7 @@
  *
  */
 
-#ifndef MRPT_RBPF_SLAM_WRAPPER_H
-#define MRPT_RBPF_SLAM_WRAPPER_H
+#pragma once
 
 #include <iostream>  // std::cout
 #include <fstream>   // std::ifstream
@@ -191,4 +190,3 @@ private:
   float t_exec;    ///<the time which take one SLAM update execution
 };
 
-#endif /*MRPT_RBPF_SLAM_WRAPPER_H*/

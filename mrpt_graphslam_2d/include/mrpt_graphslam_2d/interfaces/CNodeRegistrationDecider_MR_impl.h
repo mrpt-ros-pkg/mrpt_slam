@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CNODEREGISTRATIONDECIDER_MR_IMPL_H
-#define CNODEREGISTRATIONDECIDER_MR_IMPL_H
+#pragma once
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
@@ -36,4 +35,3 @@ void CNodeRegistrationDecider_MR<mrpt::graphs::CNetworkOfPoses2DInf_NA>::addNode
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CNODEREGISTRATIONDECIDER_MR_IMPL_H */

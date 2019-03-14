@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CFIXEDINTERVALSNRD_MR_IMPL_H
-#define CFIXEDINTERVALSNRD_MR_IMPL_H
+#pragma once
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
@@ -21,5 +20,4 @@ CFixedIntervalsNRD_MR<GRAPH_T>::CFixedIntervalsNRD_MR() {
 
 
 
-#endif /* end of include guard: CFIXEDINTERVALSNRD_MR_IMPL_H */
 

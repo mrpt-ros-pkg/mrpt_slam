@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CICPCRITERIANRD_MR_IMPL_H
-#define CICPCRITERIANRD_MR_IMPL_H
+#pragma once
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
@@ -19,4 +18,3 @@ CICPCriteriaNRD_MR<GRAPH_T>::CICPCriteriaNRD_MR() {
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CICPCRITERIANRD_MR_IMPL_H */

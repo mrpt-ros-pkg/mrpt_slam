@@ -4,8 +4,7 @@
  *
  */
 
-#ifndef MRPT_ICP_SLAM_2D_WRAPPER_H
-#define MRPT_ICP_SLAM_2D_WRAPPER_H
+#pragma once
 
 // MRPT libraries
 #include <mrpt/slam/CMetricMapBuilderICP.h>
@@ -231,4 +230,3 @@ protected:
   bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
 };
 
-#endif /* MRPT_ICP_SLAM_2D_WRAPPER_H */

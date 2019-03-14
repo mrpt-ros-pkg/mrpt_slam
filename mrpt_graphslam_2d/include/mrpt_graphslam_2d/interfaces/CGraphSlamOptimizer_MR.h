@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CGRAPHSLAMOPTIMIZER_MR_H
-#define CGRAPHSLAMOPTIMIZER_MR_H
+#pragma once
 
 namespace mrpt { namespace graphslam { namespace optimizers {
 
@@ -28,6 +27,5 @@ class CGraphSlamOptimizer_MR :
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CGRAPHSLAMOPTIMIZER_MR_H */
 
 

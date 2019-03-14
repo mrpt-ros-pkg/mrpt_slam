@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CMAPMERGER_H
-#define CMAPMERGER_H
+#pragma once
 
 #include "mrpt_graphslam_2d/CConnectionManager.h"
 #include "mrpt_graphslam_2d/TNeighborAgentMapProps.h"
@@ -118,4 +117,3 @@ private:
 
 } } // end of namespaces
 
-#endif /* end of include guard: CMAPMERGER_H */

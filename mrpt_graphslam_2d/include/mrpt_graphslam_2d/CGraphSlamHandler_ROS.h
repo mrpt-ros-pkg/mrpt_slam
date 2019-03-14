@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CGRAPHSLAMHANDLER_ROS_H
-#define CGRAPHSLAMHANDLER_ROS_H
+#pragma once
 
 // ROS
 #include <ros/ros.h>
@@ -340,4 +339,3 @@ class CGraphSlamHandler_ROS :
 
 #include "mrpt_graphslam_2d/CGraphSlamHandler_ROS_impl.h"
 
-#endif /* end of include guard: CGRAPHSLAMHANDLER_ROS_H */
