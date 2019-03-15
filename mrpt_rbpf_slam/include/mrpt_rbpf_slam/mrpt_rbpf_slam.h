@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef MRPT_RBPF_SLAM_H
-#define MRPT_RBPF_SLAM_H
+#pragma once
 
 #include <ros/console.h>
 
@@ -134,4 +133,3 @@ protected:
   int PROGRESS_WINDOW_WIDTH, PROGRESS_WINDOW_HEIGHT;
 };
 
-#endif /*MRPT_RBPF_SLAM_H*/

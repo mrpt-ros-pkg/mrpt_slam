@@ -7,8 +7,7 @@
 	 | Released under BSD License. See details in http://www.mrpt.org/License    |
 	 +---------------------------------------------------------------------------+ */
 
-#ifndef CCONNECTIONMANAGER_H
-#define CCONNECTIONMANAGER_H
+#pragma once
 
 #include <ros/ros.h>
 #include <multimaster_msgs_fkie/DiscoverMasters.h>
@@ -192,4 +191,3 @@ bool operator!=(
 
 /**\}*/
 
-#endif /* end of include guard: CCONNECTIONMANAGER_H */

@@ -4,8 +4,7 @@
  *
  */
 
-#ifndef MRPT_EKF_SLAM_2D_H
-#define MRPT_EKF_SLAM_2D_H
+#pragma once
 
 #include <mrpt/utils/CConfigFile.h>
 #include <mrpt/utils/CFileGZInputStream.h>
@@ -118,4 +117,3 @@ protected:
   vector<TPose3D> meanPath;
 };
 
-#endif /* MRPT_EKF_SLAM_2D_H */

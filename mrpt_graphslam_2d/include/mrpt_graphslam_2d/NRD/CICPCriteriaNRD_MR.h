@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CICPCRITERIANRD_MR_H
-#define CICPCRITERIANRD_MR_H
+#pragma once
 
 #include "mrpt_graphslam_2d/interfaces/CNodeRegistrationDecider_MR.h"
 #include <mrpt/graphslam/NRD/CICPCriteriaNRD.h>
@@ -36,4 +35,3 @@ class CICPCriteriaNRD_MR :
 
 #include "CICPCriteriaNRD_MR_impl.h"
 
-#endif /* end of include guard: CICPCRITERIANRD_MR_H */

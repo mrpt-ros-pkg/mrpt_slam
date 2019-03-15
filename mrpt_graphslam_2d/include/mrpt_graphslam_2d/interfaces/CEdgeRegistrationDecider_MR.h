@@ -6,8 +6,7 @@
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
-#ifndef CEDGEREGISTRATIONDECIDER_MR_H
-#define CEDGEREGISTRATIONDECIDER_MR_H
+#pragma once
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_MR.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
@@ -59,4 +58,3 @@ protected:
 } } } // end of namespaces
 
 #include "CEdgeRegistrationDecider_MR_impl.h"
-#endif /* end of include guard: CEDGEREGISTRATIONDECIDER_MR_H */

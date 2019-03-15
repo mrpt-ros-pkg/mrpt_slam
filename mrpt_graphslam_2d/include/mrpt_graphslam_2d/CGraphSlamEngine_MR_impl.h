@@ -7,8 +7,7 @@
 	 | Released under BSD License. See details in http://www.mrpt.org/License    |
 	 +---------------------------------------------------------------------------+ */
 
-#ifndef CGRAPHSLAMENGINE_MR_IMPL_H
-#define CGRAPHSLAMENGINE_MR_IMPL_H
+#pragma once
 
 #include <thread>
 #include <chrono>
@@ -1485,4 +1484,3 @@ void CGraphSlamEngine_MR<GRAPH_T>::TOptions::dumpToTextStream(
 
 } } // end of namespaces
 
-#endif /* end of include guard: CGRAPHSLAMENGINE_MR_IMPL_H */

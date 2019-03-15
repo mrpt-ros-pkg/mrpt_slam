@@ -1,5 +1,4 @@
-#ifndef CREGISTRATIONDECIDEROROPTIMIZER_ROS_IMPL_H
-#define CREGISTRATIONDECIDEROROPTIMIZER_ROS_IMPL_H
+#pragma once
 
 namespace mrpt { namespace graphslam {
 
@@ -19,4 +18,3 @@ void CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>::setNodeHandle(ros::NodeHandle
 
 } } // end of namespaces
 
-#endif /* end of include guard: CREGISTRATIONDECIDEROROPTIMIZER_ROS_IMPL_H */

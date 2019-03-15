@@ -6,8 +6,7 @@
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
-#ifndef TUSEROPTIONSCHECKER_ROS_IMPL_H
-#define TUSEROPTIONSCHECKER_ROS_IMPL_H
+#pragma once
 
 namespace mrpt { namespace graphslam { namespace apps {
 
@@ -90,4 +89,3 @@ void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties() {
 
 } } } //end namespaces
 
-#endif /* end of include guard: TUSEROPTIONSCHECKER_ROS_IMPL_H */

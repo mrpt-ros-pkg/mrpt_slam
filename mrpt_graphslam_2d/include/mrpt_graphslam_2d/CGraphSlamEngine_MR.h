@@ -7,8 +7,7 @@
 	 | Released under BSD License. See details in http://www.mrpt.org/License    |
 	 +---------------------------------------------------------------------------+ */
 
-#ifndef CGRAPHSLAMENGINE_MR_H
-#define CGRAPHSLAMENGINE_MR_H
+#pragma once
 
 #include <ros/callback_queue.h>
 
@@ -577,4 +576,3 @@ private:
 // pseudo-split decleration from implementation
 #include "mrpt_graphslam_2d/CGraphSlamEngine_MR_impl.h"
 
-#endif /* end of include guard: CGRAPHSLAMENGINE_MR_H */

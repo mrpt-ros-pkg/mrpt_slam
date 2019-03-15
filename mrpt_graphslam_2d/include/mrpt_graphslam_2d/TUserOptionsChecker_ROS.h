@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef TUSEROPTIONSCHECKER_ROS_H
-#define TUSEROPTIONSCHECKER_ROS_H
+#pragma once
 
 #include <ros/console.h>
 
@@ -58,4 +57,3 @@ struct TUserOptionsChecker_ROS:
 } } } // end of namespaces
 #include "mrpt_graphslam_2d/TUserOptionsChecker_ROS_impl.h"
 
-#endif /* end of include guard: TUSEROPTIONSCHECKER_ROS_H */

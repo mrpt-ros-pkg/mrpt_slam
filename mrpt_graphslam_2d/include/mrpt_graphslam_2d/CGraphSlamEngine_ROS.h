@@ -7,8 +7,7 @@
 	 | Released under BSD License. See details in http://www.mrpt.org/License    |
 	 +---------------------------------------------------------------------------+ */
 
-#ifndef CGRAPHSLAMENGINE_ROS_H
-#define CGRAPHSLAMENGINE_ROS_H
+#pragma once
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_ROS.h"
 
@@ -105,4 +104,3 @@ protected:
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS_impl.h"
 
-#endif /* end of include guard: CGRAPHSLAMENGINE_ROS_H */
