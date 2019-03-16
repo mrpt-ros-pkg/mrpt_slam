@@ -36,7 +36,7 @@ PFslam::~PFslam()
   {
     std::string sOutMap = "mrpt_rbpfslam_";
     mrpt::system::TTimeParts parts;
-    mrpt::system::timestampToParts(now(), parts, true);
+    mrpt::system::timestampToParts(mrpt::system::now(), parts, true);
     sOutMap += mrpt::format("%04u-%02u-%02u_%02uh%02um%02us", (unsigned int)parts.year, (unsigned int)parts.month,
                             (unsigned int)parts.day, (unsigned int)parts.hour, (unsigned int)parts.minute,
                             (unsigned int)parts.second);
@@ -54,7 +54,11 @@ PFslam::~PFslam()
 
 void PFslam::readIniFile(const std::string& ini_filename)
 {
+#if MRPT_VERSION >= 0x199
   mrpt::config::CConfigFile iniFile(ini_filename);
+#else
+  mrpt::utils::CConfigFile iniFile(ini_filename);
+#endif
   rbpfMappingOptions_.loadFromConfigFile(iniFile, "MappingApplication");
   rbpfMappingOptions_.dumpToConsole();
 
@@ -76,16 +80,16 @@ void PFslam::readRawlog(const std::string& rawlog_filename,
   mrpt::io::CFileGZInputStream rawlog_stream(rawlog_filename);
   auto rawlogFile = mrpt::serialization::archiveFrom(rawlog_stream);
 #else
-  CFileGZInputStream rawlogFile(rawlog_filename);
+  mrpt::utils::CFileGZInputStream rawlogFile(rawlog_filename);
 #endif
   mrpt::obs::CActionCollection::Ptr action;
   mrpt::obs::CSensoryFrame::Ptr observations;
 
   for (;;)
   {
-    if (os::kbhit())
+    if (mrpt::system::os::kbhit())
     {
-      char c = os::getch();
+      char c = mrpt::system::os::getch();
       if (c == 27)
         break;
     }
@@ -142,7 +146,7 @@ void PFslam::initSlam()
 #if MRPT_VERSION >= 0x199
   mrpt::random::getRandomGenerator().randomize();
 #else
-  randomGenerator.randomize();
+  mrpt::random::randomGenerator.randomize();
 #endif
 }
 

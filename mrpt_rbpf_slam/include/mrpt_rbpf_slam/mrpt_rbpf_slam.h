@@ -9,9 +9,15 @@
 #include <mrpt/gui/CDisplayWindow3D.h>
 #include <mrpt/random.h>
 #include <mrpt/slam/CMetricMapBuilderRBPF.h>
+#if MRPT_VERSION >= 0x199
 #include <mrpt/config/CConfigFile.h>
 #include <mrpt/io/CFileGZInputStream.h>
 #include <mrpt/io/CFileGZOutputStream.h>
+#else
+#include <mrpt/utils/CConfigFile.h>
+#include <mrpt/utils/CFileGZInputStream.h>
+#include <mrpt/utils/CFileGZOutputStream.h>
+#endif
 #include <mrpt/opengl/CEllipsoid.h>
 #include <mrpt/opengl/CGridPlaneXY.h>
 #include <mrpt/opengl/CSetOfLines.h>

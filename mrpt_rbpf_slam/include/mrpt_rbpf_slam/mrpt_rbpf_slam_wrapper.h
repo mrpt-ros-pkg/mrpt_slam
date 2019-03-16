@@ -180,7 +180,10 @@ private:
 
   tf::TransformListener listenerTF_;         ///< transform listener
   tf::TransformBroadcaster tf_broadcaster_;  ///< transform broadcaster
-
+#if MRPT_VERSION >= 0x199
   mrpt::system::CTicTac tictac_;  ///< timer for SLAM performance evaluation
-  float t_exec_;                  ///< the time which take one SLAM update execution
+#else
+  mrpt::utils::CTicTac tictac_;
+#endif
+  float t_exec_;  ///< the time which take one SLAM update execution
 };
