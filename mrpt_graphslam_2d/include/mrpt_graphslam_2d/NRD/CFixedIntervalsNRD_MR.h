@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CFIXEDINTERVALSNRD_MR_H
-#define CFIXEDINTERVALSNRD_MR_H
+#pragma once
 
 #include "mrpt_graphslam_2d/interfaces/CNodeRegistrationDecider_MR.h"
 #include <mrpt/graphslam/NRD/CICPCriteriaNRD.h>
@@ -37,5 +36,4 @@ class CFixedIntervalsNRD_MR :
 #include "CFixedIntervalsNRD_MR_impl.h"
 
 
-#endif /* end of include guard: CFIXEDINTERVALSNRD_MR_H */
 

@@ -6,8 +6,7 @@
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
-#ifndef CGRAPHSLAMHANDLER_ROS_IMPL_H
-#define CGRAPHSLAMHANDLER_ROS_IMPL_H
+#pragma once
 
 namespace mrpt { namespace graphslam { namespace apps {
 
@@ -754,4 +753,3 @@ void CGraphSlamHandler_ROS<GRAPH_T>::resetReceivedFlags() {
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CGRAPHSLAMHANDLER_ROS_IMPL_H */

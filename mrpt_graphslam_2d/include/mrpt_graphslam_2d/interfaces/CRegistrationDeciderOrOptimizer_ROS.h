@@ -1,5 +1,4 @@
-#ifndef CREGISTRATIONDECIDEROROPTIMIZER_ROS_H
-#define CREGISTRATIONDECIDEROROPTIMIZER_ROS_H
+#pragma once
 
 #include <ros/ros.h>
 
@@ -36,4 +35,3 @@ protected:
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_ROS_impl.h"
 
-#endif /* end of include guard: CREGISTRATIONDECIDEROROPTIMIZER_ROS_H */

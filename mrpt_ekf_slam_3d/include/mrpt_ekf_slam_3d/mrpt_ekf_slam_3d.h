@@ -4,8 +4,7 @@
  *
  */
 
-#ifndef MRPT_EKF_SLAM_3D_H
-#define MRPT_EKF_SLAM_3D_H
+#pragma once
 
 #include <mrpt/utils/CConfigFile.h>
 #include <mrpt/utils/CFileGZInputStream.h>
@@ -116,4 +115,3 @@ protected:
   CVectorDouble fullState_;                                ///< full state vector
 };
 
-#endif /* MRPT_EKF_SLAM_3D_H */

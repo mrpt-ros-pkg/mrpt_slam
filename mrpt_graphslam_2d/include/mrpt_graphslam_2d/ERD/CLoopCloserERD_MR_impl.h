@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CLOOPCLOSERERD_MR_IMPL_H
-#define CLOOPCLOSERERD_MR_IMPL_H
+#pragma once
 
 namespace mrpt { namespace graphslam { namespace deciders {
 
@@ -87,4 +86,3 @@ bool CLoopCloserERD_MR<GRAPH_T>::updateState(
 
 } } } // end of namespaces
 
-#endif /* end of include guard: CLOOPCLOSERERD_MR_IMPL_H */

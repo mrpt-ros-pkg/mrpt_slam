@@ -7,8 +7,7 @@
    | Released under BSD License. See details in http://www.mrpt.org/License    |
    +---------------------------------------------------------------------------+ */
 
-#ifndef CNODEREGISTRATIONDECIDER_MR_H
-#define CNODEREGISTRATIONDECIDER_MR_H
+#pragma once
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_MR.h"
 #include <mrpt/graphslam/interfaces/CNodeRegistrationDecider.h>
@@ -55,4 +54,3 @@ protected:
 } } } // end of namespaces
 
 #include "CNodeRegistrationDecider_MR_impl.h"
-#endif /* end of include guard: CNODEREGISTRATIONDECIDER_MR_H */

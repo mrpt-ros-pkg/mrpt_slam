@@ -1,5 +1,4 @@
-#ifndef CREGISTRATIONDECIDEROROPTIMIZER_MR_H
-#define CREGISTRATIONDECIDEROROPTIMIZER_MR_H
+#pragma once
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_MR.h"
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_ROS.h"
@@ -52,4 +51,3 @@ protected:
 // template methods implementations
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_MR_impl.h"
 
-#endif /* end of include guard: CREGISTRATIONDECIDEROROPTIMIZER_MR_H */
