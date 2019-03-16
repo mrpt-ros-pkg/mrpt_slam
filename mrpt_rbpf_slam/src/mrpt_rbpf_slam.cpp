@@ -23,7 +23,7 @@ PFslam::PFslam()
   motion_model_options_.gaussianModel.minStdXY = 0.005;
   motion_model_options_.gaussianModel.minStdPHI = 0.05;
 
-  PROGRESS_WINDOW_WIDTH = 600;
+  PROGRESS_WINDOW_WIDTH_ = 600;
   PROGRESS_WINDOW_HEIGHT_ = 500;
   SHOW_PROGRESS_IN_WINDOW_ = false;
   SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ = 0;
@@ -63,7 +63,7 @@ void PFslam::readIniFile(const std::string& ini_filename)
   SHOW_PROGRESS_IN_WINDOW_ = iniFile.read_bool("MappingApplication", "SHOW_PROGRESS_IN_WINDOW", false);
   SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ = iniFile.read_int("MappingApplication", "SHOW_PROGRESS_IN_WINDOW_DELAY_MS", 1);
 
-  MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_WIDTH, int, iniFile, "MappingApplication");
+  MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_WIDTH_, int, iniFile, "MappingApplication");
   MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_HEIGHT_, int, iniFile, "MappingApplication");
 }
 
@@ -151,7 +151,7 @@ void PFslam::init3Dwindow()
 #if MRPT_HAS_WXWIDGETS
   if (SHOW_PROGRESS_IN_WINDOW_)
   {
-    win3D_ = mrpt::gui::CDisplayWindow3D::Create("RBPF-SLAM @ MRPT C++ Library", PROGRESS_WINDOW_WIDTH,
+    win3D_ = mrpt::gui::CDisplayWindow3D::Create("RBPF-SLAM @ MRPT C++ Library", PROGRESS_WINDOW_WIDTH_,
                                                  PROGRESS_WINDOW_HEIGHT_);
     win3D_->setCameraZoom(40);
     win3D_->setCameraAzimuthDeg(-50);
