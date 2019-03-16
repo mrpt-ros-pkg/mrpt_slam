@@ -44,55 +44,52 @@
  *libraries.
  *
  */
-class PFslamWrapper : PFslam
+class PFslamWrapper : public PFslam
 {
 public:
-  /**
-   * @brief constructor
-   */
   PFslamWrapper();
-  /**
-   * @brief destructor
-   */
   ~PFslamWrapper();
+
   /**
-   * @brief read the parameters from launch file
+   * @brief Read the parameters from launch file
    */
   void getParams();
+
   /**
-   * @brief initialize publishers subscribers and RBPF slam
+   * @brief Initialize publishers subscribers and RBPF slam
    */
   void init();
+
   /**
-   * @brief play rawlog file
+   * @brief Play rawlog file
    *
    * @return true if rawlog file exists and played
    */
   bool rawlogPlay();
+
   /**
-   * @brief publish beacon or grid map and robot pose
-   *
+   * @brief Publish beacon or grid map and robot pose
    */
   void publishMapPose();
 
   /**
-   * @brief check the existance of the file
+   * @brief Check the existance of the file
    *
    * @return true if file exists
    */
   bool isFileExists(const std::string& name);
 
   /**
-   * @brief callback function for the beacons
+   * @brief Callback function for the beacons
    *
    * Given the range only observation wait for odometry,
    * create the pair of action and observation,
    * implement one SLAM update,
    * publish map and pose.
    *
-   * @param _msg  the beacon message
+   * @param msg  the beacon message
    */
-  void callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& _msg);
+  void callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& msg);
 
   /**
    * @brief callback function for the laser scans
@@ -102,9 +99,9 @@ public:
    * implement one SLAM update,
    * publish map and pose.
    *
-   * @param _msg  the laser scan message
+   * @param msg  the laser scan message
    */
-  void laserCallback(const sensor_msgs::LaserScan& _msg);
+  void laserCallback(const sensor_msgs::LaserScan& msg);
 
   /**
    * @brief wait for transfor between odometry frame and the robot frame
@@ -125,10 +122,10 @@ public:
   /**
    * @brief  get  the odometry for received observation
    *
-   * @param _odometry odometry for received observation
-   * @param _msg_header timestamp of the observation
+   * @param odometry odometry for received observation
+   * @param msg_header timestamp of the observation
    */
-  void odometryForCallback(mrpt::obs::CObservationOdometry::Ptr& _odometry, const std_msgs::Header& _msg_header);
+  void odometryForCallback(mrpt::obs::CObservationOdometry::Ptr& odometry, const std_msgs::Header& msg_header);
 
   /**
    * @brief  update the pose of the sensor with respect to the robot

@@ -94,19 +94,19 @@ void PFslamWrapper::init()
   init3Dwindow();
 }
 
-void PFslamWrapper::odometryForCallback(mrpt::obs::CObservationOdometry::Ptr& _odometry,
+void PFslamWrapper::odometryForCallback(mrpt::obs::CObservationOdometry::Ptr& odometry,
                                         const std_msgs::Header& _msg_header)
 {
   mrpt::poses::CPose3D poseOdom;
   if (this->waitForTransform(poseOdom, odom_frame_id_, base_frame_id_, _msg_header.stamp, ros::Duration(1)))
   {
-    _odometry = mrpt::obs::CObservationOdometry::Create();
-    _odometry->sensorLabel = odom_frame_id_;
-    _odometry->hasEncodersInfo = false;
-    _odometry->hasVelocities = false;
-    _odometry->odometry.x() = poseOdom.x();
-    _odometry->odometry.y() = poseOdom.y();
-    _odometry->odometry.phi() = poseOdom.yaw();
+    odometry = mrpt::obs::CObservationOdometry::Create();
+    odometry->sensorLabel = odom_frame_id_;
+    odometry->hasEncodersInfo = false;
+    odometry->hasVelocities = false;
+    odometry->odometry.x() = poseOdom.x();
+    odometry->odometry.y() = poseOdom.y();
+    odometry->odometry.phi() = poseOdom.yaw();
   }
 }
 
@@ -130,24 +130,24 @@ bool PFslamWrapper::waitForTransform(mrpt::poses::CPose3D& des, const std::strin
   return true;
 }
 
-void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
+void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan& msg)
 {
   using namespace mrpt::maps;
   using namespace mrpt::obs;
   CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
 
-  if (laser_poses_.find(_msg.header.frame_id) == laser_poses_.end())
+  if (laser_poses_.find(msg.header.frame_id) == laser_poses_.end())
   {
-    updateSensorPose(_msg.header.frame_id);
+    updateSensorPose(msg.header.frame_id);
   }
   else
   {
-    mrpt::poses::CPose3D pose = laser_poses_[_msg.header.frame_id];
-    mrpt_bridge::convert(_msg, laser_poses_[_msg.header.frame_id], *laser);
+    mrpt::poses::CPose3D pose = laser_poses_[msg.header.frame_id];
+    mrpt_bridge::convert(msg, laser_poses_[msg.header.frame_id], *laser);
 
     sensory_frame_ = CSensoryFrame::Create();
     CObservationOdometry::Ptr odometry;
-    odometryForCallback(odometry, _msg.header);
+    odometryForCallback(odometry, msg.header);
 
     CObservation::Ptr obs = CObservation::Ptr(laser);
     sensory_frame_->insert(obs);
@@ -164,7 +164,7 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
   }
 }
 
-void PFslamWrapper::callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& _msg)
+void PFslamWrapper::callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& msg)
 {
 #if MRPT_VERSION >= 0x130
   using namespace mrpt::maps;
@@ -174,17 +174,17 @@ void PFslamWrapper::callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& _msg
 #endif
 
   CObservationBeaconRanges::Ptr beacon = CObservationBeaconRanges::Create();
-  if (beacon_poses_.find(_msg.header.frame_id) == beacon_poses_.end())
+  if (beacon_poses_.find(msg.header.frame_id) == beacon_poses_.end())
   {
-    updateSensorPose(_msg.header.frame_id);
+    updateSensorPose(msg.header.frame_id);
   }
   else
   {
-    mrpt_bridge::convert(_msg, beacon_poses_[_msg.header.frame_id], *beacon);
+    mrpt_bridge::convert(msg, beacon_poses_[msg.header.frame_id], *beacon);
 
     sensory_frame_ = CSensoryFrame::Create();
     CObservationOdometry::Ptr odometry;
-    odometryForCallback(odometry, _msg.header);
+    odometryForCallback(odometry, msg.header);
 
     CObservation::Ptr obs = CObservation::Ptr(beacon);
     sensory_frame_->insert(obs);
@@ -209,10 +209,10 @@ void PFslamWrapper::publishMapPose()
   if (metric_map_->m_gridMaps.size())
   {
     // publish map
-    nav_msgs::OccupancyGrid _msg;
-    mrpt_bridge::convert(*metric_map_->m_gridMaps[0], _msg);
-    pub_map_.publish(_msg);
-    pub_metadata_.publish(_msg.info);
+    nav_msgs::OccupancyGrid msg;
+    mrpt_bridge::convert(*metric_map_->m_gridMaps[0], msg);
+    pub_map_.publish(msg);
+    pub_metadata_.publish(msg.info);
   }
 
   // if I received new beacon (range only) map
