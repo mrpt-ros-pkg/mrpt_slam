@@ -7,7 +7,6 @@
 #include <mrpt_rbpf_slam/mrpt_rbpf_slam.h>
 #include <mrpt/version.h>
 #include <mrpt_bridge/utils.h>
-#include <mrpt/serialization/CArchive.h>
 
 PFslam::PFslam()
 {
@@ -72,8 +71,13 @@ void PFslam::readRawlog(const std::string& rawlog_filename,
                         std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data)
 {
   size_t rawlogEntry = 0;
+#if MRPT_VERSION >= 0x199
+#include <mrpt/serialization/CArchive.h>
   mrpt::io::CFileGZInputStream rawlog_stream(rawlog_filename);
   auto rawlogFile = mrpt::serialization::archiveFrom(rawlog_stream);
+#else
+  CFileGZInputStream rawlogFile(rawlog_filename);
+#endif
   mrpt::obs::CActionCollection::Ptr action;
   mrpt::obs::CSensoryFrame::Ptr observations;
 
@@ -127,11 +131,19 @@ void PFslam::initSlam()
   log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
   mapBuilder_.setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
   mapBuilder_.logging_enable_console_output = false;
+#if MRPT_VERSION < 0x199
+  mapBuilder_.logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback_mrpt_15));
+#else
   mapBuilder_.logRegisterCallback(static_cast<output_logger_callback_t>(&mrpt_bridge::mrptToROSLoggerCallback));
+#endif
   mapBuilder_.options.enableMapUpdating = true;
   mapBuilder_.options.debugForceInsertion = false;
 
+#if MRPT_VERSION >= 0x199
   mrpt::random::getRandomGenerator().randomize();
+#else
+  randomGenerator.randomize();
+#endif
 }
 
 void PFslam::init3Dwindow()
