@@ -1,17 +1,10 @@
 # Ros loop update frequency
 update_loop_frequency: 100 # Hz (or 100 updates per sec)
 
-# Options for building a CMetricMapBuilderRBPF object
-insertionLinearDistance: 0
-insertionAngularDistance: 0
-localizeLinearDistance: 0
-localizeAngularDistance: 0
-
-
 # More documentation:
 # http://www.mrpt.org/tutorials/programming/odometry-and-motion-models/probabilistic_motion_models/
 motion_model:
-  type: "thrun" # choose thrun or gaussian
+  type: "gaussian" # choose thrun or gaussian
   gaussian_motion_model_options:
     a1: 0.034
     a2: 0.057
@@ -28,9 +21,9 @@ motion_model:
     additional_std_XY: 0 # m
     additional_std_phi: 0 # rad
 
-visualization_options:
-  window:
-    width:               600
-    height:              500
-    show_progress:       false
-    camera_follow_robot: false
+mrpt_visualization_options:
+  show_window:         true
+  camera_follow_robot: false
+  window_update_delay: 1     # [ms]
+  width:               600   # [pix]
+  height:              500   # [pix]

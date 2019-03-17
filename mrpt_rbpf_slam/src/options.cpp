@@ -74,12 +74,25 @@ bool loadMotionModelParameters(const ros::NodeHandle& nh,
   success = success && loadGaussianModelParameters(sub_nh, motion_model_options.gaussianModel);
   return success;
 }
+
+bool loadVisualizationOptions(const ros::NodeHandle& nh, PFslam::Options& options)
+{
+  bool success = true;
+  ros::NodeHandle sub_nh(nh, "mrpt_visualization_options");
+  success = success && sub_nh.getParam("width", options.PROGRESS_WINDOW_WIDTH_);
+  success = success && sub_nh.getParam("height", options.PROGRESS_WINDOW_HEIGHT_);
+  success = success && sub_nh.getParam("window_update_delay", options.SHOW_PROGRESS_IN_WINDOW_DELAY_MS_);
+  success = success && sub_nh.getParam("show_window", options.SHOW_PROGRESS_IN_WINDOW_);
+  success = success && sub_nh.getParam("camera_follow_robot", options.CAMERA_3DSCENE_FOLLOWS_ROBOT_);
+  return success;
+}
 }  // namespace
 
 bool loadOptions(const ros::NodeHandle& nh, PFslam::Options& options)
 {
   bool success = true;
   success = success && loadMotionModelParameters(nh, options.motion_model_options_);
+  success = success && loadVisualizationOptions(nh, options);
   return success;
 }
 

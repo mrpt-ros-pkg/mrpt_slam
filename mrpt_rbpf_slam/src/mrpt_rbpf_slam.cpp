@@ -41,16 +41,6 @@ void PFslam::readIniFile(const std::string& ini_filename)
 #endif
   options_.rbpfMappingOptions_.loadFromConfigFile(iniFile, "MappingApplication");
   options_.rbpfMappingOptions_.dumpToConsole();
-
-  // Display variables
-  options_.CAMERA_3DSCENE_FOLLOWS_ROBOT_ =
-      iniFile.read_bool("MappingApplication", "CAMERA_3DSCENE_FOLLOWS_ROBOT", true);
-  options_.SHOW_PROGRESS_IN_WINDOW_ = iniFile.read_bool("MappingApplication", "SHOW_PROGRESS_IN_WINDOW", false);
-  options_.SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ =
-      iniFile.read_int("MappingApplication", "SHOW_PROGRESS_IN_WINDOW_DELAY_MS", 1);
-
-  MRPT_LOAD_CONFIG_VAR(options_.PROGRESS_WINDOW_WIDTH_, int, iniFile, "MappingApplication");
-  MRPT_LOAD_CONFIG_VAR(options_.PROGRESS_WINDOW_HEIGHT_, int, iniFile, "MappingApplication");
 }
 
 void PFslam::readRawlog(const std::string& rawlog_filename,
@@ -105,11 +95,6 @@ void PFslam::observation(const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
     odom_move.computeFromOdometry(incOdoPose, options_.motion_model_options_);
     action_->insert(odom_move);
   }
-  //  else if (use_motion_model_default_options_)
-  //  {
-  //    odom_move.computeFromOdometry(mrpt::poses::CPose2D(0, 0, 0), motion_model_default_options_);
-  //    action_->insert(odom_move);
-  //  }
 }
 
 void PFslam::initSlam(PFslam::Options options)

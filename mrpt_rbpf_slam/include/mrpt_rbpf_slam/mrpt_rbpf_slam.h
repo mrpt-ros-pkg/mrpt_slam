@@ -49,11 +49,8 @@ class PFslam
 public:
   struct Options
   {
-    //  mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_;  ///< used if there is no
-    //  odom
-    mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion
-                                                                                   ///< noise
-
+    odom mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion
+                                                                                        ///< noise
     mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions_;  ///< options for SLAM from ini file
     bool CAMERA_3DSCENE_FOLLOWS_ROBOT_;
     bool SHOW_PROGRESS_IN_WINDOW_;
