@@ -48,7 +48,7 @@ class PFslamWrapper : public PFslam
 {
 public:
   PFslamWrapper();
-  ~PFslamWrapper();
+  ~PFslamWrapper() = default;
 
   /**
    * @brief Read the parameters from launch file
@@ -71,13 +71,6 @@ public:
    * @brief Publish beacon or grid map and robot pose
    */
   void publishMapPose();
-
-  /**
-   * @brief Check the existance of the file
-   *
-   * @return true if file exists
-   */
-  bool isFileExists(const std::string& name);
 
   /**
    * @brief Callback function for the beacons
@@ -146,9 +139,9 @@ public:
   void vizBeacons();
 
 private:
-  ros::NodeHandle n_;         ///< Node Handle
-  double rawlog_play_delay_;  ///< delay of replay from rawlog file
-  bool rawlog_play_;          ///< true if rawlog file exists
+  ros::NodeHandle n_;          ///< Node Handle
+  double rawlog_play_delay_;   ///< delay of replay from rawlog file
+  bool rawlog_play_{ false };  ///< true if rawlog file exists
 
   std::string rawlog_filename_;  ///< name of rawlog file
   std::string ini_filename_;     ///< name of ini file

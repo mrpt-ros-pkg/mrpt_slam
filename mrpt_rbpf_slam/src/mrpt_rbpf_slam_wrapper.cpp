@@ -1,19 +1,17 @@
 #include "mrpt_rbpf_slam/mrpt_rbpf_slam_wrapper.h"
 
-PFslamWrapper::PFslamWrapper()
+namespace
 {
-  rawlog_play_ = false;
-  mrpt_bridge::convert(ros::Time(0), timeLastUpdate_);
-}
-
-PFslamWrapper::~PFslamWrapper()
-{
-}
-
-bool PFslamWrapper::isFileExists(const std::string& name)
+bool isFileExists(const std::string& name)
 {
   std::ifstream f(name.c_str());
   return f.good();
+}
+}  // namespace
+
+PFslamWrapper::PFslamWrapper()
+{
+  mrpt_bridge::convert(ros::Time(0), timeLastUpdate_);
 }
 
 void PFslamWrapper::getParams()
@@ -46,14 +44,16 @@ void PFslamWrapper::init()
   // get parameters from ini file
   if (!isFileExists(ini_filename_))
   {
-    ROS_ERROR_STREAM("CAN'T READ INI FILE");
+    ROS_ERROR_STREAM("CAN'T READ INI FILE" << ini_filename_);
     return;
   }
+
   PFslam::readIniFile(ini_filename_);
+
   // read rawlog file if it  exists
   if (isFileExists(rawlog_filename_))
   {
-    ROS_WARN_STREAM("PLAY FROM RAWLOG FILE: " << rawlog_filename_.c_str());
+    ROS_WARN_STREAM("PLAY FROM RAWLOG FILE: " << rawlog_filename_);
     PFslam::readRawlog(rawlog_filename_, data_);
     rawlog_play_ = true;
   }
