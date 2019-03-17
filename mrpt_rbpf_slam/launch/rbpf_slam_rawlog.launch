@@ -2,9 +2,10 @@
 
 <launch>
   <!--PARAMETERS-->
+  <arg name="example" default=""/>
   <param name="rawlog_play_delay" value="0.01"/>
-  <param name="ini_filename" value="$(find mrpt_rbpf_slam)/tutorial/grid_slam_demo_2.ini"/>
-  <param name="rawlog_filename" value="$(find mrpt_rbpf_slam)/tutorial/grid_slam_demo_2.rawlog"/>
+  <param name="ini_filename" value="$(find mrpt_rbpf_slam)/tutorial/grid_slam_demo.ini"/>
+  <param name="rawlog_filename" value="$(find mrpt_rbpf_slam)/tutorial/grid_slam_demo$(arg example).rawlog"/>
   <param name="odom_frame_id" value="r1/odom"/>
   <param name="global_frame_id" value="/map"/>
   <param name="base_frame_id" value="r1/base_link"/>
