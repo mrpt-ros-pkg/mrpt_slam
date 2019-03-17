@@ -8,28 +8,8 @@
 #include <mrpt/version.h>
 #include <mrpt_bridge/utils.h>
 
-PFslam::PFslam()
+namespace mrpt_rbpf_slam
 {
-  use_motion_model_default_options_ = false;
-  //  motion_model_default_options_.modelSelection = mrpt::obs::CActionRobotMovement2D::mmGaussian;
-  //  motion_model_default_options_.gaussianModel.minStdXY = 0.10;
-  //  motion_model_default_options_.gaussianModel.minStdPHI = 2.0;
-
-  motion_model_options_.modelSelection = mrpt::obs::CActionRobotMovement2D::mmGaussian;
-  motion_model_options_.gaussianModel.a1 = 0.034;
-  motion_model_options_.gaussianModel.a2 = 0.057;
-  motion_model_options_.gaussianModel.a3 = 0.014;
-  motion_model_options_.gaussianModel.a4 = 0.097;
-  motion_model_options_.gaussianModel.minStdXY = 0.005;
-  motion_model_options_.gaussianModel.minStdPHI = 0.05;
-
-  PROGRESS_WINDOW_WIDTH_ = 600;
-  PROGRESS_WINDOW_HEIGHT_ = 500;
-  SHOW_PROGRESS_IN_WINDOW_ = false;
-  SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ = 0;
-  CAMERA_3DSCENE_FOLLOWS_ROBOT_ = false;
-}
-
 PFslam::~PFslam()
 {
   try
@@ -59,16 +39,18 @@ void PFslam::readIniFile(const std::string& ini_filename)
 #else
   mrpt::utils::CConfigFile iniFile(ini_filename);
 #endif
-  rbpfMappingOptions_.loadFromConfigFile(iniFile, "MappingApplication");
-  rbpfMappingOptions_.dumpToConsole();
+  options_.rbpfMappingOptions_.loadFromConfigFile(iniFile, "MappingApplication");
+  options_.rbpfMappingOptions_.dumpToConsole();
 
   // Display variables
-  CAMERA_3DSCENE_FOLLOWS_ROBOT_ = iniFile.read_bool("MappingApplication", "CAMERA_3DSCENE_FOLLOWS_ROBOT", true);
-  SHOW_PROGRESS_IN_WINDOW_ = iniFile.read_bool("MappingApplication", "SHOW_PROGRESS_IN_WINDOW", false);
-  SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ = iniFile.read_int("MappingApplication", "SHOW_PROGRESS_IN_WINDOW_DELAY_MS", 1);
+  options_.CAMERA_3DSCENE_FOLLOWS_ROBOT_ =
+      iniFile.read_bool("MappingApplication", "CAMERA_3DSCENE_FOLLOWS_ROBOT", true);
+  options_.SHOW_PROGRESS_IN_WINDOW_ = iniFile.read_bool("MappingApplication", "SHOW_PROGRESS_IN_WINDOW", false);
+  options_.SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ =
+      iniFile.read_int("MappingApplication", "SHOW_PROGRESS_IN_WINDOW_DELAY_MS", 1);
 
-  MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_WIDTH_, int, iniFile, "MappingApplication");
-  MRPT_LOAD_CONFIG_VAR(PROGRESS_WINDOW_HEIGHT_, int, iniFile, "MappingApplication");
+  MRPT_LOAD_CONFIG_VAR(options_.PROGRESS_WINDOW_WIDTH_, int, iniFile, "MappingApplication");
+  MRPT_LOAD_CONFIG_VAR(options_.PROGRESS_WINDOW_HEIGHT_, int, iniFile, "MappingApplication");
 }
 
 void PFslam::readRawlog(const std::string& rawlog_filename,
@@ -120,7 +102,7 @@ void PFslam::observation(const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
 
     mrpt::poses::CPose2D incOdoPose = odometry->odometry - odomLastObservation_;
     odomLastObservation_ = odometry->odometry;
-    odom_move.computeFromOdometry(incOdoPose, motion_model_options_);
+    odom_move.computeFromOdometry(incOdoPose, options_.motion_model_options_);
     action_->insert(odom_move);
   }
   //  else if (use_motion_model_default_options_)
@@ -130,7 +112,7 @@ void PFslam::observation(const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
   //  }
 }
 
-void PFslam::initSlam()
+void PFslam::initSlam(PFslam::Options options)
 {
   log4cxx::LoggerPtr ros_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
   mapBuilder_.setVerbosityLevel(mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
@@ -148,15 +130,36 @@ void PFslam::initSlam()
 #else
   mrpt::random::randomGenerator.randomize();
 #endif
+
+  options_ = std::move(options);
+
+  //  use_motion_model_default_options_ = false;
+  //  //  motion_model_default_options_.modelSelection = mrpt::obs::CActionRobotMovement2D::mmGaussian;
+  //  //  motion_model_default_options_.gaussianModel.minStdXY = 0.10;
+  //  //  motion_model_default_options_.gaussianModel.minStdPHI = 2.0;
+
+  //  motion_model_options_.modelSelection = mrpt::obs::CActionRobotMovement2D::mmGaussian;
+  //  motion_model_options_.gaussianModel.a1 = 0.034f;
+  //  motion_model_options_.gaussianModel.a2 = 0.057f;
+  //  motion_model_options_.gaussianModel.a3 = 0.014f;
+  //  motion_model_options_.gaussianModel.a4 = 0.097f;
+  //  motion_model_options_.gaussianModel.minStdXY = 0.005f;
+  //  motion_model_options_.gaussianModel.minStdPHI = 0.05f;
+
+  //  PROGRESS_WINDOW_WIDTH_ = 600;
+  //  PROGRESS_WINDOW_HEIGHT_ = 500;
+  //  SHOW_PROGRESS_IN_WINDOW_ = false;
+  //  SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ = 0;
+  //  CAMERA_3DSCENE_FOLLOWS_ROBOT_ = false;
 }
 
 void PFslam::init3Dwindow()
 {
 #if MRPT_HAS_WXWIDGETS
-  if (SHOW_PROGRESS_IN_WINDOW_)
+  if (options_.SHOW_PROGRESS_IN_WINDOW_)
   {
-    win3D_ = mrpt::gui::CDisplayWindow3D::Create("RBPF-SLAM @ MRPT C++ Library", PROGRESS_WINDOW_WIDTH_,
-                                                 PROGRESS_WINDOW_HEIGHT_);
+    win3D_ = mrpt::gui::CDisplayWindow3D::Create("RBPF-SLAM @ MRPT C++ Library", options_.PROGRESS_WINDOW_WIDTH_,
+                                                 options_.PROGRESS_WINDOW_HEIGHT_);
     win3D_->setCameraZoom(40);
     win3D_->setCameraAzimuthDeg(-50);
     win3D_->setCameraElevationDeg(70);
@@ -166,7 +169,7 @@ void PFslam::init3Dwindow()
 void PFslam::run3Dwindow()
 {
   // Save a 3D scene view of the mapping process:
-  if (SHOW_PROGRESS_IN_WINDOW_ && win3D_)
+  if (options_.SHOW_PROGRESS_IN_WINDOW_ && win3D_)
   {
     // get the current map and pose
     metric_map_ = mapBuilder_.mapPDF.getCurrentMostLikelyMetricMap();
@@ -180,7 +183,7 @@ void PFslam::run3Dwindow()
     scene->insert(groundPlane);
 
     // The camera pointing to the current robot pose:
-    if (CAMERA_3DSCENE_FOLLOWS_ROBOT_)
+    if (options_.CAMERA_3DSCENE_FOLLOWS_ROBOT_)
     {
       mrpt::opengl::CCamera::Ptr objCam = mrpt::opengl::CCamera::Create();
       mrpt::poses::CPose3D robotPose;
@@ -253,3 +256,4 @@ void PFslam::run3Dwindow()
     win3D_->forceRepaint();
   }
 }
+}  // namespace mrpt_rbpf_slam

@@ -39,6 +39,8 @@
 
 #include <mrpt/obs/CObservationBeaconRanges.h>
 
+namespace mrpt_rbpf_slam
+{
 /**
  * @brief The PFslamWrapper class provides  the ROS wrapper for Rao-Blackwellized Particle filter SLAM from MRPT
  *libraries.
@@ -53,12 +55,12 @@ public:
   /**
    * @brief Read the parameters from launch file
    */
-  void getParams(const ros::NodeHandle& nh_p);
+  bool getParams(const ros::NodeHandle& nh_p);
 
   /**
    * @brief Initialize publishers subscribers and RBPF slam
    */
-  void init(ros::NodeHandle& nh);
+  bool init(ros::NodeHandle& nh);
 
   /**
    * @brief Play rawlog file
@@ -177,3 +179,4 @@ private:
 #endif
   float t_exec_;  ///< the time which take one SLAM update execution
 };
+}  // namespace mrpt_rbpf_slam

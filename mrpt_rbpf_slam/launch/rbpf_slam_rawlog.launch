@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 
 <launch>
-  <!--PARAMETERS-->
   <arg name="example" default=""/>
   
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find mrpt_rbpf_slam)/config/rosconsole.config"/>

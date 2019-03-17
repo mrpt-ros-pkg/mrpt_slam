@@ -38,6 +38,8 @@
 #include <mrpt/obs/CRawlog.h>
 #include <mrpt/obs/CSensoryFrame.h>
 
+namespace mrpt_rbpf_slam
+{
 /**
  * @brief The PFslam class provides Rao-Blackwellized Particle filter SLAM from
  * MRPT libraries.
@@ -45,7 +47,21 @@
 class PFslam
 {
 public:
-  PFslam();
+  struct Options
+  {
+    //  mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_;  ///< used if there is no
+    //  odom
+    mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion
+                                                                                   ///< noise
+
+    mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions_;  ///< options for SLAM from ini file
+    bool CAMERA_3DSCENE_FOLLOWS_ROBOT_;
+    bool SHOW_PROGRESS_IN_WINDOW_;
+    int SHOW_PROGRESS_IN_WINDOW_DELAY_MS_;
+    int PROGRESS_WINDOW_WIDTH_, PROGRESS_WINDOW_HEIGHT_;
+  } options_;
+
+  PFslam() = default;
   virtual ~PFslam();
 
   void init3Dwindow();
@@ -62,7 +78,7 @@ public:
   /**
    * @brief initialize the SLAM
    */
-  void initSlam();
+  void initSlam(Options options);
 
   /**
    * @brief Read pairs of actions and observations from rawlog file
@@ -89,19 +105,11 @@ protected:
 
   mrpt::poses::CPose2D odomLastObservation_;  ///< last observation of odometry
   bool use_motion_model_default_options_;     ///< used default odom_params
-  //  mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_;  ///< used if there is no
-  //  odom
-  mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion noise
-
-  mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions_;  ///< options for SLAM from ini file
-  mrpt::system::TTimeStamp timeLastUpdate_;                                     ///< last update of the pose and map
+  mrpt::system::TTimeStamp timeLastUpdate_;   ///< last update of the pose and map
 
   const mrpt::maps::CMultiMetricMap* metric_map_;  ///< receive map after iteration of SLAM to metric map
   mrpt::poses::CPose3DPDFParticles curPDF;         ///< current robot pose
 
   mrpt::gui::CDisplayWindow3D::Ptr win3D_;  ///< MRPT window
-  bool CAMERA_3DSCENE_FOLLOWS_ROBOT_;
-  bool SHOW_PROGRESS_IN_WINDOW_;
-  int SHOW_PROGRESS_IN_WINDOW_DELAY_MS_;
-  int PROGRESS_WINDOW_WIDTH_, PROGRESS_WINDOW_HEIGHT_;
 };
+}  // namespace mrpt_rbpf_slam

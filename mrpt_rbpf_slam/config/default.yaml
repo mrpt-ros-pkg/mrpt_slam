@@ -1,13 +1,32 @@
 # Ros loop update frequency
 update_loop_frequency: 100 # Hz (or 100 updates per sec)
 
-gaussian_motion_model_options:
-  a1: 0.034
-  a2: 0.057
-  a3: 0.014
-  a4: 0.097
-  minStdXY: 0.005
-  minStdPHI: 0.05
+# Options for building a CMetricMapBuilderRBPF object
+insertionLinearDistance: 0
+insertionAngularDistance: 0
+localizeLinearDistance: 0
+localizeAngularDistance: 0
+
+
+# More documentation:
+# http://www.mrpt.org/tutorials/programming/odometry-and-motion-models/probabilistic_motion_models/
+motion_model:
+  type: "thrun" # choose thrun or gaussian
+  gaussian_motion_model_options:
+    a1: 0.034
+    a2: 0.057
+    a3: 0.014
+    a4: 0.097
+    minStdXY: 0.005
+    minStdPHI: 0.05
+  thrun_motion_model_options:
+    particle_count: 0
+    alfa1_rot_rot: 0
+    alfa2_rot_trans: 0
+    alfa3_trans_trans: 0
+    alfa4_trans_rot: 0
+    additional_std_XY: 0 # m
+    additional_std_phi: 0 # rad
 
 visualization_options:
   window:

@@ -1,5 +1,7 @@
 #include "mrpt_rbpf_slam/mrpt_rbpf_slam_wrapper.h"
 
+#include <mrpt_rbpf_slam/options.h>
+
 namespace
 {
 bool isFileExists(const std::string& name)
@@ -9,12 +11,14 @@ bool isFileExists(const std::string& name)
 }
 }  // namespace
 
+namespace mrpt_rbpf_slam
+{
 PFslamWrapper::PFslamWrapper()
 {
   mrpt_bridge::convert(ros::Time(0), timeLastUpdate_);
 }
 
-void PFslamWrapper::getParams(const ros::NodeHandle& nh_p)
+bool PFslamWrapper::getParams(const ros::NodeHandle& nh_p)
 {
   ROS_INFO("READ PARAM FROM LAUNCH FILE");
   nh_p.param<double>("rawlog_play_delay", rawlog_play_delay_, 0.1);
@@ -37,15 +41,24 @@ void PFslamWrapper::getParams(const ros::NodeHandle& nh_p)
 
   nh_p.param<std::string>("sensor_source", sensor_source_, "scan");
   ROS_INFO("sensor_source: %s", sensor_source_.c_str());
+
+  PFslam::Options options;
+  if (!loadOptions(nh_p, options))
+  {
+    ROS_ERROR("Not able to read all parameters!");
+    return false;
+  }
+  initSlam(std::move(options));
+  return true;
 }
 
-void PFslamWrapper::init(ros::NodeHandle& nh)
+bool PFslamWrapper::init(ros::NodeHandle& nh)
 {
   // get parameters from ini file
   if (!isFileExists(ini_filename_))
   {
     ROS_ERROR_STREAM("CAN'T READ INI FILE" << ini_filename_);
-    return;
+    return false;
   }
 
   PFslam::readIniFile(ini_filename_);
@@ -88,10 +101,9 @@ void PFslamWrapper::init(ros::NodeHandle& nh)
     }
   }
 
-  // init slam
-  mapBuilder_ = mrpt::slam::CMetricMapBuilderRBPF(rbpfMappingOptions_);
-  initSlam();
+  mapBuilder_ = mrpt::slam::CMetricMapBuilderRBPF(options_.rbpfMappingOptions_);
   init3Dwindow();
+  return true;
 }
 
 void PFslamWrapper::odometryForCallback(mrpt::obs::CObservationOdometry::Ptr& odometry,
@@ -166,12 +178,8 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan& msg)
 
 void PFslamWrapper::callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& msg)
 {
-#if MRPT_VERSION >= 0x130
   using namespace mrpt::maps;
   using namespace mrpt::obs;
-#else
-  using namespace mrpt::slam;
-#endif
 
   CObservationBeaconRanges::Ptr beacon = CObservationBeaconRanges::Create();
   if (beacon_poses_.find(msg.header.frame_id) == beacon_poses_.end())
@@ -474,3 +482,5 @@ void PFslamWrapper::publishTF()
   tf::StampedTransform tmp_tf_stamped(latest_tf_.inverse(), transform_expiration, global_frame_id_, odom_frame_id_);
   tf_broadcaster_.sendTransform(tmp_tf_stamped);
 }
+
+}  // namespace mrpt_rbpf_slam

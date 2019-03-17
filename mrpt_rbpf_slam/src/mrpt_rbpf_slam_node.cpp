@@ -11,11 +11,13 @@ int main(int argc, char** argv)
   nh_p.param("update_loop_frequency", frequency, 100.);
   ros::Rate rate(frequency);
 
-  PFslamWrapper slam;
+  mrpt_rbpf_slam::PFslamWrapper slam;
   // Read parameters and configure node
-  slam.getParams(nh_p);
-  // Setup callbacks
-  slam.init(nh);
+  // and setup callbacks
+  if (!slam.getParams(nh_p) || !slam.init(nh))
+  {
+    return EXIT_FAILURE;
+  }
 
   ros::Duration(1).sleep();
 

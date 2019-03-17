@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 
 <launch>
-  <!--PARAMETERS-->
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find mrpt_rbpf_slam)/config/rosconsole.config"/>
     
   <!--PLAY BAG FILE-->
