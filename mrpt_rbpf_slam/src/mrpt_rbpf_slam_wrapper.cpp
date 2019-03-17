@@ -323,13 +323,13 @@ void PFslamWrapper::vizBeacons()
   beacon_viz_pub_.publish(ma);
 }
 
-void PFslamWrapper::updateSensorPose(std::string _frame_id)
+void PFslamWrapper::updateSensorPose(const std::string& frame_id)
 {
   mrpt::poses::CPose3D pose;
   tf::StampedTransform transform;
   try
   {
-    listenerTF_.lookupTransform(base_frame_id_, _frame_id, ros::Time(0), transform);
+    listenerTF_.lookupTransform(base_frame_id_, frame_id, ros::Time(0), transform);
 
     tf::Vector3 translation = transform.getOrigin();
     tf::Quaternion quat = transform.getRotation();
@@ -342,8 +342,8 @@ void PFslamWrapper::updateSensorPose(std::string _frame_id)
       for (int r = 0; r < 3; r++)
         Rdes(r, c) = Rsrc.getRow(r)[c];
     pose.setRotationMatrix(Rdes);
-    laser_poses_[_frame_id] = pose;
-    beacon_poses_[_frame_id] = pose;
+    laser_poses_[frame_id] = pose;
+    beacon_poses_[frame_id] = pose;
   }
   catch (tf::TransformException ex)
   {
@@ -373,15 +373,15 @@ bool PFslamWrapper::rawlogPlay()
 
         metric_map_ = mapBuilder_.mapPDF.getCurrentMostLikelyMetricMap();
         mapBuilder_.mapPDF.getEstimatedPosePDF(curPDF);
+
         // if I received new grid maps from 2D laser scan sensors
         if (metric_map_->m_gridMaps.size())
         {
-          nav_msgs::OccupancyGrid _msg;
-
+          nav_msgs::OccupancyGrid msg;
           // if we have new map for current sensor update it
-          mrpt_bridge::convert(*metric_map_->m_gridMaps[0], _msg);
-          pub_map_.publish(_msg);
-          pub_metadata_.publish(_msg.info);
+          mrpt_bridge::convert(*metric_map_->m_gridMaps[0], msg);
+          pub_map_.publish(msg);
+          pub_metadata_.publish(msg.info);
         }
 
         // if I received new beacon (range only) map

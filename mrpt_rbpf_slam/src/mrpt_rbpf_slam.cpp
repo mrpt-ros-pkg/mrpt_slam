@@ -11,9 +11,9 @@
 PFslam::PFslam()
 {
   use_motion_model_default_options_ = false;
-  motion_model_default_options_.modelSelection = mrpt::obs::CActionRobotMovement2D::mmGaussian;
-  motion_model_default_options_.gaussianModel.minStdXY = 0.10;
-  motion_model_default_options_.gaussianModel.minStdPHI = 2.0;
+  //  motion_model_default_options_.modelSelection = mrpt::obs::CActionRobotMovement2D::mmGaussian;
+  //  motion_model_default_options_.gaussianModel.minStdXY = 0.10;
+  //  motion_model_default_options_.gaussianModel.minStdPHI = 2.0;
 
   motion_model_options_.modelSelection = mrpt::obs::CActionRobotMovement2D::mmGaussian;
   motion_model_options_.gaussianModel.a1 = 0.034;

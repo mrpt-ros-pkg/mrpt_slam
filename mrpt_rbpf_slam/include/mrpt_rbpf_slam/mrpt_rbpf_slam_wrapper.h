@@ -85,7 +85,7 @@ public:
   void callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& msg);
 
   /**
-   * @brief callback function for the laser scans
+   * @brief Callback function for the laser scans
    *
    * Given the laser scans  wait for odometry,
    * create the pair of action and observation,
@@ -97,14 +97,14 @@ public:
   void laserCallback(const sensor_msgs::LaserScan& msg);
 
   /**
-   * @brief wait for transfor between odometry frame and the robot frame
+   * @brief Wait for transform between odometry frame and the robot frame
    *
-   * @param des position of the robot with respect to odometry frame
-   * @param target_frame the odometry tf frame
-   * @param source_frame the robot tf frame
-   * @param time timestamp of the observation for which we want to retrieve the position of the robot
-   * @param timeout timeout for odometry waiting
-   * @param polling_sleep_duration timeout for transform wait
+   * @param[out] des position of the robot with respect to odometry frame
+   * @param[in]  target_frame the odometry tf frame
+   * @param[in]  source_frame the robot tf frame
+   * @param[in]  time timestamp of the observation for which we want to retrieve the position of the robot
+   * @param[in]  timeout timeout for odometry waiting
+   * @param[in]  polling_sleep_duration timeout for transform wait
    *
    * @return true if there is transform from odometry to the robot
    */
@@ -113,27 +113,28 @@ public:
                         const ros::Duration& polling_sleep_duration = ros::Duration(0.01));
 
   /**
-   * @brief  get  the odometry for received observation
+   * @brief Get the odometry for received observation
    *
-   * @param odometry odometry for received observation
-   * @param msg_header timestamp of the observation
+   * @param[out] odometry odometry for received observation
+   * @param[in]  msg_header timestamp of the observation
    */
   void odometryForCallback(mrpt::obs::CObservationOdometry::Ptr& odometry, const std_msgs::Header& msg_header);
 
   /**
-   * @brief  update the pose of the sensor with respect to the robot
+   * @brief Update the pose of the sensor with respect to the robot
    *
    *@param frame_id the frame of the sensors
    */
-  void updateSensorPose(std::string frame_id);
+  void updateSensorPose(const std::string& frame_id);
 
   /**
-   * @brief  publis tf tree
+   * @brief Publish tf tree
    *
    */
   void publishTF();
+
   /**
-   * @brief  correct visualization for ro slam (under development)
+   * @brief Correct visualization for ro slam
    *
    */
   void vizBeacons();

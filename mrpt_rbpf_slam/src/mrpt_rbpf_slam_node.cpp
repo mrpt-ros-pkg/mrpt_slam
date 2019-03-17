@@ -12,18 +12,24 @@ int main(int argc, char** argv)
   ros::Rate rate(frequency);
 
   PFslamWrapper slam;
+  // Read parameters and configure node
   slam.getParams(nh_p);
+  // Setup callbacks
   slam.init(nh);
 
   ros::Duration(1).sleep();
 
-  if (!slam.rawlogPlay())
-  {  // if not play from rawlog file
+  // If play from rawlog file options is specified
+  // play and then terminate application
+  if (slam.rawlogPlay())
+  {
+    return EXIT_SUCCESS;
+  }
 
-    while (ros::ok())
-    {
-      ros::spinOnce();
-      rate.sleep();
-    }
+  // Otherwise work as a usual rosnode
+  while (ros::ok())
+  {
+    ros::spinOnce();
+    rate.sleep();
   }
 }

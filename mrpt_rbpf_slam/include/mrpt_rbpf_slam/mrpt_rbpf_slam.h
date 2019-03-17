@@ -89,7 +89,8 @@ protected:
 
   mrpt::poses::CPose2D odomLastObservation_;  ///< last observation of odometry
   bool use_motion_model_default_options_;     ///< used default odom_params
-  mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_;  ///< used if there is no odom
+  //  mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_;  ///< used if there is no
+  //  odom
   mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion noise
 
   mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions_;  ///< options for SLAM from ini file
