@@ -14,32 +14,32 @@ PFslamWrapper::PFslamWrapper()
   mrpt_bridge::convert(ros::Time(0), timeLastUpdate_);
 }
 
-void PFslamWrapper::getParams()
+void PFslamWrapper::getParams(const ros::NodeHandle& nh_p)
 {
   ROS_INFO("READ PARAM FROM LAUNCH FILE");
-  n_.param<double>("rawlog_play_delay", rawlog_play_delay_, 0.1);
+  nh_p.param<double>("rawlog_play_delay", rawlog_play_delay_, 0.1);
   ROS_INFO("rawlog_play_delay: %f", rawlog_play_delay_);
 
-  n_.getParam("rawlog_filename", rawlog_filename_);
+  nh_p.getParam("rawlog_filename", rawlog_filename_);
   ROS_INFO("rawlog_filename: %s", rawlog_filename_.c_str());
 
-  n_.getParam("ini_filename", ini_filename_);
+  nh_p.getParam("ini_filename", ini_filename_);
   ROS_INFO("ini_filename: %s", ini_filename_.c_str());
 
-  n_.param<std::string>("global_frame_id", global_frame_id_, "map");
+  nh_p.param<std::string>("global_frame_id", global_frame_id_, "map");
   ROS_INFO("global_frame_id: %s", global_frame_id_.c_str());
 
-  n_.param<std::string>("odom_frame_id", odom_frame_id_, "odom");
+  nh_p.param<std::string>("odom_frame_id", odom_frame_id_, "odom");
   ROS_INFO("odom_frame_id: %s", odom_frame_id_.c_str());
 
-  n_.param<std::string>("base_frame_id", base_frame_id_, "base_link");
+  nh_p.param<std::string>("base_frame_id", base_frame_id_, "base_link");
   ROS_INFO("base_frame_id: %s", base_frame_id_.c_str());
 
-  n_.param<std::string>("sensor_source", sensor_source_, "scan");
+  nh_p.param<std::string>("sensor_source", sensor_source_, "scan");
   ROS_INFO("sensor_source: %s", sensor_source_.c_str());
 }
 
-void PFslamWrapper::init()
+void PFslamWrapper::init(ros::NodeHandle& nh)
 {
   // get parameters from ini file
   if (!isFileExists(ini_filename_))
@@ -60,13 +60,13 @@ void PFslamWrapper::init()
 
   /// Create publishers///
   // publish grid map
-  pub_map_ = n_.advertise<nav_msgs::OccupancyGrid>("map", 1, true);
-  pub_metadata_ = n_.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
+  pub_map_ = nh.advertise<nav_msgs::OccupancyGrid>("map", 1, true);
+  pub_metadata_ = nh.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
   // robot pose
-  pub_Particles_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud", 1, true);
+  pub_particles_ = nh.advertise<geometry_msgs::PoseArray>("particlecloud", 1, true);
   // ro particles poses
-  pub_Particles_Beacons_ = n_.advertise<geometry_msgs::PoseArray>("particlecloud_beacons", 1, true);
-  beacon_viz_pub_ = n_.advertise<visualization_msgs::MarkerArray>("/beacons_viz", 1);
+  pub_particles_beacons_ = nh.advertise<geometry_msgs::PoseArray>("particlecloud_beacons", 1, true);
+  beacon_viz_pub_ = nh.advertise<visualization_msgs::MarkerArray>("/beacons_viz", 1);
 
   // read sensor topics
   std::vector<std::string> lstSources;
@@ -80,11 +80,11 @@ void PFslamWrapper::init()
   {
     if (lstSources[i].find("scan") != std::string::npos)
     {
-      sensorSub_[i] = n_.subscribe(lstSources[i], 1, &PFslamWrapper::laserCallback, this);
+      sensorSub_[i] = nh.subscribe(lstSources[i], 1, &PFslamWrapper::laserCallback, this);
     }
     else
     {
-      sensorSub_[i] = n_.subscribe(lstSources[i], 1, &PFslamWrapper::callbackBeacon, this);
+      sensorSub_[i] = nh.subscribe(lstSources[i], 1, &PFslamWrapper::callbackBeacon, this);
     }
   }
 
@@ -243,7 +243,7 @@ void PFslamWrapper::publishMapPose()
       mrpt_bridge::convert(mrpt::poses::CPose3D(beacon_particle->getPose()), poseArrayBeacons.poses[i]);
       viz_beacons_.push_back(beacon_particle);
     }
-    pub_Particles_Beacons_.publish(poseArrayBeacons);
+    pub_particles_beacons_.publish(poseArrayBeacons);
     vizBeacons();
     viz_beacons_.clear();
   }
@@ -259,7 +259,7 @@ void PFslamWrapper::publishMapPose()
     mrpt_bridge::convert(p, poseArray.poses[i]);
   }
 
-  pub_Particles_.publish(poseArray);
+  pub_particles_.publish(poseArray);
 }
 
 void PFslamWrapper::vizBeacons()
@@ -409,7 +409,7 @@ bool PFslamWrapper::rawlogPlay()
             mrpt_bridge::convert(mrpt::poses::CPose3D(beacon_particle->getPose()), poseArrayBeacons.poses[i]);
             viz_beacons_.push_back(beacon_particle);
           }
-          pub_Particles_Beacons_.publish(poseArrayBeacons);
+          pub_particles_beacons_.publish(poseArrayBeacons);
           vizBeacons();
           viz_beacons_.clear();
         }
@@ -425,7 +425,7 @@ bool PFslamWrapper::rawlogPlay()
           mrpt_bridge::convert(p, poseArray.poses[i]);
         }
 
-        pub_Particles_.publish(poseArray);
+        pub_particles_.publish(poseArray);
       }
       ros::spinOnce();
       run3Dwindow();

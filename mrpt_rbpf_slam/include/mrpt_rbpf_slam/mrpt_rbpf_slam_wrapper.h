@@ -53,12 +53,12 @@ public:
   /**
    * @brief Read the parameters from launch file
    */
-  void getParams();
+  void getParams(const ros::NodeHandle& nh_p);
 
   /**
    * @brief Initialize publishers subscribers and RBPF slam
    */
-  void init();
+  void init(ros::NodeHandle& nh);
 
   /**
    * @brief Play rawlog file
@@ -139,7 +139,6 @@ public:
   void vizBeacons();
 
 private:
-  ros::NodeHandle n_;          ///< Node Handle
   double rawlog_play_delay_;   ///< delay of replay from rawlog file
   bool rawlog_play_{ false };  ///< true if rawlog file exists
 
@@ -165,7 +164,7 @@ private:
 
   std::vector<mrpt::opengl::CEllipsoid::Ptr> viz_beacons_;
 
-  ros::Publisher pub_map_, pub_metadata_, pub_Particles_, pub_Particles_Beacons_,
+  ros::Publisher pub_map_, pub_metadata_, pub_particles_, pub_particles_beacons_,
       beacon_viz_pub_;  ///< publishers for map and pose particles
 
   tf::TransformListener listenerTF_;         ///< transform listener

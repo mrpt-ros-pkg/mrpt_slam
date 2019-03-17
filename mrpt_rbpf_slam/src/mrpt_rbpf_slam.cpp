@@ -123,11 +123,11 @@ void PFslam::observation(const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
     odom_move.computeFromOdometry(incOdoPose, motion_model_options_);
     action_->insert(odom_move);
   }
-  else if (use_motion_model_default_options_)
-  {
-    odom_move.computeFromOdometry(mrpt::poses::CPose2D(0, 0, 0), motion_model_default_options_);
-    action_->insert(odom_move);
-  }
+  //  else if (use_motion_model_default_options_)
+  //  {
+  //    odom_move.computeFromOdometry(mrpt::poses::CPose2D(0, 0, 0), motion_model_default_options_);
+  //    action_->insert(odom_move);
+  //  }
 }
 
 void PFslam::initSlam()

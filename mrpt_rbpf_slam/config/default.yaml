@@ -1,0 +1,17 @@
+# Ros loop update frequency
+update_loop_frequency: 100 # Hz (or 100 updates per sec)
+
+gaussian_motion_model_options:
+  a1: 0.034
+  a2: 0.057
+  a3: 0.014
+  a4: 0.097
+  minStdXY: 0.005
+  minStdPHI: 0.05
+
+visualization_options:
+  window:
+    width:               600
+    height:              500
+    show_progress:       false
+    camera_follow_robot: false

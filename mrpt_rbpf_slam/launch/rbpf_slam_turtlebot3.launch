@@ -2,11 +2,6 @@
 
 <launch>
   <!--PARAMETERS-->
-  <param name="ini_filename" value="$(find mrpt_rbpf_slam)/tutorial/grid_slam_demo.ini"/>
-  <param name="odom_frame_id" value="/odom"/>
-  <param name="global_frame_id" value="/map"/>
-  <param name="base_frame_id" value="/base_link"/>
-  <param name="sensor_source" value="/scan"/>
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find mrpt_rbpf_slam)/config/rosconsole.config"/>
     
   <!--PLAY BAG FILE-->
@@ -14,7 +9,14 @@
 
   <!--SLAM RUN--> 
   <node pkg="rviz" type="rviz" name="rviz_nav" output="screen" args="-d $(find mrpt_rbpf_slam)/rviz/rviz_conf.rviz"></node>
-  <node pkg="mrpt_rbpf_slam" type="mrpt_rbpf_slam" name="mrpt_rbpf_slam" output="screen"></node>
+  <node pkg="mrpt_rbpf_slam" type="mrpt_rbpf_slam" name="mrpt_rbpf_slam" output="screen">
+    <param name="ini_filename" value="$(find mrpt_rbpf_slam)/tutorial/grid_slam_demo.ini"/>
+    <param name="odom_frame_id" value="/odom"/>
+    <param name="global_frame_id" value="/map"/>
+    <param name="base_frame_id" value="/base_link"/>
+    <param name="sensor_source" value="/scan"/>
+    <rosparam command="load" file="$(find mrpt_rbpf_slam)/config/default.yaml" />
+  </node>
 
 </launch>
 
