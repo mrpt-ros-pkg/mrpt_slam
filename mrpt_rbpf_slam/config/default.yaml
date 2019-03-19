@@ -2,6 +2,7 @@
 update_loop_frequency: 100 # Hz (or 100 updates per sec)
 
 # Absolute path to the folder where to save *.simplemap
+# Note: everything in '/tmp' folder is removed if computer is restarted
 simplemap_save_folder: /tmp/
 
 # More documentation:
