@@ -1,81 +1,65 @@
 /*
- *  File: mrpt_slam.h
+ *  File: mrpt_rbpf_slam.h
  *  Author: Vladislav Tananaev
- *
- *
  */
 
 #pragma once
-
 #include <ros/console.h>
 
-#include <mrpt/slam/CMetricMapBuilderRBPF.h>
-#include <mrpt/utils/CFileGZInputStream.h>
-#include <mrpt/utils/CFileGZOutputStream.h>
-#include <mrpt/utils/CConfigFile.h>
 #include <mrpt/gui/CDisplayWindow3D.h>
 #include <mrpt/random.h>
-
+#include <mrpt/slam/CMetricMapBuilderRBPF.h>
+#if MRPT_VERSION >= 0x199
+#include <mrpt/config/CConfigFile.h>
+#include <mrpt/io/CFileGZInputStream.h>
+#include <mrpt/io/CFileGZOutputStream.h>
+#else
+#include <mrpt/utils/CConfigFile.h>
+#include <mrpt/utils/CFileGZInputStream.h>
+#include <mrpt/utils/CFileGZOutputStream.h>
+#endif
+#include <mrpt/opengl/CEllipsoid.h>
+#include <mrpt/opengl/CGridPlaneXY.h>
+#include <mrpt/opengl/CSetOfLines.h>
+#include <mrpt/opengl/stock_objects.h>
+#include <mrpt/poses/CPose3DPDF.h>
+#include <mrpt/poses/CPosePDFGaussian.h>
 #include <mrpt/system/filesystem.h>
 #include <mrpt/system/os.h>
-#include <mrpt/poses/CPosePDFGaussian.h>
-#include <mrpt/poses/CPose3DPDF.h>
-#include <mrpt/opengl/CSetOfLines.h>
-#include <mrpt/opengl/CGridPlaneXY.h>
-#include <mrpt/opengl/CEllipsoid.h>
-#include <mrpt/opengl/stock_objects.h>
-
 #include <mrpt/gui/CDisplayWindow3D.h>
-
 #include <mrpt/version.h>
-#if MRPT_VERSION >= 0x130
-#include <mrpt/obs/CActionRobotMovement2D.h>
-#include <mrpt/obs/CObservationBeaconRanges.h>
-#include <mrpt/obs/CActionRobotMovement3D.h>
-#include <mrpt/obs/CActionCollection.h>
-#include <mrpt/obs/CObservationOdometry.h>
-#include <mrpt/obs/CSensoryFrame.h>
 #include <mrpt/maps/CMultiMetricMap.h>
+#include <mrpt/obs/CActionCollection.h>
+#include <mrpt/obs/CActionRobotMovement2D.h>
+#include <mrpt/obs/CActionRobotMovement3D.h>
+#include <mrpt/obs/CObservationBeaconRanges.h>
 #include <mrpt/obs/CObservationBearingRange.h>
+#include <mrpt/obs/CObservationOdometry.h>
 #include <mrpt/obs/CRawlog.h>
-using namespace mrpt::maps;
-using namespace mrpt::obs;
-#else
-#include <mrpt/slam/CActionRobotMovement2D.h>
-#include <mrpt/slam/CObservationBeaconRanges.h>
-#include <mrpt/slam/CActionRobotMovement3D.h>
-#include <mrpt/slam/CActionCollection.h>
-#include <mrpt/slam/CObservationOdometry.h>
-#include <mrpt/slam/CSensoryFrame.h>
-#include <mrpt/slam/CMultiMetricMap.h>
-#include <mrpt/slam/CObservationBearingRange.h>
-#include <mrpt/slam/CRawlog.h>
-#endif
+#include <mrpt/obs/CSensoryFrame.h>
 
-using namespace mrpt;
-using namespace mrpt::slam;
-using namespace mrpt::opengl;
-using namespace mrpt::gui;
-using namespace mrpt::math;
-using namespace mrpt::utils;
-using namespace mrpt::system;
-using namespace mrpt::random;
-using namespace mrpt::poses;
-
+namespace mrpt_rbpf_slam
+{
 /**
- * @brief The PFslam class provides Rao-Blackwellized Particle filter SLAM from MRPT libraries.
- *
+ * @brief The PFslam class provides Rao-Blackwellized Particle filter SLAM from
+ * MRPT libraries.
  */
 class PFslam
 {
 public:
-  /**
-  * @brief constructor
-  */
-  PFslam();
-  /**
-  * @brief destructor
-  */
+  struct Options
+  {
+    mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion
+                                                                                   ///< noise
+    mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions_;   ///< options for SLAM from ini file
+    bool CAMERA_3DSCENE_FOLLOWS_ROBOT_;
+    bool SHOW_PROGRESS_IN_WINDOW_;
+    int SHOW_PROGRESS_IN_WINDOW_DELAY_MS_;
+    int PROGRESS_WINDOW_WIDTH_, PROGRESS_WINDOW_HEIGHT_;
+    std::string simplemap_path_prefix;
+  } options_;
+
+  PFslam() = default;
   virtual ~PFslam();
 
   void init3Dwindow();
@@ -83,53 +67,47 @@ public:
   void run3Dwindow();
 
   /**
-   * @brief read ini file
+   * @brief Read ini file
    *
-   * @param ini_filename the name of the ini file to read
+   * @param[in] ini_filename the name of the ini file to read
    */
-  void read_iniFile(std::string ini_filename);
+  void readIniFile(const std::string& ini_filename);
 
   /**
    * @brief initialize the SLAM
    */
-  void init_slam();
+  void initSlam(Options options);
 
   /**
-  * @brief read pairs of actions and observations from rawlog file
-  *
-  * @param data vector of pairs of actions and observations
-  * @param rawlog_filename the name of rawlog file to read
-  */
-  void read_rawlog(std::vector<std::pair<CActionCollection, CSensoryFrame>>& data, std::string rawlog_filename);
+   * @brief Read pairs of actions and observations from rawlog file
+   *
+   * @param[in] rawlog_filename the name of rawlog file to read
+   * @param[out] data vector of pairs of actions and observations
+   */
+  void readRawlog(const std::string& rawlog_filename,
+                  std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data);
 
   /**
-  * @brief calculate the actions from odometry model for current observation
-  *
-  * @param _sf  current observation
-  * @param _odometry raw odometry
-  */
-  void observation(CSensoryFrame::Ptr _sf, CObservationOdometry::Ptr _odometry);
+   * @brief Calculate the actions from odometry model for current observation
+   *
+   * @param[in] sensory_frame  current observation
+   * @param[in] odometry raw odometry
+   */
+  void observation(const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
+                   const mrpt::obs::CObservationOdometry::ConstPtr odometry);
 
 protected:
-  CMetricMapBuilderRBPF* mapBuilder;  ///< map builder
-  CActionCollection::Ptr action;        ///< actions
-  CSensoryFrame::Ptr sf;                ///< observations
+  mrpt::slam::CMetricMapBuilderRBPF mapBuilder_;  ///< map builder
+  mrpt::obs::CActionCollection::Ptr action_;      ///< actions
+  mrpt::obs::CSensoryFrame::Ptr sensory_frame_;   ///< observations
 
-  mrpt::poses::CPose2D odomLastObservation_;                                  ///< last observation of odometry
-  bool use_motion_model_default_options_;                                     ///< used default odom_params
-  CActionRobotMovement2D::TMotionModelOptions motion_model_default_options_;  ///< used if there are is not odom
-  CActionRobotMovement2D::TMotionModelOptions motion_model_options_;          ///< used with odom value motion noise
+  mrpt::poses::CPose2D odomLastObservation_;  ///< last observation of odometry
+  bool use_motion_model_default_options_;     ///< used default odom_params
+  mrpt::system::TTimeStamp timeLastUpdate_;   ///< last update of the pose and map
 
-  CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions;  ///< options for SLAM from ini file
-  mrpt::system::TTimeStamp timeLastUpdate_;                        ///< last update of the pose and map
+  const mrpt::maps::CMultiMetricMap* metric_map_;  ///< receive map after iteration of SLAM to metric map
+  mrpt::poses::CPose3DPDFParticles curPDF;         ///< current robot pose
 
-  const CMultiMetricMap* metric_map_;  ///<receive map after iteration of SLAM to metric map
-  CPose3DPDFParticles curPDF;    ///<current robot pose
-
-  mrpt::gui::CDisplayWindow3D::Ptr win3D;  ///<MRPT window
-  bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
-  bool SHOW_PROGRESS_IN_WINDOW;
-  int SHOW_PROGRESS_IN_WINDOW_DELAY_MS;
-  int PROGRESS_WINDOW_WIDTH, PROGRESS_WINDOW_HEIGHT;
+  mrpt::gui::CDisplayWindow3D::Ptr win3D_;  ///< MRPT window
 };
-
+}  // namespace mrpt_rbpf_slam

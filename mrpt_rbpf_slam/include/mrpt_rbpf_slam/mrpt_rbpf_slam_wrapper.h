@@ -37,90 +37,76 @@
 #include <mrpt_bridge/beacon.h>
 #include <mrpt_bridge/time.h>
 
-#if MRPT_VERSION >= 0x130
 #include <mrpt/obs/CObservationBeaconRanges.h>
-using namespace mrpt::obs;
-#else
-#include <mrpt/slam/CObservationBeaconRanges.h>
-using namespace mrpt::slam;
-#endif
 
+namespace mrpt_rbpf_slam
+{
 /**
  * @brief The PFslamWrapper class provides  the ROS wrapper for Rao-Blackwellized Particle filter SLAM from MRPT
  *libraries.
  *
  */
-class PFslamWrapper : PFslam
+class PFslamWrapper : public PFslam
 {
 public:
-  /**
-  * @brief constructor
-  */
   PFslamWrapper();
+  ~PFslamWrapper() = default;
+
   /**
- * @brief destructor
- */
-  ~PFslamWrapper();
+   * @brief Read the parameters from launch file
+   */
+  bool getParams(const ros::NodeHandle& nh_p);
+
   /**
- * @brief read the parameters from launch file
- */
-  void get_param();
+   * @brief Initialize publishers subscribers and RBPF slam
+   */
+  bool init(ros::NodeHandle& nh);
+
   /**
-  * @brief initialize publishers subscribers and RBPF slam
-  */
-  void init();
-  /**
-  * @brief play rawlog file
-  *
-  * @return true if rawlog file exists and played
-  */
+   * @brief Play rawlog file
+   *
+   * @return true if rawlog file exists and played
+   */
   bool rawlogPlay();
+
   /**
-  * @brief publish beacon or grid map and robot pose
-  *
-  */
+   * @brief Publish beacon or grid map and robot pose
+   */
   void publishMapPose();
 
   /**
-  * @brief check the existance of the file
-  *
-  * @return true if file exists
-  */
-  bool is_file_exists(const std::string& name);
-
-  /**
-  * @brief callback function for the beacons
-  *
-  * Given the range only observation wait for odometry,
-  * create the pair of action and observation,
-  * implement one SLAM update,
-  * publish map and pose.
-  *
-  * @param _msg  the beacon message
-  */
-  void callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& _msg);
-
-  /**
-  * @brief callback function for the laser scans
-  *
-  * Given the laser scans  wait for odometry,
-  * create the pair of action and observation,
-  * implement one SLAM update,
-  * publish map and pose.
-  *
-  * @param _msg  the laser scan message
-  */
-  void laserCallback(const sensor_msgs::LaserScan& _msg);
-
-  /**
-   * @brief wait for transfor between odometry frame and the robot frame
+   * @brief Callback function for the beacons
    *
-   * @param des position of the robot with respect to odometry frame
-   * @param target_frame the odometry tf frame
-   * @param source_frame the robot tf frame
-   * @param time timestamp of the observation for which we want to retrieve the position of the robot
-   * @param timeout timeout for odometry waiting
-   * @param polling_sleep_duration timeout for transform wait
+   * Given the range only observation wait for odometry,
+   * create the pair of action and observation,
+   * implement one SLAM update,
+   * publish map and pose.
+   *
+   * @param msg  the beacon message
+   */
+  void callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& msg);
+
+  /**
+   * @brief Callback function for the laser scans
+   *
+   * Given the laser scans  wait for odometry,
+   * create the pair of action and observation,
+   * implement one SLAM update,
+   * publish map and pose.
+   *
+   * @param msg  the laser scan message
+   */
+  void laserCallback(const sensor_msgs::LaserScan& msg);
+
+  /**
+   * @brief Wait for transform between odometry frame and the robot frame
+   *
+   * @param[out] des position of the robot with respect to odometry frame
+   * @param[in]  target_frame the odometry tf frame
+   * @param[in]  source_frame the robot tf frame
+   * @param[in]  time timestamp of the observation for which we want to retrieve the position of the robot
+   * @param[in]  timeout timeout for odometry waiting
+   * @param[in]  polling_sleep_duration timeout for transform wait
    *
    * @return true if there is transform from odometry to the robot
    */
@@ -129,44 +115,44 @@ public:
                         const ros::Duration& polling_sleep_duration = ros::Duration(0.01));
 
   /**
-  * @brief  get  the odometry for received observation
-  *
-  * @param _odometry odometry for received observation
-  * @param _msg_header timestamp of the observation
-  */
-  void odometryForCallback(CObservationOdometry::Ptr& _odometry, const std_msgs::Header& _msg_header);
+   * @brief Get the odometry for received observation
+   *
+   * @param[out] odometry odometry for received observation
+   * @param[in]  msg_header timestamp of the observation
+   */
+  void odometryForCallback(mrpt::obs::CObservationOdometry::Ptr& odometry, const std_msgs::Header& msg_header);
 
   /**
-  * @brief  update the pose of the sensor with respect to the robot
-  *
-  *@param frame_id the frame of the sensors
-  */
-  void updateSensorPose(std::string frame_id);
+   * @brief Update the pose of the sensor with respect to the robot
+   *
+   *@param frame_id the frame of the sensors
+   */
+  void updateSensorPose(const std::string& frame_id);
 
   /**
-  * @brief  publis tf tree
-  *
-  */
+   * @brief Publish tf tree
+   *
+   */
   void publishTF();
+
   /**
-  * @brief  correct visualization for ro slam (under development)
-  *
-  */
+   * @brief Correct visualization for ro slam
+   *
+   */
   void vizBeacons();
 
 private:
-  ros::NodeHandle n_;        ///< Node Handle
-  double rawlog_play_delay;  ///< delay of replay from rawlog file
-  bool rawlog_play_;         ///< true if rawlog file exists
+  double rawlog_play_delay_;   ///< delay of replay from rawlog file
+  bool rawlog_play_{ false };  ///< true if rawlog file exists
 
-  std::string rawlog_filename;  ///< name of rawlog file
-  std::string ini_filename;     ///< name of ini file
-  std::string global_frame_id;  ///< /map frame
-  std::string odom_frame_id;    ///< /odom frame
-  std::string base_frame_id;    ///< robot frame
+  std::string rawlog_filename_;  ///< name of rawlog file
+  std::string ini_filename_;     ///< name of ini file
+  std::string global_frame_id_;  ///< /map frame
+  std::string odom_frame_id_;    ///< /odom frame
+  std::string base_frame_id_;    ///< robot frame
 
   // Sensor source
-  std::string sensor_source;  ///< 2D laser scans
+  std::string sensor_source_;  ///< 2D laser scans
 
   std::map<std::string, mrpt::poses::CPose3D> laser_poses_;   ///< laser scan poses with respect to the map
   std::map<std::string, mrpt::poses::CPose3D> beacon_poses_;  ///< beacon poses with respect to the map
@@ -175,18 +161,22 @@ private:
   std::vector<ros::Subscriber> sensorSub_;  ///< list of sensors topics
 
   // read rawlog file
-  std::vector<std::pair<CActionCollection, CSensoryFrame>> data;  ///< vector of pairs of actions and obsrvations from
-                                                                  ///rawlog file
+  std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>> data_;  ///< vector of pairs of actions
+                                                                                         ///< and obsrvations from
+                                                                                         /// rawlog file
 
-  std::vector<mrpt::opengl::CEllipsoid::Ptr> viz_beacons;
+  std::vector<mrpt::opengl::CEllipsoid::Ptr> viz_beacons_;
 
-  ros::Publisher pub_map_, pub_metadata_, pub_Particles_, pub_Particles_Beacons_,
-      beacon_viz_pub_;  ///<publishers for map and pose particles
+  ros::Publisher pub_map_, pub_metadata_, pub_particles_, pub_particles_beacons_,
+      beacon_viz_pub_;  ///< publishers for map and pose particles
 
-  tf::TransformListener listenerTF_;         ///<transform listener
-  tf::TransformBroadcaster tf_broadcaster_;  ///<transform broadcaster
-
-  CTicTac tictac;  ///<timer for SLAM performance evaluation
-  float t_exec;    ///<the time which take one SLAM update execution
+  tf::TransformListener listenerTF_;         ///< transform listener
+  tf::TransformBroadcaster tf_broadcaster_;  ///< transform broadcaster
+#if MRPT_VERSION >= 0x199
+  mrpt::system::CTicTac tictac_;  ///< timer for SLAM performance evaluation
+#else
+  mrpt::utils::CTicTac tictac_;
+#endif
+  float t_exec_;  ///< the time which take one SLAM update execution
 };
-
+}  // namespace mrpt_rbpf_slam

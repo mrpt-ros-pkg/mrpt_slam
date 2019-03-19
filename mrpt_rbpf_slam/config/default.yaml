@@ -1,0 +1,33 @@
+# Ros loop update frequency
+update_loop_frequency: 100 # Hz (or 100 updates per sec)
+
+# Absolute path to the folder where to save *.simplemap
+# Note: everything in '/tmp' folder is removed if computer is restarted
+simplemap_save_folder: /tmp/
+
+# More documentation:
+# http://www.mrpt.org/tutorials/programming/odometry-and-motion-models/probabilistic_motion_models/
+motion_model:
+  type: "thrun" # choose thrun or gaussian
+  gaussian_motion_model_options:
+    a1: 0.034
+    a2: 0.057
+    a3: 0.014
+    a4: 0.097
+    minStdXY:  0.005
+    minStdPHI: 0.05
+  thrun_motion_model_options:
+    particle_count:     100
+    alfa1_rot_rot:      0.1
+    alfa2_rot_trans:    0.1
+    alfa3_trans_trans:  0.1
+    alfa4_trans_rot:    0.1
+    additional_std_XY:  0.1 # m
+    additional_std_phi: 0.1 # rad
+
+mrpt_visualization_options:
+  show_window:         true
+  camera_follow_robot: false
+  window_update_delay: 1     # [ms]
+  width:               600   # [pix]
+  height:              500   # [pix]
