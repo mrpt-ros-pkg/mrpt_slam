@@ -23,12 +23,21 @@ PFslam::~PFslam()
     sOutMap += ".simplemap";
 
     sOutMap = mrpt::system::fileNameStripInvalidChars(sOutMap);
-    ROS_INFO("Saving built map to `%s`", sOutMap.c_str());
+    if (mrpt::system::directoryExists(options_.simplemap_path_prefix))
+    {
+      sOutMap = options_.simplemap_path_prefix + sOutMap;
+    }
+    else
+    {
+      std::cerr << "Folder " << options_.simplemap_path_prefix
+                << " doesn't exist, cannot save simplemap there! Default '~/.ros/' path will be used.\n";
+    }
+    std::cout << "Saving built map " << sOutMap << "\n";
     mapBuilder_.saveCurrentMapToFile(sOutMap);
   }
   catch (const std::exception& e)
   {
-    ROS_ERROR("Exception: %s", e.what());
+    std::cerr << "Exception: " << e.what() << "\n";
   }
 }
 

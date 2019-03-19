@@ -56,6 +56,7 @@ public:
     bool SHOW_PROGRESS_IN_WINDOW_;
     int SHOW_PROGRESS_IN_WINDOW_DELAY_MS_;
     int PROGRESS_WINDOW_WIDTH_, PROGRESS_WINDOW_HEIGHT_;
+    std::string simplemap_path_prefix;
   } options_;
 
   PFslam() = default;

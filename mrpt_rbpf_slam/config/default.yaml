@@ -1,6 +1,9 @@
 # Ros loop update frequency
 update_loop_frequency: 100 # Hz (or 100 updates per sec)
 
+# Absolute path to the folder where to save *.simplemap
+simplemap_save_folder: /tmp/
+
 # More documentation:
 # http://www.mrpt.org/tutorials/programming/odometry-and-motion-models/probabilistic_motion_models/
 motion_model:

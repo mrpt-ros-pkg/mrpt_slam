@@ -93,6 +93,7 @@ bool loadOptions(const ros::NodeHandle& nh, PFslam::Options& options)
   bool success = true;
   success = success && loadMotionModelParameters(nh, options.motion_model_options_);
   success = success && loadVisualizationOptions(nh, options);
+  success = success && nh.getParam("simplemap_save_folder", options.simplemap_path_prefix);
   return success;
 }
 
