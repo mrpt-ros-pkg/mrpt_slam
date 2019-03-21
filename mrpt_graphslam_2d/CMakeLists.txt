@@ -1,7 +1,6 @@
 # Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
 # Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
 cmake_minimum_required(VERSION 3.1)
-set (CMAKE_CXX_STANDARD 14)
 project(mrpt_graphslam_2d)
 
 ## Find catkin macros and libraries
@@ -24,8 +23,9 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(MRPT 1.5 REQUIRED gui obs maps opengl graphslam)
 message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
 
-if (MRPT_VERSION VERSION_LESS 2.0.0)
-	add_compile_options(-Wno-deprecated-declarations)
+if (MRPT_VERSION VERSION_LESS "1.9.9")
+  set (CMAKE_CXX_STANDARD 14)
+#	add_compile_options(-Wno-deprecated-declarations)
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
@@ -119,19 +119,19 @@ else()
 
   ## Specify libraries to link a library or executable target against
   target_link_libraries(${PROJECT_NAME}
-    ${MRPT_LIBS}
+    ${MRPT_LIBRARIES}
     ${catkin_LIBRARIES}
     )
   target_link_libraries(${PROJECT_NAME}_node
-    ${MRPT_LIBS}
+    ${MRPT_LIBRARIES}
     ${catkin_LIBRARIES}
     )
   target_link_libraries(${PROJECT_NAME}_mr_node
-    ${MRPT_LIBS}
+    ${MRPT_LIBRARIES}
     ${catkin_LIBRARIES}
     )
   target_link_libraries(map_merger_node
-  	${MRPT_LIBS}
+  	${MRPT_LIBRARIES}
   	${catkin_LIBRARIES}
   	)
 

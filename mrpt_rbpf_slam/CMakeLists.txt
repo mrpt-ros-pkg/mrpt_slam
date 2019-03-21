@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.1)
-set (CMAKE_CXX_STANDARD 14)
 project(mrpt_rbpf_slam)
 
 #find catkin packages
@@ -18,6 +17,9 @@ find_package(catkin REQUIRED COMPONENTS
 #find mrpt packages
 find_package(MRPT 1.5 REQUIRED gui obs slam)
 message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
+if(MRPT_VERSION VERSION_LESS "1.9.9")
+  set (CMAKE_CXX_STANDARD 14)
+endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	# High level of warnings.
@@ -60,7 +62,7 @@ add_executable(mrpt_rbpf_slam
     src/options.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_rbpf_slam ${MRPT_LIBS}
+TARGET_LINK_LIBRARIES(mrpt_rbpf_slam ${MRPT_LIBRARIES}
     ${catkin_LIBRARIES}
 )
 

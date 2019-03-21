@@ -1,7 +1,6 @@
 # Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
 # Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
 cmake_minimum_required(VERSION 3.1)
-set (CMAKE_CXX_STANDARD 14)
 project(mrpt_icp_slam_2d)
 # Load catkin and all dependencies required for this package
 # TODO: remove all from COMPONENTS that are not catkin packages.
@@ -22,6 +21,9 @@ find_package(catkin REQUIRED COMPONENTS
 #find mrpt packages
 find_package(MRPT 1.5 REQUIRED gui obs slam)
 message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
+if(MRPT_VERSION VERSION_LESS "1.9.9")
+  set (CMAKE_CXX_STANDARD 14)
+endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	# High level of warnings.
@@ -62,7 +64,7 @@ add_executable(mrpt_icp_slam_2d
     src/mrpt_icp_slam_2d_app.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_icp_slam_2d ${MRPT_LIBS}
+TARGET_LINK_LIBRARIES(mrpt_icp_slam_2d ${MRPT_LIBRARIES}
     ${catkin_LIBRARIES}
 )
 
