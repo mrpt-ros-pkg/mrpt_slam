@@ -1,9 +1,7 @@
 #include "mrpt_rbpf_slam/mrpt_rbpf_slam_wrapper.h"
-
-#include <mrpt_rbpf_slam/options.h>
-
 #include <mrpt/maps/CBeaconMap.h>
 #include <mrpt/maps/COccupancyGridMap2D.h>
+#include <mrpt_rbpf_slam/options.h>
 using mrpt::maps::CBeaconMap;
 using mrpt::maps::COccupancyGridMap2D;
 
@@ -215,7 +213,7 @@ void PFslamWrapper::publishMapPose() {
 #else
   if (metric_map_->m_gridMaps.size())
     grid = metric_map_->m_gridMaps[0].get();
-  bm = metric_map_->m_beaconMap.get();
+  bm = metric_map_->getMapByClass<CBeaconMap>().get();
 #endif
 
   if (grid) {
@@ -379,7 +377,7 @@ bool PFslamWrapper::rawlogPlay() {
 #else
         if (metric_map_->m_gridMaps.size())
           grid = metric_map_->m_gridMaps[0].get();
-        bm = metric_map_->m_beaconMap.get();
+        bm = metric_map_->getMapByClass<CBeaconMap>().get();
 #endif
 
         // if I received new grid maps from 2D laser scan sensors
