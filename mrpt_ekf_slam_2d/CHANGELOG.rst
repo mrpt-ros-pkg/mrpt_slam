@@ -2,6 +2,12 @@
 Changelog for package mrpt_ekf_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix build against MRPT 1.9.9
+* Switch header guards to pragma once
+* Contributors: Jose Luis Blanco-Claraco, Julian Lopez Velasquez, Vladislav Tananaev
+
 0.1.8 (2018-09-21)
 ------------------
 * Make catkin_lint clean
