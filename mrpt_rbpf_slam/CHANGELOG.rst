@@ -2,8 +2,8 @@
 Changelog for package mrpt_rbpf_slam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.9 (2019-04-14)
+------------------
 * fix build against mrpt-1.5 & 1.9.9
 * Feature/refactor mrpt rbpf slam
 * Add option to specify simplemap save path

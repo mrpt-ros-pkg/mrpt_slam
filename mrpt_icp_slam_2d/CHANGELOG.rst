@@ -2,8 +2,8 @@
 Changelog for package mrpt_icp_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.9 (2019-04-14)
+------------------
 * Fix build againt MRPT 1.9.9
 * Switch header guards to pragma once
 * Contributors: Jose Luis Blanco-Claraco, Julian Lopez Velasquez, Vladislav Tananaev
