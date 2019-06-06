@@ -219,12 +219,22 @@ void PFslam::run3Dwindow() {
     for (int k = (int)dummyPath.size() - 1; k >= 0; k--) {
       mrpt::poses::CPose3DPDFParticles poseParts;
       mapBuilder_.mapPDF.getEstimatedPosePDFAtTime(k, poseParts);
-      mrpt::poses::CPose3D meanPose;
-      mrpt::math::CMatrixDouble66 COV;
-      poseParts.getCovarianceAndMean(COV, meanPose);
+
+#if MRPT_VERSION >= 0x199
+	  const auto [COV, meanPose] = poseParts.getCovarianceAndMean();
+#else
+	  mrpt::poses::CPose3D meanPose;
+	  mrpt::math::CMatrixDouble66 COV;
+	  poseParts.getCovarianceAndMean(COV, meanPose);
+#endif
 
       if (meanPose.distanceTo(lastMeanPose) > minDistBtwPoses) {
-        mrpt::math::CMatrixDouble33 COV3 = COV.block(0, 0, 3, 3);
+		mrpt::math::CMatrixDouble33 COV3 =
+#if MRPT_VERSION >= 0x199
+			COV.blockCopy<3, 3>(0, 0);
+#else
+			COV.block(0, 0, 3, 3);
+#endif
 
         minDistBtwPoses = 6 * sqrt(COV3(0, 0) + COV3(1, 1));
 

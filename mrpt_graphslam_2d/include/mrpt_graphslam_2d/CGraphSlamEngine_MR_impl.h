@@ -11,6 +11,17 @@
 
 #include <thread>
 #include <chrono>
+#include <mrpt/version.h>
+
+#if MRPT_VERSION>=0x199
+#include <mrpt/math/CMatrixFixed.h>
+namespace mrpt::math{
+// backwards compatible
+template <typename T, std::size_t ROWS, std::size_t COLS>
+using CMatrixFixedNumeric = CMatrixFixed<T,ROWS,COLS>;
+}
+#endif
+
 
 namespace mrpt { namespace graphslam {
 
@@ -133,7 +144,11 @@ addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor) {
 		constraint_t c;
 		c.mean = node_props_to_connect.second.pose -
 			neighbor->last_integrated_pair_neighbor_frame.second;
+#if MRPT_VERSION>=0x199
+		c.cov_inv.setIdentity();
+#else
 		c.cov_inv.unit();
+#endif
 		graph_conn.setEdge(c);
 
 		graph_conn.from = INVALID_NODEID;
@@ -182,12 +197,12 @@ addNodeBatchFromNeighbor(TNeighborAgentProps* neighbor) {
 			<< "| [new:] " << old_to_new_mappings.at(*n_cit));
 	}
 
- 	this->m_nodes_to_laser_scans2D.insert(
- 			new_nodeIDs_to_scans_pairs.begin(),
- 			new_nodeIDs_to_scans_pairs.end());
+	this->m_nodes_to_laser_scans2D.insert(
+			new_nodeIDs_to_scans_pairs.begin(),
+			new_nodeIDs_to_scans_pairs.end());
 	edge_reg_mr_t* edge_reg_mr =
 		dynamic_cast<edge_reg_mr_t*>(this->m_edge_reg);
- 	edge_reg_mr->addBatchOfNodeIDsAndScans(new_nodeIDs_to_scans_pairs);
+	edge_reg_mr->addBatchOfNodeIDsAndScans(new_nodeIDs_to_scans_pairs);
 
 	this->execDijkstraNodesEstimation();
 	neighbor->resetFlags();
@@ -356,7 +371,12 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 		hypot_t graph_conn;
 		constraint_t c;
 		c.mean = pose_out;
-		cov_out.inv(c.cov_inv); // assign the inverse of the found covariance to c
+		 // assign the inverse of the found covariance to c
+#if MRPT_VERSION>=0x199
+		cov_out = c.cov_inv.inverse();
+#else
+		cov_out.inv(c.cov_inv);
+#endif
 		graph_conn.setEdge(c);
 		// TODO - change this.
 		graph_conn.from = 0; // self
@@ -395,12 +415,12 @@ findTFWithNeighbor(TNeighborAgentProps* neighbor) {
 			<< "| [new:] " << old_to_new_mappings.at(*n_cit));
 	}
 
- 	this->m_nodes_to_laser_scans2D.insert(
- 			new_nodeIDs_to_scans_pairs.begin(),
- 			new_nodeIDs_to_scans_pairs.end());
+	this->m_nodes_to_laser_scans2D.insert(
+			new_nodeIDs_to_scans_pairs.begin(),
+			new_nodeIDs_to_scans_pairs.end());
 	edge_reg_mr_t* edge_reg_mr =
 		dynamic_cast<edge_reg_mr_t*>(this->m_edge_reg);
- 	edge_reg_mr->addBatchOfNodeIDsAndScans(new_nodeIDs_to_scans_pairs);
+	edge_reg_mr->addBatchOfNodeIDsAndScans(new_nodeIDs_to_scans_pairs);
 
 	// Call for a Full graph visualization update and Dijkstra update -
 	// CGraphSlamOptimizer
@@ -448,19 +468,19 @@ bool CGraphSlamEngine_MR<GRAPH_T>::_execGraphSlamStep(
 	// find matches between own nodes and those of the neighbors
   bool did_register_from_map_merge;
   if (!m_opts.conservative_find_initial_tfs_to_neighbors) {
-  	did_register_from_map_merge = this->findTFsWithAllNeighbors();
+	did_register_from_map_merge = this->findTFsWithAllNeighbors();
   }
   else { // inter-graph TF is available - add new nodes
-  	THROW_EXCEPTION("Conservative inter-graph TF computation is not yet implemented.");
+	THROW_EXCEPTION("Conservative inter-graph TF computation is not yet implemented.");
   }
 
   bool did_register_from_batches = this->addNodeBatchesFromAllNeighbors();
   m_registered_multiple_nodes = (did_register_from_map_merge || did_register_from_batches);
 
   if (m_registered_multiple_nodes) {
-  	if (this->m_enable_visuals) {
-  		this->updateAllVisuals();
-  	}
+	if (this->m_enable_visuals) {
+		this->updateAllVisuals();
+	}
   }
 
   return continue_exec;
@@ -498,11 +518,11 @@ void CGraphSlamEngine_MR<GRAPH_T>::initClass() {
 	MRPT_LOG_INFO_STREAM("master_discovery, master_sync are available.");
 
 	this->m_node_reg->setClassName(
-	 	  this->m_node_reg->getClassName() + "_" + m_conn_manager.getTrimmedNs());
+		  this->m_node_reg->getClassName() + "_" + m_conn_manager.getTrimmedNs());
 	this->m_edge_reg->setClassName(
-	 	  this->m_edge_reg->getClassName() + "_" + m_conn_manager.getTrimmedNs());
+		  this->m_edge_reg->getClassName() + "_" + m_conn_manager.getTrimmedNs());
 	this->m_optimizer->setClassName(
-	 	  this->m_optimizer->getClassName() + "_" + m_conn_manager.getTrimmedNs());
+		  this->m_optimizer->getClassName() + "_" + m_conn_manager.getTrimmedNs());
 
 	// in case of Multi-robot specific deciders/optimizers (they
 	// inherit from the CDeciderOrOptimizer_ROS interface) set the
@@ -513,25 +533,25 @@ void CGraphSlamEngine_MR<GRAPH_T>::initClass() {
 	// and not care about the multi-robot nature of the algorithm (e.g.
 	// optimization scheme)
 	{ // NRD
-	 	CRegistrationDeciderOrOptimizer_MR<GRAPH_T>* dec_opt_mr =
-	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_MR<GRAPH_T>*>(this->m_node_reg);
+		CRegistrationDeciderOrOptimizer_MR<GRAPH_T>* dec_opt_mr =
+			dynamic_cast<CRegistrationDeciderOrOptimizer_MR<GRAPH_T>*>(this->m_node_reg);
 
-	 	if (dec_opt_mr) {
-	 	 	dec_opt_mr->setCConnectionManagerPtr(&m_conn_manager);
-	 	}
+		if (dec_opt_mr) {
+			dec_opt_mr->setCConnectionManagerPtr(&m_conn_manager);
+		}
 	}
 	{ // ERD
 		CRegistrationDeciderOrOptimizer_MR<GRAPH_T>* dec_opt_mr =
-	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_MR<GRAPH_T>*>(this->m_edge_reg);
+			dynamic_cast<CRegistrationDeciderOrOptimizer_MR<GRAPH_T>*>(this->m_edge_reg);
 		ASSERT_(dec_opt_mr);
-	 	dec_opt_mr->setCConnectionManagerPtr(&m_conn_manager);
-	 	dec_opt_mr->setCGraphSlamEnginePtr(this);
+		dec_opt_mr->setCConnectionManagerPtr(&m_conn_manager);
+		dec_opt_mr->setCGraphSlamEnginePtr(this);
 	}
 	{ // GSO
 		CRegistrationDeciderOrOptimizer_MR<GRAPH_T>* dec_opt_mr =
-	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_MR<GRAPH_T>*>(this->m_optimizer);
+			dynamic_cast<CRegistrationDeciderOrOptimizer_MR<GRAPH_T>*>(this->m_optimizer);
 		if (dec_opt_mr) {
-	 		dec_opt_mr->setCConnectionManagerPtr(&m_conn_manager);
+			dec_opt_mr->setCConnectionManagerPtr(&m_conn_manager);
 		}
 	}
 	// display messages with the names of the deciders, optimizer and agent string ID
@@ -1112,7 +1132,7 @@ fetchUpdatedNodesList(
 	using namespace mrpt::utils;
 
 	typedef typename GRAPH_T::constraint_t::type_value pose_t;
-    engine.logFmt(LVL_DEBUG, "In fetchUpdatedNodesList method.");
+	engine.logFmt(LVL_DEBUG, "In fetchUpdatedNodesList method.");
 
 	for (NodeIDWithPose_vec::_vec_type::const_iterator
 			n_it = nodes->vec.begin();
@@ -1144,21 +1164,21 @@ fetchUpdatedNodesList(
 	// engine.logFmt lines. Fix this.
 	//
   //engine.logFmt(LVL_DEBUG, // THIS CRASHES - GDB WHERE
-      //"NodeIDs for topic namespace: %s -> [%s]",
-      //agent.topic_namespace.data.c_str(),
-      //mrpt::math::getSTLContainerAsString(vector<TNodeID>(
-          //nodeIDs_set.begin(), nodeIDs_set.end())).c_str());
+	  //"NodeIDs for topic namespace: %s -> [%s]",
+	  //agent.topic_namespace.data.c_str(),
+	  //mrpt::math::getSTLContainerAsString(vector<TNodeID>(
+		  //nodeIDs_set.begin(), nodeIDs_set.end())).c_str());
   // print poses just for verification
   //engine.logFmt(LVL_DEBUG, "Poses for topic namespace: %s",
-      //agent.topic_namespace.data.c_str());
+	  //agent.topic_namespace.data.c_str());
   //for (typename GRAPH_T::global_poses_t::const_iterator
-      //p_it = poses.begin();
-      //p_it != poses.end();
-      //++p_it) {
-    //std::string p_str; p_it->second.asString(p_str);
-    //engine.logFmt(LVL_DEBUG, "nodeID: %lu | pose: %s",
-        //static_cast<unsigned long>(p_it->first),
-        //p_str.c_str());
+	  //p_it = poses.begin();
+	  //p_it != poses.end();
+	  //++p_it) {
+	//std::string p_str; p_it->second.asString(p_str);
+	//engine.logFmt(LVL_DEBUG, "nodeID: %lu | pose: %s",
+		//static_cast<unsigned long>(p_it->first),
+		//p_str.c_str());
   //}
 	// TODO - These also seem to crash sometimes
 	//cout << "Agent information: " << agent << endl;
@@ -1222,15 +1242,15 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
 			params.first = *n_it;
 			params.second.pose = *p;
 			CObservation2DRangeScan::Ptr mrpt_scan = CObservation2DRangeScan::Create();
-      const sensor_msgs::LaserScan* ros_laser_scan =
-        this->getLaserScanByNodeID(*n_it);
+	  const sensor_msgs::LaserScan* ros_laser_scan =
+		this->getLaserScanByNodeID(*n_it);
 
       // if LaserScan not found, skip nodeID altogether.
       //
       // Its natural to have more poses than LaserScans since on every node
       // registration I send a modified list of X node positions and just one
       // LaserScan
-      if (!ros_laser_scan) { continue; }
+	  if (!ros_laser_scan) { continue; }
 
 			mrpt_bridge::convert(*ros_laser_scan, CPose3D(*p), *mrpt_scan);
 			params.second.scan = mrpt_scan;
