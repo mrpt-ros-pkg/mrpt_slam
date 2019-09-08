@@ -236,7 +236,12 @@ void ICPslamWrapper::run3Dwindow() {
     if (SHOW_LASER_SCANS_3D) {
       // Rawlog in "Observation-only" format:
       if (isObsBasedRawlog) {
-        if (IS_CLASS(observation, CObservation2DRangeScan)) {
+#if MRPT_VERSION >= 0x199
+		if (IS_CLASS(*observation, CObservation2DRangeScan))
+#else
+		if (IS_CLASS(observation, CObservation2DRangeScan))
+#endif
+		{
           lst_current_laser_scans.push_back(
               mrpt::ptr_cast<CObservation2DRangeScan>::from(observation));
         }
