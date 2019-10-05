@@ -2,6 +2,11 @@
 Changelog for package mrpt_rbpf_slam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix build against mrpt2
+* Contributors: Jose Luis Blanco-Claraco
+
 0.1.9 (2019-04-14)
 ------------------
 * fix build against mrpt-1.5 & 1.9.9

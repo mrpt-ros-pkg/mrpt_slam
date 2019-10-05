@@ -2,6 +2,11 @@
 Changelog for package mrpt_ekf_slam_3d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix build against mrpt2
+* Contributors: Jose Luis Blanco-Claraco
+
 0.1.9 (2019-04-14)
 ------------------
 * Fix build against MRPT 1.9.9

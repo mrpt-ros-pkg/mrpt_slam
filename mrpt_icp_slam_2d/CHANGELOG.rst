@@ -2,6 +2,11 @@
 Changelog for package mrpt_icp_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix build against current mrpt2
+* Contributors: Jose Luis Blanco Claraco
+
 0.1.9 (2019-04-14)
 ------------------
 * Fix build againt MRPT 1.9.9
