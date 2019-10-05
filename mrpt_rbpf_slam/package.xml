@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>mrpt_rbpf_slam</name>
-  <version>0.1.9</version>
+  <version>0.1.10</version>
   <description>This package is used for gridmap SLAM. The interface is similar to gmapping (http://wiki.ros.org/gmapping) but the package supports different particle-filter algorithms, range-only SLAM, can work with several grid maps simultaneously and more.</description>
 
   <url type="website">http://www.mrpt.org/</url>
