@@ -40,6 +40,13 @@ bool PFslamWrapper::getParams(const ros::NodeHandle &nh_p) {
   nh_p.param<std::string>("sensor_source", sensor_source_, "scan");
   ROS_INFO("sensor_source: %s", sensor_source_.c_str());
 
+  nh_p.param<std::string>("sensor_source", sensor_source_, "scan");
+  ROS_INFO("sensor_source: %s", sensor_source_.c_str());
+  
+  nh_p.param<bool>("update_sensor_pose", update_sensor_pose_, true);
+  ROS_INFO("update_sensor_pose: %s", (update_sensor_pose_?"TRUE":"FALSE"));
+  
+  
   PFslam::Options options;
   if (!loadOptions(nh_p, options)) {
     ROS_ERROR("Not able to read all parameters!");
@@ -143,9 +150,13 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan &msg) {
   using namespace mrpt::obs;
   CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
 
+    
   if (laser_poses_.find(msg.header.frame_id) == laser_poses_.end()) {
+    // check if the tf to establish the sensor pose 
     updateSensorPose(msg.header.frame_id);
   } else {
+    // update sensor pose 
+    if(update_sensor_pose_) updateSensorPose(msg.header.frame_id); 
     mrpt::poses::CPose3D pose = laser_poses_[msg.header.frame_id];
     mrpt_bridge::convert(msg, laser_poses_[msg.header.frame_id], *laser);
 
@@ -174,9 +185,14 @@ void PFslamWrapper::callbackBeacon(
   using namespace mrpt::obs;
 
   CObservationBeaconRanges::Ptr beacon = CObservationBeaconRanges::Create();
+  
   if (beacon_poses_.find(msg.header.frame_id) == beacon_poses_.end()) {
+    // check if the tf to establish the sensor pose 
     updateSensorPose(msg.header.frame_id);
   } else {
+    // update sensor pose 
+    if(update_sensor_pose_) updateSensorPose(msg.header.frame_id); 
+    
     mrpt_bridge::convert(msg, beacon_poses_[msg.header.frame_id], *beacon);
 
     sensory_frame_ = CSensoryFrame::Create();
