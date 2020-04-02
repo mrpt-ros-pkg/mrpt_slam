@@ -47,6 +47,8 @@ namespace mrpt_rbpf_slam
 class PFslam
 {
 public:
+    static const int MOTION_TYPE_GAUSSIAN = 0;   /// must correspond with the dynamic reconfigure values for the motion type
+    static const int MOTION_TYPE_TRUN     = 1;   /// must correspond with the dynamic reconfigure values for the motion type
   struct Options
   {
     mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion
@@ -76,7 +78,7 @@ public:
   /**
    * @brief initialize the SLAM
    */
-  void initSlam(Options options);
+  void initSlam();
 
   /**
    * @brief Read pairs of actions and observations from rawlog file
