@@ -77,7 +77,9 @@ install(TARGETS mrpt_ekf_slam_2d
 
 # Mark other files for installation (e.g. launch and bag files, etc.)
 install(DIRECTORY
+  config
   launch
+  rviz
   tutorial
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
