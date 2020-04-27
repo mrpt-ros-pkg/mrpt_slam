@@ -16,6 +16,12 @@
 #include <ros/package.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
+
+// add ros dynamic_reconfigure
+#include <mrpt_rbpf_slam/GeneralConfig.h>
+#include <mrpt_rbpf_slam/MotionConfig.h>
+#include <dynamic_reconfigure/server.h>
+
 // add ros msgs
 #include <nav_msgs/OccupancyGrid.h>
 #include "nav_msgs/MapMetaData.h"
@@ -153,7 +159,6 @@ private:
 
   // Sensor source
   std::string sensor_source_;    ///< 2D laser scans
-  bool update_sensor_pose_;      ///< on true the sensor pose is updated on every sensor reading
 
   std::map<std::string, mrpt::poses::CPose3D> laser_poses_;   ///< laser scan poses with respect to the map
   std::map<std::string, mrpt::poses::CPose3D> beacon_poses_;  ///< beacon poses with respect to the map
@@ -179,5 +184,15 @@ private:
   mrpt::utils::CTicTac tictac_;
 #endif
   float t_exec_;  ///< the time which take one SLAM update execution
+  
+  
+    mrpt_rbpf_slam::MotionConfig config_motion_;
+    mrpt_rbpf_slam::GeneralConfig config_general_;
+    dynamic_reconfigure::Server<mrpt_rbpf_slam::MotionConfig> reconfigureServerSlam_; /// parameter server stuff
+    dynamic_reconfigure::Server<mrpt_rbpf_slam::MotionConfig>::CallbackType reconfigureFncSlam_;  /// parameter server stuff
+    void callbackConfigSlam ( mrpt_rbpf_slam::MotionConfig &config, uint32_t level ); /// callback function on incoming parameter changes
+    dynamic_reconfigure::Server<mrpt_rbpf_slam::GeneralConfig> reconfigureServerGeneral_; /// parameter server stuff
+    dynamic_reconfigure::Server<mrpt_rbpf_slam::GeneralConfig>::CallbackType reconfigureFncGeneral_;  /// parameter server stuff
+    void callbackConfigGeneral ( mrpt_rbpf_slam::GeneralConfig &config, uint32_t level ); /// callback function on incoming parameter changes
 };
 }  // namespace mrpt_rbpf_slam

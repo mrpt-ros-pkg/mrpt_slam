@@ -101,11 +101,17 @@ void PFslam::observation(
   }
 }
 
-void PFslam::initSlam(PFslam::Options options) {
+void PFslam::initSlam() {
   log4cxx::LoggerPtr ros_logger =
       log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
-  mapBuilder_.setVerbosityLevel(
-      mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+  VerbosityLevel level;
+  try{
+      level = mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel());
+  } catch (...){
+      ROS_ERROR("Could not find log Level, doing to debug");
+      level = VerbosityLevel::LVL_DEBUG;
+  }
+  mapBuilder_.setVerbosityLevel(level);
   mapBuilder_.logging_enable_console_output = false;
 #if MRPT_VERSION < 0x199
   mapBuilder_.logRegisterCallback(static_cast<output_logger_callback_t>(
@@ -122,29 +128,6 @@ void PFslam::initSlam(PFslam::Options options) {
 #else
   mrpt::random::randomGenerator.randomize();
 #endif
-
-  options_ = std::move(options);
-
-  //  use_motion_model_default_options_ = false;
-  //  //  motion_model_default_options_.modelSelection =
-  //  mrpt::obs::CActionRobotMovement2D::mmGaussian;
-  //  //  motion_model_default_options_.gaussianModel.minStdXY = 0.10;
-  //  //  motion_model_default_options_.gaussianModel.minStdPHI = 2.0;
-
-  //  motion_model_options_.modelSelection =
-  //  mrpt::obs::CActionRobotMovement2D::mmGaussian;
-  //  motion_model_options_.gaussianModel.a1 = 0.034f;
-  //  motion_model_options_.gaussianModel.a2 = 0.057f;
-  //  motion_model_options_.gaussianModel.a3 = 0.014f;
-  //  motion_model_options_.gaussianModel.a4 = 0.097f;
-  //  motion_model_options_.gaussianModel.minStdXY = 0.005f;
-  //  motion_model_options_.gaussianModel.minStdPHI = 0.05f;
-
-  //  PROGRESS_WINDOW_WIDTH_ = 600;
-  //  PROGRESS_WINDOW_HEIGHT_ = 500;
-  //  SHOW_PROGRESS_IN_WINDOW_ = false;
-  //  SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ = 0;
-  //  CAMERA_3DSCENE_FOLLOWS_ROBOT_ = false;
 }
 
 void PFslam::init3Dwindow() {

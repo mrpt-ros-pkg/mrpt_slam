@@ -39,20 +39,14 @@ bool PFslamWrapper::getParams(const ros::NodeHandle &nh_p) {
 
   nh_p.param<std::string>("sensor_source", sensor_source_, "scan");
   ROS_INFO("sensor_source: %s", sensor_source_.c_str());
-
-  nh_p.param<std::string>("sensor_source", sensor_source_, "scan");
-  ROS_INFO("sensor_source: %s", sensor_source_.c_str());
   
-  nh_p.param<bool>("update_sensor_pose", update_sensor_pose_, true);
-  ROS_INFO("update_sensor_pose: %s", (update_sensor_pose_?"TRUE":"FALSE"));
+  /// dynamic reconfigure callback bindings
+  reconfigureFncSlam_ = boost::bind ( &PFslamWrapper::callbackConfigSlam, this,  _1, _2 );
+  reconfigureServerSlam_.setCallback ( reconfigureFncSlam_ );
+  reconfigureFncGeneral_ = boost::bind ( &PFslamWrapper::callbackConfigGeneral, this,  _1, _2 );
+  reconfigureServerGeneral_.setCallback ( reconfigureFncGeneral_ );
   
-  
-  PFslam::Options options;
-  if (!loadOptions(nh_p, options)) {
-    ROS_ERROR("Not able to read all parameters!");
-    return false;
-  }
-  initSlam(std::move(options));
+  initSlam();
   return true;
 }
 
@@ -85,6 +79,7 @@ bool PFslamWrapper::init(ros::NodeHandle &nh) {
   beacon_viz_pub_ =
       nh.advertise<visualization_msgs::MarkerArray>("/beacons_viz", 1);
 
+    
   // read sensor topics
   std::vector<std::string> lstSources;
   mrpt::system::tokenize(sensor_source_, " ,\t\n", lstSources);
@@ -108,6 +103,44 @@ bool PFslamWrapper::init(ros::NodeHandle &nh) {
   mapBuilder_ = mrpt::slam::CMetricMapBuilderRBPF(options_.rbpfMappingOptions_);
   init3Dwindow();
   return true;
+}
+
+void PFslamWrapper::callbackConfigGeneral ( mrpt_rbpf_slam::GeneralConfig &config, uint32_t level ) {
+    ROS_INFO ("callbackConfigGeneral");
+    config_general_ = config;
+    options_.SHOW_PROGRESS_IN_WINDOW_ = config_general_.visualization_on;
+    options_.PROGRESS_WINDOW_WIDTH_ = config_general_.visualization_width;
+    options_.PROGRESS_WINDOW_HEIGHT_ = config_general_.visualization_height;
+    options_.SHOW_PROGRESS_IN_WINDOW_DELAY_MS_ = config_general_.visualization_update_delay;
+    options_.CAMERA_3DSCENE_FOLLOWS_ROBOT_ = config_general_.visualization_follow_robot;
+    
+    
+    options_.simplemap_path_prefix = config_general_.folder_simplemap;
+}
+
+void PFslamWrapper::callbackConfigSlam ( mrpt_rbpf_slam::MotionConfig &config, uint32_t level ) {
+    ROS_INFO ("callbackConfigSlam");
+    config_motion_ = config;
+    if(config_motion_.motion_noise_type == MOTION_TYPE_TRUN){
+        options_.motion_model_options_.modelSelection =  mrpt::obs::CActionRobotMovement2D::mmThrun;
+    } else if(config_motion_.motion_noise_type == MOTION_TYPE_GAUSSIAN){
+        options_.motion_model_options_.modelSelection = mrpt::obs::CActionRobotMovement2D::mmGaussian;
+    }
+    
+    /// update trun parameters
+    options_.motion_model_options_.thrunModel.alfa1_rot_rot = config_motion_.thrun_alpha_1_rot_rot;
+    options_.motion_model_options_.thrunModel.alfa1_rot_rot = config_motion_.thrun_alpha_2_rot_trans;
+    options_.motion_model_options_.thrunModel.alfa3_trans_trans = config_motion_.thrun_alpha_3_trans_trans;
+    options_.motion_model_options_.thrunModel.alfa4_trans_rot = config_motion_.thrun_alpha_4_trans_rot;
+    options_.motion_model_options_.thrunModel.additional_std_XY = config_motion_.thrun_additional_std_XY;
+    options_.motion_model_options_.thrunModel.additional_std_phi = config_motion_.thrun_additional_std_phi;
+    
+    options_.motion_model_options_.gaussianModel.a1 = config_motion_.gaussian_alpha_1;
+    options_.motion_model_options_.gaussianModel.a2 = config_motion_.gaussian_alpha_2;
+    options_.motion_model_options_.gaussianModel.a3 = config_motion_.gaussian_alpha_3;
+    options_.motion_model_options_.gaussianModel.a4 = config_motion_.gaussian_alpha_4;
+    options_.motion_model_options_.gaussianModel.minStdXY = config_motion_.gaussian_alpha_xy;
+    options_.motion_model_options_.gaussianModel.minStdPHI = config_motion_.gaussian_alpha_phi;
 }
 
 void PFslamWrapper::odometryForCallback(
@@ -146,6 +179,7 @@ bool PFslamWrapper::waitForTransform(
 }
 
 void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan &msg) {
+  ROS_INFO ("laserCallback");
   using namespace mrpt::maps;
   using namespace mrpt::obs;
   CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
@@ -156,7 +190,7 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan &msg) {
     updateSensorPose(msg.header.frame_id);
   } else {
     // update sensor pose 
-    if(update_sensor_pose_) updateSensorPose(msg.header.frame_id); 
+    if(config_general_.update_sensor_pose) updateSensorPose(msg.header.frame_id); 
     mrpt::poses::CPose3D pose = laser_poses_[msg.header.frame_id];
     mrpt_bridge::convert(msg, laser_poses_[msg.header.frame_id], *laser);
 
@@ -181,6 +215,7 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan &msg) {
 
 void PFslamWrapper::callbackBeacon(
     const mrpt_msgs::ObservationRangeBeacon &msg) {
+  ROS_INFO ("callbackBeacon");
   using namespace mrpt::maps;
   using namespace mrpt::obs;
 
@@ -191,7 +226,7 @@ void PFslamWrapper::callbackBeacon(
     updateSensorPose(msg.header.frame_id);
   } else {
     // update sensor pose 
-    if(update_sensor_pose_) updateSensorPose(msg.header.frame_id); 
+    if(config_general_.update_sensor_pose) updateSensorPose(msg.header.frame_id); 
     
     mrpt_bridge::convert(msg, beacon_poses_[msg.header.frame_id], *beacon);
 

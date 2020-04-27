@@ -36,6 +36,12 @@ IF(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   add_compile_options(-O3)
 ENDIF()
 
+# Add dynamic reconfigure api
+generate_dynamic_reconfigure_options(
+  cfg/General.cfg
+  cfg/Motion.cfg
+)
+
 catkin_package(
 	CATKIN_DEPENDS
   nav_msgs
@@ -43,6 +49,7 @@ catkin_package(
   std_msgs
   visualization_msgs
 )
+
 
 ###########
 ## Build ##
@@ -55,15 +62,18 @@ include_directories(
 
 
 
-add_executable(mrpt_rbpf_slam
+add_executable(${PROJECT_NAME}
     src/mrpt_rbpf_slam.cpp
     src/mrpt_rbpf_slam_wrapper.cpp
     src/mrpt_rbpf_slam_node.cpp
     src/options.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_rbpf_slam ${MRPT_LIBRARIES}
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${MRPT_LIBRARIES}
     ${catkin_LIBRARIES}
+)
+add_dependencies(${PROJECT_NAME}
+   ${PROJECT_NAME}_gencfg
 )
 
 #############
