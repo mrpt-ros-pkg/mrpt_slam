@@ -152,7 +152,8 @@ private:
   std::string base_frame_id_;    ///< robot frame
 
   // Sensor source
-  std::string sensor_source_;  ///< 2D laser scans
+  std::string sensor_source_;    ///< 2D laser scans
+  bool update_sensor_pose_;      ///< on true the sensor pose is updated on every sensor reading
 
   std::map<std::string, mrpt::poses::CPose3D> laser_poses_;   ///< laser scan poses with respect to the map
   std::map<std::string, mrpt::poses::CPose3D> beacon_poses_;  ///< beacon poses with respect to the map

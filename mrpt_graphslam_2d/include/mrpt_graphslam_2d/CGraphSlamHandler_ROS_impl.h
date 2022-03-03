@@ -385,13 +385,16 @@ void CGraphSlamHandler_ROS<GRAPH_T>::setupPubs() {
   // agent estimated position
   m_curr_robot_pos_pub = m_nh->advertise<geometry_msgs::PoseStamped>(
 	  m_curr_robot_pos_topic,
-	  m_queue_size);
+	  m_queue_size,
+	  true);
   m_robot_trajectory_pub = m_nh->advertise<nav_msgs::Path>(
 	  m_robot_trajectory_topic,
-	  m_queue_size);
+	  m_queue_size,
+	  true);
   m_robot_tr_poses_pub = m_nh->advertise<geometry_msgs::PoseArray>(
 	  m_robot_tr_poses_topic,
-	  m_queue_size);
+	  m_queue_size,
+	  true);
 
   // odometry nav_msgs::Path
   m_odom_path.header.seq = 0;
