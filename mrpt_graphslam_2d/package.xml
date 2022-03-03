@@ -21,7 +21,7 @@
   <depend>nav_msgs</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>mrpt1</depend>
+  <depend>mrpt2</depend>
   <depend>mrpt_bridge</depend>
   <depend>mrpt_msgs</depend>
   <depend>tf</depend>

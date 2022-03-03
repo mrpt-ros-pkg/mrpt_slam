@@ -28,7 +28,7 @@
   <depend>mrpt_bridge</depend>
   <depend>dynamic_reconfigure</depend>
   <depend>cmake_modules</depend>
-  <depend>mrpt1</depend>
+  <depend>mrpt2</depend>
 
   <exec_depend>rviz</exec_depend>
   <exec_depend>mrpt_rawlog</exec_depend>
