@@ -8,7 +8,7 @@
   </description>
 
   <url type="website">http://www.mrpt.org/</url>
-  <url type="documentation">http://wiki.ros.org/mrpt_slam</url>
+  <url type="documentation">https://wiki.ros.org/mrpt_slam</url>
   <maintainer email="nickkouk@gmail.com">Nikos Koukis</maintainer>
   <author email="nickkouk@gmail.com">Nikos Koukis</author>
   <license>BSD</license>
