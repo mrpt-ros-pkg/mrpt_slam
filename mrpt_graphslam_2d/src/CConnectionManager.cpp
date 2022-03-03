@@ -14,16 +14,16 @@ using namespace std;
 using namespace mrpt::utils;
 using namespace mrpt::system;
 using namespace mrpt::math;
-using namespace multimaster_msgs_fkie;
+using namespace fkie_multimaster_msgs;
 
 bool operator==(
-		const multimaster_msgs_fkie::ROSMaster& master1,
-		const multimaster_msgs_fkie::ROSMaster& master2) {
+		const fkie_multimaster_msgs::ROSMaster& master1,
+		const fkie_multimaster_msgs::ROSMaster& master2) {
 	return master1.uri == master2.uri;
 }
 bool operator!=(
-		const multimaster_msgs_fkie::ROSMaster& master1,
-		const multimaster_msgs_fkie::ROSMaster& master2) {
+		const fkie_multimaster_msgs::ROSMaster& master1,
+		const fkie_multimaster_msgs::ROSMaster& master2) {
 	return !(master1 == master2);
 }
 
@@ -50,25 +50,25 @@ bool operator<(
 ////////////////////////////////////////////////////////////
 
 bool operator==(
-		const multimaster_msgs_fkie::ROSMaster& master,
+		const fkie_multimaster_msgs::ROSMaster& master,
 		const mrpt_msgs::GraphSlamAgent& agent) {
 	return (master.name == agent.name.data);
 }
 
 bool operator!=(
-		const multimaster_msgs_fkie::ROSMaster& master,
+		const fkie_multimaster_msgs::ROSMaster& master,
 		const mrpt_msgs::GraphSlamAgent& agent) {
 	return !(master == agent);
 }
 
 bool operator==(
 		const mrpt_msgs::GraphSlamAgent& agent,
-		const multimaster_msgs_fkie::ROSMaster& master) {
+		const fkie_multimaster_msgs::ROSMaster& master) {
 	return (master == agent);
 }
 bool operator!=(
 		const mrpt_msgs::GraphSlamAgent& agent,
-		const multimaster_msgs_fkie::ROSMaster& master) {
+		const fkie_multimaster_msgs::ROSMaster& master) {
 	return (master != agent);
 }
 
@@ -209,16 +209,16 @@ void CConnectionManager::setupSubs() { }
 void CConnectionManager::setupPubs() { }
 void CConnectionManager::setupSrvs() {
 	// call to the querier should be made after the
-	// multimaster_msgs_fkie::DiscoverMaster service is up and running
+	// fkie_multimaster_msgs::DiscoverMaster service is up and running
 	m_DiscoverMasters_client =
-		m_nh->serviceClient<multimaster_msgs_fkie::DiscoverMasters>(
+		m_nh->serviceClient<fkie_multimaster_msgs::DiscoverMasters>(
 				"/master_discovery/list_masters");
 
 	//ASSERT_(m_DiscoverMasters_client.isValid());
 }
 
 bool CConnectionManager::convert(
-		const multimaster_msgs_fkie::ROSMaster& ros_master,
+		const fkie_multimaster_msgs::ROSMaster& ros_master,
 		mrpt_msgs::GraphSlamAgent* slam_agent) {
 	ASSERT_(slam_agent);
 	bool agent_namespace_found = false;
@@ -275,7 +275,7 @@ bool CConnectionManager::convert(
 
 void CConnectionManager::convert(
 		const mrpt_msgs::GraphSlamAgent& slam_agent,
-		multimaster_msgs_fkie::ROSMaster* ros_master) {
+		fkie_multimaster_msgs::ROSMaster* ros_master) {
 	ASSERT_(ros_master);
 
 	ros_master->name = slam_agent.name.data;

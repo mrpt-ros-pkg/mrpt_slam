@@ -10,7 +10,7 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <multimaster_msgs_fkie/DiscoverMasters.h>
+#include <fkie_multimaster_msgs/DiscoverMasters.h>
 #include <mrpt_msgs/GraphSlamAgent.h>
 #include <mrpt_msgs/GraphSlamAgents.h>
 #include <mrpt_bridge/mrpt_bridge.h>
@@ -112,12 +112,12 @@ private:
 	 * namespace under its main topic namespace
 	 */
 	static bool convert(
-			const multimaster_msgs_fkie::ROSMaster& ros_master,
+			const fkie_multimaster_msgs::ROSMaster& ros_master,
 			mrpt_msgs::GraphSlamAgent* slam_agent);
 	/**\brief GraphSlamAgent ==> ROSMaster. */
 	static void convert(
 			const mrpt_msgs::GraphSlamAgent& slam_agent,
-			multimaster_msgs_fkie::ROSMaster* ros_master);
+			fkie_multimaster_msgs::ROSMaster* ros_master);
 	/**\brief Remove http:// prefix and port suffix from the string and return result
 	 *
 	 * \param[out] agent_port Port that the agent is running on. Extracted from
@@ -150,11 +150,11 @@ private:
  */
 /**\{*/
 bool operator==(
-		const multimaster_msgs_fkie::ROSMaster& master1,
-		const multimaster_msgs_fkie::ROSMaster& master2);
+		const fkie_multimaster_msgs::ROSMaster& master1,
+		const fkie_multimaster_msgs::ROSMaster& master2);
 bool operator!=(
-		const multimaster_msgs_fkie::ROSMaster& master1,
-		const multimaster_msgs_fkie::ROSMaster& master2);
+		const fkie_multimaster_msgs::ROSMaster& master1,
+		const fkie_multimaster_msgs::ROSMaster& master2);
 /**\{*/
 
 /**\brief GraphSlamAgent instances are considered the same if the "agent_ID" field is the
@@ -177,17 +177,17 @@ bool operator<(
  */
 /**\{*/
 bool operator==(
-		const multimaster_msgs_fkie::ROSMaster& master,
+		const fkie_multimaster_msgs::ROSMaster& master,
 		const mrpt_msgs::GraphSlamAgent& agent);
 bool operator==(
 		const mrpt_msgs::GraphSlamAgent& agent,
-		const multimaster_msgs_fkie::ROSMaster& master);
+		const fkie_multimaster_msgs::ROSMaster& master);
 bool operator!=(
-		const multimaster_msgs_fkie::ROSMaster& master,
+		const fkie_multimaster_msgs::ROSMaster& master,
 		const mrpt_msgs::GraphSlamAgent& agent);
 bool operator!=(
 		const mrpt_msgs::GraphSlamAgent& agent,
-		const multimaster_msgs_fkie::ROSMaster& master);
+		const fkie_multimaster_msgs::ROSMaster& master);
 
 /**\}*/
 

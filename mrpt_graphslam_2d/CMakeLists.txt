@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   mrpt_msgs
   tf
   tf2
-  multimaster_msgs_fkie
+  fkie_multimaster_msgs
   )
 ## System dependencies are found with CMake's conventions
 find_package(MRPT 1.5 REQUIRED gui obs maps opengl graphslam)
@@ -68,7 +68,7 @@ catkin_package(
   mrpt_bridge
   mrpt_msgs
   tf
-  multimaster_msgs_fkie
+  fkie_multimaster_msgs
   #  DEPENDS system_lib
   )
 

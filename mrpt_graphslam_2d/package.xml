@@ -26,7 +26,7 @@
   <depend>mrpt_msgs</depend>
   <depend>tf</depend>
   <depend>tf2</depend>
-  <depend>multimaster_msgs_fkie</depend>
+  <depend>fkie_multimaster_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
