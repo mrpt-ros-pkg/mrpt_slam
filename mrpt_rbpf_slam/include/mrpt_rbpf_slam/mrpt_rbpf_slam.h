@@ -14,9 +14,9 @@
 #include <mrpt/io/CFileGZInputStream.h>
 #include <mrpt/io/CFileGZOutputStream.h>
 #else
-#include <mrpt/utils/CConfigFile.h>
-#include <mrpt/utils/CFileGZInputStream.h>
-#include <mrpt/utils/CFileGZOutputStream.h>
+#include <mrpt/config/CConfigFile.h>
+#include <mrpt/io/CFileGZInputStream.h>
+#include <mrpt/io/CFileGZOutputStream.h>
 #endif
 #include <mrpt/opengl/CEllipsoid.h>
 #include <mrpt/opengl/CGridPlaneXY.h>
@@ -46,68 +46,77 @@ namespace mrpt_rbpf_slam
  */
 class PFslam
 {
-public:
-  struct Options
-  {
-    mrpt::obs::CActionRobotMovement2D::TMotionModelOptions motion_model_options_;  ///< used with odom value motion
-                                                                                   ///< noise
-    mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions rbpfMappingOptions_;   ///< options for SLAM from ini file
-    bool CAMERA_3DSCENE_FOLLOWS_ROBOT_;
-    bool SHOW_PROGRESS_IN_WINDOW_;
-    int SHOW_PROGRESS_IN_WINDOW_DELAY_MS_;
-    int PROGRESS_WINDOW_WIDTH_, PROGRESS_WINDOW_HEIGHT_;
-    std::string simplemap_path_prefix;
-  } options_;
+   public:
+	struct Options
+	{
+		mrpt::obs::CActionRobotMovement2D::TMotionModelOptions
+			motion_model_options_;	///< used with odom value motion
+									///< noise
+		mrpt::slam::CMetricMapBuilderRBPF::TConstructionOptions
+			rbpfMappingOptions_;  ///< options for SLAM from ini file
+		bool CAMERA_3DSCENE_FOLLOWS_ROBOT_;
+		bool SHOW_PROGRESS_IN_WINDOW_;
+		int SHOW_PROGRESS_IN_WINDOW_DELAY_MS_;
+		int PROGRESS_WINDOW_WIDTH_, PROGRESS_WINDOW_HEIGHT_;
+		std::string simplemap_path_prefix;
+	} options_;
 
-  PFslam() = default;
-  virtual ~PFslam();
+	PFslam() = default;
+	virtual ~PFslam();
 
-  void init3Dwindow();
+	void init3Dwindow();
 
-  void run3Dwindow();
+	void run3Dwindow();
 
-  /**
-   * @brief Read ini file
-   *
-   * @param[in] ini_filename the name of the ini file to read
-   */
-  void readIniFile(const std::string& ini_filename);
+	/**
+	 * @brief Read ini file
+	 *
+	 * @param[in] ini_filename the name of the ini file to read
+	 */
+	void readIniFile(const std::string& ini_filename);
 
-  /**
-   * @brief initialize the SLAM
-   */
-  void initSlam(Options options);
+	/**
+	 * @brief initialize the SLAM
+	 */
+	void initSlam(Options options);
 
-  /**
-   * @brief Read pairs of actions and observations from rawlog file
-   *
-   * @param[in] rawlog_filename the name of rawlog file to read
-   * @param[out] data vector of pairs of actions and observations
-   */
-  void readRawlog(const std::string& rawlog_filename,
-                  std::vector<std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>& data);
+	/**
+	 * @brief Read pairs of actions and observations from rawlog file
+	 *
+	 * @param[in] rawlog_filename the name of rawlog file to read
+	 * @param[out] data vector of pairs of actions and observations
+	 */
+	void readRawlog(
+		const std::string& rawlog_filename,
+		std::vector<
+			std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>&
+			data);
 
-  /**
-   * @brief Calculate the actions from odometry model for current observation
-   *
-   * @param[in] sensory_frame  current observation
-   * @param[in] odometry raw odometry
-   */
-  void observation(const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
-                   const mrpt::obs::CObservationOdometry::ConstPtr odometry);
+	/**
+	 * @brief Calculate the actions from odometry model for current observation
+	 *
+	 * @param[in] sensory_frame  current observation
+	 * @param[in] odometry raw odometry
+	 */
+	void observation(
+		const mrpt::obs::CSensoryFrame::ConstPtr sensory_frame,
+		const mrpt::obs::CObservationOdometry::ConstPtr odometry);
 
-protected:
-  mrpt::slam::CMetricMapBuilderRBPF mapBuilder_;  ///< map builder
-  mrpt::obs::CActionCollection::Ptr action_;      ///< actions
-  mrpt::obs::CSensoryFrame::Ptr sensory_frame_;   ///< observations
+   protected:
+	mrpt::slam::CMetricMapBuilderRBPF mapBuilder_;	///< map builder
+	mrpt::obs::CActionCollection::Ptr action_;	///< actions
+	mrpt::obs::CSensoryFrame::Ptr sensory_frame_;  ///< observations
 
-  mrpt::poses::CPose2D odomLastObservation_;  ///< last observation of odometry
-  bool use_motion_model_default_options_;     ///< used default odom_params
-  mrpt::system::TTimeStamp timeLastUpdate_;   ///< last update of the pose and map
+	mrpt::poses::CPose2D
+		odomLastObservation_;  ///< last observation of odometry
+	bool use_motion_model_default_options_;	 ///< used default odom_params
+	mrpt::system::TTimeStamp
+		timeLastUpdate_;  ///< last update of the pose and map
 
-  const mrpt::maps::CMultiMetricMap* metric_map_;  ///< receive map after iteration of SLAM to metric map
-  mrpt::poses::CPose3DPDFParticles curPDF;         ///< current robot pose
+	const mrpt::maps::CMultiMetricMap*
+		metric_map_;  ///< receive map after iteration of SLAM to metric map
+	mrpt::poses::CPose3DPDFParticles curPDF;  ///< current robot pose
 
-  mrpt::gui::CDisplayWindow3D::Ptr win3D_;  ///< MRPT window
+	mrpt::gui::CDisplayWindow3D::Ptr win3D_;  ///< MRPT window
 };
 }  // namespace mrpt_rbpf_slam
