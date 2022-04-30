@@ -5,7 +5,8 @@
    | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
-   +---------------------------------------------------------------------------+ */
+   +---------------------------------------------------------------------------+
+ */
 
 #pragma once
 
@@ -30,25 +31,24 @@
 #include <mrpt/opengl/CSetOfLines.h>
 
 #include <mrpt/version.h>
-#if MRPT_VERSION>=0x199
+#if MRPT_VERSION >= 0x199
 #include <mrpt/system/COutputLogger.h>
 #include <mrpt/img/TColorManager.h>
 using namespace mrpt::system;
 using namespace mrpt::img;
 #else
-#include <mrpt/utils/COutputLogger.h>
-#include <mrpt/utils/TColorManager.h>
-using namespace mrpt::utils;
+#include <mrpt/system/COutputLogger.h>
+#include <mrpt/system/TColorManager.h>
 #endif
-
-
 
 #include <iterator>
 
 const mrpt::poses::CPose3D EMPTY_POSE;
 
-namespace mrpt { namespace graphslam {
-
+namespace mrpt
+{
+namespace graphslam
+{
 /**\brief Class responsible of the execution of the map_merger_node.
  *
  * Instance of the graph asks of the generated maps of all the running
@@ -57,19 +57,17 @@ namespace mrpt { namespace graphslam {
  */
 class CMapMerger
 {
-public:
+   public:
 	typedef std::map<TNeighborAgentMapProps*, COccupancyGridMap2D::Ptr> maps_t;
 	typedef std::map<TNeighborAgentMapProps*, bool> neighbor_to_is_used_t;
-	typedef std::map<TNeighborAgentMapProps*, mrpt::poses::CPose2D> neighbor_to_rel_pose_t;
+	typedef std::map<TNeighborAgentMapProps*, mrpt::poses::CPose2D>
+		neighbor_to_rel_pose_t;
 
 	/**\brief Robot trajectory visual object type */
-	typedef std::map<
-		TNeighborAgentMapProps*,
-		mrpt::opengl::CSetOfLines::Ptr> trajectories_t;
+	typedef std::map<TNeighborAgentMapProps*, mrpt::opengl::CSetOfLines::Ptr>
+		trajectories_t;
 	typedef std::vector<TNeighborAgentMapProps*> neighbors_t;
-	CMapMerger(
-			mrpt::utils::COutputLogger* logger_in,
-			ros::NodeHandle* nh_in);
+	CMapMerger(mrpt::system::COutputLogger* logger_in, ros::NodeHandle* nh_in);
 	~CMapMerger();
 	void mergeMaps();
 	/**\brief Query and fetch the list of new graphSLAM agents.
@@ -77,7 +75,8 @@ public:
 	 * \return True if execution is to continue normally.
 	 */
 	bool updateState();
-private:
+
+   private:
 	/**\brief Compact method for monitoring the given keystrokes for the given
 	 * observer.
 	 */
@@ -90,11 +89,12 @@ private:
 	 */
 	neighbors_t m_neighbors;
 	std::map<TNeighborAgentMapProps*, CWindowManager*> m_neighbors_to_windows;
-	mrpt::utils::COutputLogger* m_logger;
+	mrpt::system::COutputLogger* m_logger;
 	ros::NodeHandle* m_nh;
 	mrpt::graphslam::detail::CConnectionManager m_conn_manager;
 
-	/**\brief Topic namespace under which current node is going to be publishing.
+	/**\brief Topic namespace under which current node is going to be
+	 * publishing.
 	 */
 	std::string m_global_ns;
 	/**\brief Topic namespace under which, options that are used during the map
@@ -113,7 +113,7 @@ private:
 
 	mrpt::graphslam::CWindowManager* m_fused_map_win_manager;
 
-}; // end of CMapMerger
+};	// end of CMapMerger
 
-} } // end of namespaces
-
+}  // namespace graphslam
+}  // namespace mrpt

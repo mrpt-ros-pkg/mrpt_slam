@@ -6,16 +6,12 @@
 
 #include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.h"
 #include <mrpt/version.h>
-#if MRPT_VERSION >= 0x150
 #include <mrpt_bridge/utils.h>
-#endif
-
-#if MRPT_VERSION >= 0x199
 #include <mrpt/serialization/CArchive.h>
-#endif
 
 #include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt/maps/CSimplePointsMap.h>
+
 using mrpt::maps::COccupancyGridMap2D;
 using mrpt::maps::CSimplePointsMap;
 
@@ -67,22 +63,20 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename)
 	mapBuilder.ICP_params.loadFromConfigFile(iniFile, "ICP");
 	mapBuilder.initialize();
 
-#if MRPT_VERSION < 0x150
-	mapBuilder.options.verbose = true;
-#else
 	log4cxx::LoggerPtr ros_logger =
 		log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
 	mapBuilder.setVerbosityLevel(
 		mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
 	mapBuilder.logging_enable_console_output = false;
-#if MRPT_VERSION < 0x199
-	mapBuilder.logRegisterCallback(static_cast<output_logger_callback_t>(
-		&mrpt_bridge::mrptToROSLoggerCallback_mrpt_15));
-#else
-	mapBuilder.logRegisterCallback(static_cast<output_logger_callback_t>(
-		&mrpt_bridge::mrptToROSLoggerCallback));
-#endif
-#endif
+
+	mapBuilder.logRegisterCallback([](std::string_view msg,
+									  const mrpt::system::VerbosityLevel level,
+									  std::string_view loggerName,
+									  const mrpt::Clock::time_point timestamp) {
+		mrpt_bridge::mrptToROSLoggerCallback(
+			std::string(msg), level, std::string(loggerName), timestamp);
+	});
+
 	mapBuilder.options.alwaysInsertByClass.fromString(
 		iniFile.read_string("MappingApplication", "alwaysInsertByClass", ""));
 
@@ -197,28 +191,17 @@ void ICPslamWrapper::run3Dwindow()
 
 		// The maps:
 		{
-			opengl::CSetOfObjects::Ptr obj = opengl::CSetOfObjects::Create();
-			metric_map_->getAs3DObject(obj);
+			opengl::CSetOfObjects::Ptr obj = metric_map_->getVisualization();
 			view->insert(obj);
 
 			// now, only the point map in another OpenGL view:
 
 			// publish map
 			CSimplePointsMap* pm = nullptr;
-#if MRPT_VERSION >= 0x199
 			if (metric_map_->countMapsByClass<CSimplePointsMap>())
 				pm = metric_map_->mapByClass<CSimplePointsMap>().get();
-#else
-			if (metric_map_->m_pointsMaps.size())
-				pm = metric_map_->m_pointsMaps[0].get();
-#endif
 
-			opengl::CSetOfObjects::Ptr ptsMap = opengl::CSetOfObjects::Create();
-			if (pm)
-			{
-				pm->getAs3DObject(ptsMap);
-				view_map->insert(ptsMap);
-			}
+			if (pm) view_map->insert(pm->getVisualization());
 		}
 
 		// Draw the robot path:
@@ -473,7 +456,7 @@ void ICPslamWrapper::updateSensorPose(std::string _frame_id)
 		pose.setRotationMatrix(Rdes);
 		laser_poses_[_frame_id] = pose;
 	}
-	catch (tf::TransformException ex)
+	catch (const tf::TransformException& ex)
 	{
 		ROS_ERROR("%s", ex.what());
 		ros::Duration(1.0).sleep();
@@ -488,12 +471,9 @@ bool ICPslamWrapper::rawlogPlay()
 	else
 	{
 		size_t rawlogEntry = 0;
-#if MRPT_VERSION >= 0x199
-		CFileGZInputStream rawlog_stream(rawlog_filename);
+		mrpt::io::CFileGZInputStream rawlog_stream(rawlog_filename);
 		auto rawlogFile = mrpt::serialization::archiveFrom(rawlog_stream);
-#else
-		CFileGZInputStream rawlogFile(rawlog_filename);
-#endif
+
 		CActionCollection::Ptr action;
 
 		for (;;)

@@ -5,12 +5,13 @@
    | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
-   +---------------------------------------------------------------------------+ */
+   +---------------------------------------------------------------------------+
+ */
 
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
 #include <mrpt_msgs/GraphSlamAgents.h>
-#include <mrpt/utils/COutputLogger.h>
+#include <mrpt/system/COutputLogger.h>
 #include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt_bridge/map.h>
 #include "mrpt_graphslam_2d/CMapMerger.h"
@@ -21,11 +22,8 @@ using namespace mrpt::graphslam::detail;
 using namespace mrpt_msgs;
 using namespace mrpt::maps;
 using namespace ros;
-using namespace mrpt::utils;
 using namespace nav_msgs;
 using namespace std;
-
-
 
 /**\brief Node that fetches the local maps produced by the graphSLAM agents and
  * joins them together using a RANSAC-based map-merging technique
@@ -34,11 +32,11 @@ using namespace std;
  * present the user with a final version of all the independent maps after
  * merging.
  */
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 	// init ROS Node
 	std::string node_name = "map_merger";
-  ros::init(argc, argv, node_name);
+	ros::init(argc, argv, node_name);
 	ros::NodeHandle nh;
 	ros::Rate loop_rate(10);
 
@@ -51,7 +49,8 @@ int main(int argc, char **argv)
 	CMapMerger map_merger(&logger, &nh);
 
 	bool continue_exec = true;
-	while (ros::ok() && continue_exec) {
+	while (ros::ok() && continue_exec)
+	{
 		continue_exec = map_merger.updateState();
 		ros::spinOnce();
 		loop_rate.sleep();

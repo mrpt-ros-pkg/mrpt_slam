@@ -5,7 +5,8 @@
    | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
-   +---------------------------------------------------------------------------+ */
+   +---------------------------------------------------------------------------+
+ */
 #pragma once
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_MR.h"
@@ -14,15 +15,18 @@
 
 #include <string>
 
-#if MRPT_VERSION>=0x199
+#if MRPT_VERSION >= 0x199
 #include <mrpt/graphs/TNodeID.h>
 using namespace mrpt::graphs;
 #else
-using namespace mrpt::utils;
 #endif
 
-namespace mrpt { namespace graphslam { namespace deciders {
-
+namespace mrpt
+{
+namespace graphslam
+{
+namespace deciders
+{
 /**\brief Edge Registration Decider virtual method.
  *
  * \b Edge Registration Decider classes that are to be used in a multi-robot
@@ -39,22 +43,25 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * SLAM using Condensed Measurements</a> - M.T. Lazaro, L.M. Paz, P. Pinies,
  * J.A. Castellanos, G. Grisetti
  */
-template<class GRAPH_T>
-class CEdgeRegistrationDecider_MR :
-	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<GRAPH_T>,
-	public virtual mrpt::graphslam::deciders::CRangeScanEdgeRegistrationDecider<GRAPH_T>
+template <class GRAPH_T>
+class CEdgeRegistrationDecider_MR
+	: public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<
+		  GRAPH_T>,
+	  public virtual mrpt::graphslam::deciders::
+		  CRangeScanEdgeRegistrationDecider<GRAPH_T>
 {
-public:
-	CEdgeRegistrationDecider_MR ();
-	~CEdgeRegistrationDecider_MR ();
+   public:
+	CEdgeRegistrationDecider_MR();
+	~CEdgeRegistrationDecider_MR();
 	virtual void addBatchOfNodeIDsAndScans(
-			const std::map<
-				TNodeID,
-				mrpt::obs::CObservation2DRangeScan::Ptr>& nodeIDs_to_scans2D);
+		const std::map<TNodeID, mrpt::obs::CObservation2DRangeScan::Ptr>&
+			nodeIDs_to_scans2D);
 
-protected:
+   protected:
 };
 
-} } } // end of namespaces
+}  // namespace deciders
+}  // namespace graphslam
+}  // namespace mrpt
 
 #include "CEdgeRegistrationDecider_MR_impl.h"

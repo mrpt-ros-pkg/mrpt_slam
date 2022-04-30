@@ -2,7 +2,7 @@
 
 #include <ros/ros.h>
 
-#include <mrpt/utils/COutputLogger.h>
+#include <mrpt/system/COutputLogger.h>
 #include <mrpt/graphslam/interfaces/CRegistrationDeciderOrOptimizer.h>
 
 namespace mrpt { namespace graphslam {

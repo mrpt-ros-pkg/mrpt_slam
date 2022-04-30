@@ -5,7 +5,8 @@
    | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
    | See: http://www.mrpt.org/Authors - All rights reserved.                   |
    | Released under BSD License. See details in http://www.mrpt.org/License    |
-   +---------------------------------------------------------------------------+ */
+   +---------------------------------------------------------------------------+
+ */
 #pragma once
 
 #include <ros/ros.h>
@@ -13,12 +14,14 @@
 #include <nav_msgs/Path.h>
 #include <mrpt_bridge/map.h>
 #include <mrpt_msgs/GraphSlamAgents.h>
-#include <mrpt/utils/COutputLogger.h>
+#include <mrpt/system/COutputLogger.h>
 #include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt/math/utils.h>
 
-namespace mrpt { namespace graphslam {
-
+namespace mrpt
+{
+namespace graphslam
+{
 /**\brief Struct holding a COccupancyGridMap2D (as well as subscribers for
  * updating it) for a specific running GraphSlamAgent instance.
  *
@@ -27,31 +30,28 @@ namespace mrpt { namespace graphslam {
 struct TNeighborAgentMapProps
 {
 	TNeighborAgentMapProps(
-			mrpt::utils::COutputLogger* logger_in,
-			const mrpt_msgs::GraphSlamAgent& agent_in,
-			ros::NodeHandle* nh_in);
+		mrpt::system::COutputLogger* logger_in,
+		const mrpt_msgs::GraphSlamAgent& agent_in, ros::NodeHandle* nh_in);
 
 	void readROSParameters();
 	void setupComm();
 	void setupSubs();
 	void setupPubs();
 	/**\brief Callback method to be called when new data in the map topic is
- 	 * available
- 	 */
-	void updateGridMap(
-			const nav_msgs::OccupancyGrid::ConstPtr& nav_gridmap);
+	 * available
+	 */
+	void updateGridMap(const nav_msgs::OccupancyGrid::ConstPtr& nav_gridmap);
 	/**\brief Callback method to be called when new data in the Estimated
- 	 * Trajectory topic is available
- 	 */
-	void updateRobotTrajectory(
-			const nav_msgs::Path::ConstPtr& nav_robot_traj);
+	 * Trajectory topic is available
+	 */
+	void updateRobotTrajectory(const nav_msgs::Path::ConstPtr& nav_robot_traj);
 
 	/**\brief Return how many nodes have been registered in the fetched robot
 	 * trajectory
 	 */
 	size_t getNodeCount() { return nav_robot_trajectory->poses.size(); }
 
-	mrpt::utils::COutputLogger* m_logger;
+	mrpt::system::COutputLogger* m_logger;
 	ros::NodeHandle* nh;
 	/**\brief Pointer to the GraphSlamAgent instance of the neighbor */
 	const mrpt_msgs::GraphSlamAgent& agent;
@@ -75,8 +75,7 @@ struct TNeighborAgentMapProps
 	bool has_init_class;
 	bool has_setup_comm;
 
+};	// end of TNeighborAgentMapProps
 
-}; // end of TNeighborAgentMapProps
-
-} } // end of namespaces
-
+}  // namespace graphslam
+}  // namespace mrpt

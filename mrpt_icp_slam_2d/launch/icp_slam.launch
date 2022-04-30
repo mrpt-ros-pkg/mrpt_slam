@@ -4,7 +4,7 @@
   <!--PARAMETERS-->
   <param name="ini_filename" value="$(find mrpt_icp_slam_2d)/tutorial/icp_slam_demo.ini"/>
   <param name="odom_frame_id" value="r1/odom"/>
-  <param name="global_frame_id" value="/map"/>
+  <param name="global_frame_id" value="map"/>
   <param name="base_frame_id" value="r1/base_link"/>
   <!--for multiple sensors, place comma eg "r1/front_laser/scan,/beacon" -->
   <param name="sensor_source" value="r1/front_laser/scan"/>

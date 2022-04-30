@@ -158,7 +158,7 @@ bool PFslamWrapper::waitForTransform(
 		listenerTF_.lookupTransform(
 			target_frame, source_frame, time, transform);
 	}
-	catch (tf::TransformException ex)
+	catch (const tf::TransformException& ex)
 	{
 		ROS_ERROR(
 			"Failed to get transform target_frame (%s) to source_frame (%s). "
@@ -275,11 +275,8 @@ void PFslamWrapper::publishMapPose()
 	// if I received new beacon (range only) map
 	if (bm)
 	{
-		mrpt::opengl::CSetOfObjects::Ptr objs;
-
-		objs = mrpt::opengl::CSetOfObjects::Create();
 		// Get th map as the set of 3D objects
-		bm->getAs3DObject(objs);
+		const auto objs = bm->getVisualization();
 
 		geometry_msgs::PoseArray poseArrayBeacons;
 		poseArrayBeacons.header.frame_id = global_frame_id_;
@@ -287,16 +284,16 @@ void PFslamWrapper::publishMapPose()
 
 		// Count the number of beacons
 		unsigned int objs_counter = 0;
-		while (objs->getByClass<mrpt::opengl::CEllipsoid>(objs_counter))
+		while (objs->getByClass<mrpt::opengl::CEllipsoid3D>(objs_counter))
 		{
 			objs_counter++;
 		}
 		poseArrayBeacons.poses.resize(objs_counter);
-		mrpt::opengl::CEllipsoid::Ptr beacon_particle;
+		mrpt::opengl::CEllipsoid3D::Ptr beacon_particle;
 
 		for (size_t i = 0; i < objs_counter; i++)
 		{
-			beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid>(i);
+			beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid3D>(i);
 			mrpt_bridge::convert(
 				mrpt::poses::CPose3D(beacon_particle->getPose()),
 				poseArrayBeacons.poses[i]);
@@ -404,7 +401,7 @@ void PFslamWrapper::updateSensorPose(const std::string& frame_id)
 		laser_poses_[frame_id] = pose;
 		beacon_poses_[frame_id] = pose;
 	}
-	catch (tf::TransformException ex)
+	catch (const tf::TransformException& ex)
 	{
 		ROS_ERROR("%s", ex.what());
 		ros::Duration(1.0).sleep();
@@ -460,27 +457,25 @@ bool PFslamWrapper::rawlogPlay()
 				// if I received new beacon (range only) map
 				if (bm)
 				{
-					mrpt::opengl::CSetOfObjects::Ptr objs;
-					objs = mrpt::opengl::CSetOfObjects::Create();
-					bm->getAs3DObject(objs);
+					const auto objs = bm->getVisualization();
 
 					geometry_msgs::PoseArray poseArrayBeacons;
 					poseArrayBeacons.header.frame_id = global_frame_id_;
 					poseArrayBeacons.header.stamp = ros::Time::now();
 
 					unsigned int objs_counter = 0;
-					while (objs->getByClass<mrpt::opengl::CEllipsoid>(
+					while (objs->getByClass<mrpt::opengl::CEllipsoid3D>(
 						objs_counter))
 					{
 						objs_counter++;
 					}
 					poseArrayBeacons.poses.resize(objs_counter);
-					mrpt::opengl::CEllipsoid::Ptr beacon_particle;
+					mrpt::opengl::CEllipsoid3D::Ptr beacon_particle;
 
 					for (size_t i = 0; i < objs_counter; i++)
 					{
 						beacon_particle =
-							objs->getByClass<mrpt::opengl::CEllipsoid>(i);
+							objs->getByClass<mrpt::opengl::CEllipsoid3D>(i);
 						mrpt_bridge::convert(
 							mrpt::poses::CPose3D(beacon_particle->getPose()),
 							poseArrayBeacons.poses[i]);
@@ -535,7 +530,7 @@ void PFslamWrapper::publishTF()
 			tmp_tf.inverse(), stamp, base_frame_id_);
 		listenerTF_.transformPose(odom_frame_id_, tmp_tf_stamped, odom_to_map);
 	}
-	catch (tf::TransformException ex)
+	catch (const tf::TransformException& ex)
 	{
 		ROS_ERROR(
 			"Failed to subtract global_frame (%s) from odom_frame (%s). "

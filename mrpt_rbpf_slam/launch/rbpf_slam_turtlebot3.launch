@@ -11,7 +11,7 @@
   <node pkg="mrpt_rbpf_slam" type="mrpt_rbpf_slam" name="mrpt_rbpf_slam" output="screen">
     <param name="ini_filename" value="$(find mrpt_rbpf_slam)/tutorial/grid_slam_demo.ini"/>
     <param name="odom_frame_id" value="/odom"/>
-    <param name="global_frame_id" value="/map"/>
+    <param name="global_frame_id" value="map"/>
     <param name="base_frame_id" value="/base_link"/>
     <param name="sensor_source" value="/scan"/>
     <rosparam command="load" file="$(find mrpt_rbpf_slam)/config/default.yaml" />
