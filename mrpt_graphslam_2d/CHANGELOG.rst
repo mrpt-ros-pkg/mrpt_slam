@@ -2,8 +2,8 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.11 (2022-06-24)
+-------------------
 * Ported to tf2 and mrpt::ros1bridge
 * Fix build with mrpt2
 * Update multimaster_msgs_fkie to fkie\_ prefix
