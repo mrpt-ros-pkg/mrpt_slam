@@ -11,6 +11,9 @@
 
 #include <chrono>
 #include <thread>
+#include <mrpt_msgs/GetCMGraph.h>
+#include <mrpt_msgs_bridge/network_of_poses.h>
+#include <mrpt/ros1bridge/pose.h>
 
 #include <mrpt/math/CMatrixFixed.h>
 namespace mrpt::math
@@ -112,10 +115,10 @@ bool CGraphSlamEngine_MR<GRAPH_T>::addNodeBatchFromNeighbor(
 	//
 	mrpt_msgs::GetCMGraph cm_graph_srv;
 	// mrpt_msgs::GetCMGraphRequest::_nodeIDs_type& cm_graph_nodes =
-	// cm_graph_srv.request.nodeIDs;
+	// cm_graph_srv.request.node_ids;
 	for (const auto n : nodeIDs)
 	{
-		cm_graph_srv.request.nodeIDs.push_back(n);
+		cm_graph_srv.request.node_ids.push_back(n);
 	}
 
 	MRPT_LOG_DEBUG_STREAM("Asking for the graph.");
@@ -129,7 +132,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::addNodeBatchFromNeighbor(
 	MRPT_LOG_DEBUG_STREAM(cm_graph_srv.response.cm_graph);
 
 	GRAPH_T other_graph;
-	mrpt_bridge::convert(cm_graph_srv.response.cm_graph, other_graph);
+	mrpt_msgs_bridge::fromROS(cm_graph_srv.response.cm_graph, other_graph);
 
 	//
 	// merge batch of nodes in own graph
@@ -137,7 +140,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::addNodeBatchFromNeighbor(
 	MRPT_LOG_WARN_STREAM(
 		"Merging new batch from \""
 		<< neighbor->getAgentNs() << "\"..." << endl
-		<< "Batch: " << getSTLContainerAsString(cm_graph_srv.request.nodeIDs));
+		<< "Batch: " << getSTLContainerAsString(cm_graph_srv.request.node_ids));
 	hypots_t graph_conns;
 	// build a hypothesis connecting the new batch with the last integrated
 	// pose of the neighbor
@@ -346,8 +349,8 @@ bool CGraphSlamEngine_MR<GRAPH_T>::findTFWithNeighbor(
 	// ask for condensed measurements graph
 	//
 	mrpt_msgs::GetCMGraph cm_graph_srv;
-	typedef mrpt_msgs::GetCMGraphRequest::_nodeIDs_type nodeID_type;
-	nodeID_type& matched_nodeIDs = cm_graph_srv.request.nodeIDs;
+	typedef mrpt_msgs::GetCMGraphRequest::_node_ids_type node_id_type;
+	node_id_type& matched_nodeIDs = cm_graph_srv.request.node_ids;
 
 	// which nodes to ask the condensed graph for
 	// I assume that no nodes of the other graph have been integrated yet.
@@ -369,7 +372,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::findTFWithNeighbor(
 	MRPT_LOG_DEBUG_STREAM(cm_graph_srv.response.cm_graph);
 
 	GRAPH_T other_graph;
-	mrpt_bridge::convert(cm_graph_srv.response.cm_graph, other_graph);
+	mrpt_msgs_bridge::fromROS(cm_graph_srv.response.cm_graph, other_graph);
 
 	//
 	// merge graphs
@@ -684,7 +687,6 @@ template <class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::usePublishersBroadcasters()
 {
 	MRPT_START;
-	using namespace mrpt_bridge;
 	using namespace mrpt_msgs;
 	using namespace std;
 	using namespace mrpt::math;
@@ -758,8 +760,8 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubUpdatedNodesList()
 	// send at most m_num_last_rgd_nodes
 	typename GRAPH_T::global_poses_t poses_to_send;
 	int poses_counter = 0;
-	// fill the NodeIDWithPose_vec msg
-	NodeIDWithPose_vec ros_nodes;
+	// fill the NodeIDWithPoseVec msg
+	NodeIDWithPoseVec ros_nodes;
 
 	// send up to num_last_regd_nodes Nodes - start from end.
 	for (typename GRAPH_T::global_poses_t::const_reverse_iterator cit =
@@ -776,12 +778,12 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubUpdatedNodesList()
 
 		NodeIDWithPose curr_node_w_pose;
 		// send basics - NodeID, Pose
-		curr_node_w_pose.nodeID = cit->first;
-		mrpt_bridge::convert(cit->second, curr_node_w_pose.pose);
+		curr_node_w_pose.node_id = cit->first;
+		curr_node_w_pose.pose = mrpt::ros1bridge::toROS_Pose(cit->second);
 
 		// send mr-fields
-		curr_node_w_pose.str_ID.data = cit->second.agent_ID_str;
-		curr_node_w_pose.nodeID_loc = cit->second.nodeID_loc;
+		curr_node_w_pose.str_id.data = cit->second.agent_ID_str;
+		curr_node_w_pose.node_id_loc = cit->second.nodeID_loc;
 
 		ros_nodes.vec.push_back(curr_node_w_pose);
 
@@ -808,11 +810,10 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubLastRegdIDScan()
 {
 	MRPT_START;
 	using namespace mrpt_msgs;
-	using namespace mrpt_bridge;
 
 	// Update the last registered scan + associated nodeID
 	// Last registered scan always corresponds to the *last* element of the of
-	// the published NodeIDWithPose_vec that is published above.
+	// the published NodeIDWithPoseVec that is published above.
 	//
 	// - Check if map is empty
 	// - Have I already published the last laser scan?
@@ -837,8 +838,9 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubLastRegdIDScan()
 
 		// convert to ROS msg
 		mrpt_msgs::NodeIDWithLaserScan ros_last_regd_id_scan;
-		convert(*(mrpt_last_regd_id_scan.second), ros_last_regd_id_scan.scan);
-		ros_last_regd_id_scan.nodeID = mrpt_last_regd_id_scan.first;
+		mrpt::ros1bridge::toROS(
+			*(mrpt_last_regd_id_scan.second), ros_last_regd_id_scan.scan);
+		ros_last_regd_id_scan.node_id = mrpt_last_regd_id_scan.first;
 
 		m_last_regd_id_scan_pub.publish(ros_last_regd_id_scan);
 
@@ -951,7 +953,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::setupPubs()
 		/*latch = */ true);
 
 	// last X nodeIDs + positions
-	m_last_regd_nodes_pub = m_nh->advertise<NodeIDWithPose_vec>(
+	m_last_regd_nodes_pub = m_nh->advertise<NodeIDWithPoseVec>(
 		m_last_regd_nodes_topic, this->m_queue_size,
 		/*latch = */ true);
 }
@@ -977,7 +979,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::getCMGraph(
 	using namespace std;
 	using namespace mrpt::math;
 
-	set<TNodeID> nodes_set(req.nodeIDs.begin(), req.nodeIDs.end());
+	set<TNodeID> nodes_set(req.node_ids.begin(), req.node_ids.end());
 	MRPT_LOG_INFO_STREAM(
 		"Called the GetCMGraph service for nodeIDs: "
 		<< getSTLContainerAsString(nodes_set));
@@ -993,7 +995,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::getCMGraph(
 		nodes_set, &mrpt_subgraph,
 		/*root_node = */ INVALID_NODEID,
 		/*auto_expand_set=*/false);
-	mrpt_bridge::convert(mrpt_subgraph, res.cm_graph);
+	mrpt_msgs_bridge::toROS(mrpt_subgraph, res.cm_graph);
 	return true;
 }  // end of getCMGraph
 
@@ -1114,7 +1116,7 @@ CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
 
 	// initialize the occupancy map based on the engine's gridmap properties
 	gridmap_cached = mrpt::maps::COccupancyGridMap2D::Create();
-	COccupancyGridMap2D::Ptr eng_gridmap = engine.m_gridmap_cached;
+	mrpt::maps::COccupancyGridMap2D::Ptr eng_gridmap = engine.m_gridmap_cached;
 	gridmap_cached->setSize(
 		eng_gridmap->getXMin(), eng_gridmap->getXMax(), eng_gridmap->getYMin(),
 		eng_gridmap->getYMax(), eng_gridmap->getResolution());
@@ -1153,7 +1155,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::setupSubs()
 {
 	using namespace mrpt_msgs;
 
-	last_regd_nodes_sub = nh->subscribe<NodeIDWithPose_vec>(
+	last_regd_nodes_sub = nh->subscribe<NodeIDWithPoseVec>(
 		last_regd_nodes_topic, m_queue_size,
 		&TNeighborAgentProps::fetchUpdatedNodesList, this);
 	last_regd_id_scan_sub = nh->subscribe<NodeIDWithLaserScan>(
@@ -1163,22 +1165,20 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::setupSubs()
 
 template <class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::fetchUpdatedNodesList(
-	const mrpt_msgs::NodeIDWithPose_vec::ConstPtr& nodes)
+	const mrpt_msgs::NodeIDWithPoseVec::ConstPtr& nodes)
 {
 	MRPT_START;
 	using namespace mrpt_msgs;
-	using namespace mrpt_bridge;
 	using namespace std;
 
 	typedef typename GRAPH_T::constraint_t::type_value pose_t;
 	engine.logFmt(LVL_DEBUG, "In fetchUpdatedNodesList method.");
 
-	for (NodeIDWithPose_vec::_vec_type::const_iterator n_it =
-			 nodes->vec.begin();
+	for (NodeIDWithPoseVec::_vec_type::const_iterator n_it = nodes->vec.begin();
 		 n_it != nodes->vec.end(); ++n_it)
 	{
 		// insert in the set if not already there.
-		TNodeID nodeID = static_cast<TNodeID>(n_it->nodeID);
+		TNodeID nodeID = static_cast<TNodeID>(n_it->node_id);
 		std::pair<set<TNodeID>::iterator, bool> res =
 			nodeIDs_set.insert(nodeID);
 		// if I just inserted this node mark it as not used (in own graph)
@@ -1187,15 +1187,16 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::fetchUpdatedNodesList(
 			engine.logFmt(
 				LVL_INFO, "Just fetched a new nodeID: %lu",
 				static_cast<unsigned long>(nodeID));
-			nodeID_to_is_integrated.insert(make_pair(n_it->nodeID, false));
+			nodeID_to_is_integrated.insert(make_pair(n_it->node_id, false));
 		}
 
 		// update the poses
 		pose_t curr_pose;
+		curr_pose = pose_t(mrpt::ros1bridge::fromROS(n_it->pose));
+
 		// note: use "operator[]" instead of "insert" so that if the key already
 		// exists, the corresponding value is changed rather than ignored.
-		poses[static_cast<TNodeID>(n_it->nodeID)] =
-			convert(n_it->pose, curr_pose);
+		poses[static_cast<TNodeID>(n_it->node_id)] = pose_t(curr_pose);
 	}
 	has_new_nodes = true;
 
@@ -1298,7 +1299,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
 				continue;
 			}
 
-			mrpt_bridge::convert(*ros_laser_scan, CPose3D(*p), *mrpt_scan);
+			mrpt::ros1bridge::fromROS(*ros_laser_scan, CPose3D(*p), *mrpt_scan);
 			params.second.scan = mrpt_scan;
 
 			// insert the pair
@@ -1367,7 +1368,7 @@ const sensor_msgs::LaserScan*
 			 ros_scans.begin();
 		 it != ros_scans.end(); ++it)
 	{
-		if (it->nodeID == nodeID)
+		if (it->node_id == nodeID)
 		{
 			return &it->scan;
 		}

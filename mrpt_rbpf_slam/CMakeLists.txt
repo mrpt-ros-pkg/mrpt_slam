@@ -19,7 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 #find mrpt packages
 find_package(mrpt-gui REQUIRED)
-find_package(mrpt-obs REQUIRED)
+find_package(mrpt-slam REQUIRED)
 find_package(mrpt-ros1bridge REQUIRED)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
@@ -68,7 +68,7 @@ add_executable(mrpt_rbpf_slam
 )
 
 TARGET_LINK_LIBRARIES(mrpt_rbpf_slam
-  mrpt::obs
+  mrpt::slam
   mrpt::gui
   mrpt::ros1bridge
   ${catkin_LIBRARIES}

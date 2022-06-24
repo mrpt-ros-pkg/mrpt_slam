@@ -16,10 +16,7 @@ bool isFileExists(const std::string& name)
 
 namespace mrpt_rbpf_slam
 {
-PFslamWrapper::PFslamWrapper()
-{
-	mrpt_bridge::convert(ros::Time(0), timeLastUpdate_);
-}
+PFslamWrapper::PFslamWrapper() { timeLastUpdate_ = mrpt::Clock::now(); }
 
 bool PFslamWrapper::getParams(const ros::NodeHandle& nh_p)
 {
@@ -186,7 +183,8 @@ void PFslamWrapper::laserCallback(const sensor_msgs::LaserScan& msg)
 		// update sensor pose
 		if (update_sensor_pose_) updateSensorPose(msg.header.frame_id);
 		mrpt::poses::CPose3D pose = laser_poses_[msg.header.frame_id];
-		mrpt_bridge::convert(msg, laser_poses_[msg.header.frame_id], *laser);
+		mrpt::ros1bridge::fromROS(
+			msg, laser_poses_[msg.header.frame_id], *laser);
 
 		sensory_frame_ = CSensoryFrame::Create();
 		CObservationOdometry::Ptr odometry;
@@ -224,7 +222,8 @@ void PFslamWrapper::callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& msg)
 		// update sensor pose
 		if (update_sensor_pose_) updateSensorPose(msg.header.frame_id);
 
-		mrpt_bridge::convert(msg, beacon_poses_[msg.header.frame_id], *beacon);
+		mrpt_msgs_bridge::fromROS(
+			msg, beacon_poses_[msg.header.frame_id], *beacon);
 
 		sensory_frame_ = CSensoryFrame::Create();
 		CObservationOdometry::Ptr odometry;
@@ -262,7 +261,7 @@ void PFslamWrapper::publishMapPose()
 	{
 		// publish map
 		nav_msgs::OccupancyGrid msg;
-		mrpt_bridge::convert(*grid, msg);
+		mrpt::ros1bridge::toROS(*grid, msg);
 		pub_map_.publish(msg);
 		pub_metadata_.publish(msg.info);
 	}
@@ -289,9 +288,8 @@ void PFslamWrapper::publishMapPose()
 		for (size_t i = 0; i < objs_counter; i++)
 		{
 			beacon_particle = objs->getByClass<mrpt::opengl::CEllipsoid3D>(i);
-			mrpt_bridge::convert(
-				mrpt::poses::CPose3D(beacon_particle->getPose()),
-				poseArrayBeacons.poses[i]);
+			poseArrayBeacons.poses[i] = mrpt::ros1bridge::toROS_Pose(
+				mrpt::poses::CPose3D(beacon_particle->getPose()));
 			viz_beacons_.push_back(beacon_particle);
 		}
 		pub_particles_beacons_.publish(poseArrayBeacons);
@@ -307,7 +305,7 @@ void PFslamWrapper::publishMapPose()
 	for (size_t i = 0; i < curPDF.particlesCount(); i++)
 	{
 		const auto p = mrpt::poses::CPose3D(curPDF.getParticlePose(i));
-		mrpt_bridge::convert(p, poseArray.poses[i]);
+		poseArray.poses[i] = mrpt::ros1bridge::toROS_Pose(p);
 	}
 
 	pub_particles_.publish(poseArray);
@@ -376,31 +374,27 @@ void PFslamWrapper::vizBeacons()
 
 void PFslamWrapper::updateSensorPose(const std::string& frame_id)
 {
-	mrpt::poses::CPose3D pose;
-	tf::StampedTransform transform;
+	geometry_msgs::TransformStamped transformStmp;
 	try
 	{
-		listenerTF_.lookupTransform(
-			base_frame_id_, frame_id, ros::Time(0), transform);
-
-		tf::Vector3 translation = transform.getOrigin();
-		tf::Quaternion quat = transform.getRotation();
-		pose.x() = translation.x();
-		pose.y() = translation.y();
-		pose.z() = translation.z();
-		tf::Matrix3x3 Rsrc(quat);
-		mrpt::math::CMatrixDouble33 Rdes;
-		for (int c = 0; c < 3; c++)
-			for (int r = 0; r < 3; r++) Rdes(r, c) = Rsrc.getRow(r)[c];
-		pose.setRotationMatrix(Rdes);
-		laser_poses_[frame_id] = pose;
-		beacon_poses_[frame_id] = pose;
+		ros::Duration timeout(1.0);
+		transformStmp = tf_buffer_.lookupTransform(
+			base_frame_id_, frame_id, ros::Time(0), timeout);
 	}
-	catch (const tf::TransformException& ex)
+	catch (const tf2::TransformException& e)
 	{
-		ROS_ERROR("%s", ex.what());
-		ros::Duration(1.0).sleep();
+		ROS_WARN(
+			"Failed to get transform target_frame (%s) to source_frame (%s): "
+			"%s",
+			base_frame_id_.c_str(), frame_id.c_str(), e.what());
+		return;
 	}
+	tf2::Transform transform;
+	tf2::fromMsg(transformStmp.transform, transform);
+	const mrpt::poses::CPose3D pose = mrpt::ros1bridge::fromROS(transform);
+
+	laser_poses_[frame_id] = pose;
+	beacon_poses_[frame_id] = pose;
 }
 
 bool PFslamWrapper::rawlogPlay()
@@ -438,7 +432,7 @@ bool PFslamWrapper::rawlogPlay()
 				{
 					nav_msgs::OccupancyGrid msg;
 					// if we have new map for current sensor update it
-					mrpt_bridge::convert(*grid, msg);
+					mrpt::ros1bridge::toROS(*grid, msg);
 					pub_map_.publish(msg);
 					pub_metadata_.publish(msg.info);
 				}
@@ -465,9 +459,9 @@ bool PFslamWrapper::rawlogPlay()
 					{
 						beacon_particle =
 							objs->getByClass<mrpt::opengl::CEllipsoid3D>(i);
-						mrpt_bridge::convert(
-							mrpt::poses::CPose3D(beacon_particle->getPose()),
-							poseArrayBeacons.poses[i]);
+						poseArrayBeacons.poses[i] =
+							mrpt::ros1bridge::toROS_Pose(mrpt::poses::CPose3D(
+								beacon_particle->getPose()));
 						viz_beacons_.push_back(beacon_particle);
 					}
 					pub_particles_beacons_.publish(poseArrayBeacons);
@@ -484,7 +478,7 @@ bool PFslamWrapper::rawlogPlay()
 				{
 					const auto p =
 						mrpt::poses::CPose3D(curPDF.getParticlePose(i));
-					mrpt_bridge::convert(p, poseArray.poses[i]);
+					poseArray.poses[i] = mrpt::ros1bridge::toROS_Pose(p);
 				}
 
 				pub_particles_.publish(poseArray);
@@ -501,46 +495,52 @@ bool PFslamWrapper::rawlogPlay()
 
 void PFslamWrapper::publishTF()
 {
+	const ros::Time stamp = mrpt::ros1bridge::toROS(timeLastUpdate_);
+
 	// Most of this code was copy and pase from ros::amcl
-	mrpt::poses::CPose3D robotPose;
 	mapBuilder_.mapPDF.getEstimatedPosePDF(curPDF);
+	const mrpt::poses::CPose3D robotPoseTF = curPDF.getMeanVal();
 
-	curPDF.getMean(robotPose);
-
-	tf::Stamped<tf::Pose> odom_to_map;
-	tf::Transform tmp_tf;
-	ros::Time stamp;
-	mrpt_bridge::convert(timeLastUpdate_, stamp);
-	mrpt_bridge::convert(robotPose, tmp_tf);
+	geometry_msgs::PoseStamped odom_to_map;
 
 	try
 	{
-		tf::Stamped<tf::Pose> tmp_tf_stamped(
-			tmp_tf.inverse(), stamp, base_frame_id_);
-		listenerTF_.transformPose(odom_frame_id_, tmp_tf_stamped, odom_to_map);
+		tf2::Transform tmp_tf =
+			mrpt::ros1bridge::toROS_tfTransform(robotPoseTF);
+
+		geometry_msgs::PoseStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = base_frame_id_;
+		tmp_tf_stamped.header.stamp = stamp;
+		tf2::toMsg(tmp_tf.inverse(), tmp_tf_stamped.pose);
+
+		tf_buffer_.transform(tmp_tf_stamped, odom_to_map, odom_frame_id_);
 	}
-	catch (const tf::TransformException& ex)
+	catch (const tf2::TransformException&)
 	{
-		ROS_ERROR(
-			"Failed to subtract global_frame (%s) from odom_frame (%s). "
-			"TransformException: %s",
-			global_frame_id_.c_str(), odom_frame_id_.c_str(), ex.what());
+		ROS_INFO(
+			"Failed to subtract global_frame (%s) from odom_frame (%s)",
+			global_frame_id_.c_str(), odom_frame_id_.c_str());
 		return;
 	}
 
-	tf::Transform latest_tf_ = tf::Transform(
-		tf::Quaternion(odom_to_map.getRotation()),
-		tf::Point(odom_to_map.getOrigin()));
+	{
+		tf2::Transform latest_tf;
+		tf2::convert(odom_to_map.pose, latest_tf);
 
-	// We want to send a transform that is good up until a
-	// tolerance time so that odom can be used
+		// We want to send a transform that is good up until a
+		// tolerance time so that odom can be used
+		ros::Duration transform_tolerance(0.1);
 
-	ros::Duration transform_tolerance_(0.5);
-	ros::Time transform_expiration = (stamp + transform_tolerance_);
-	tf::StampedTransform tmp_tf_stamped(
-		latest_tf_.inverse(), transform_expiration, global_frame_id_,
-		odom_frame_id_);
-	tf_broadcaster_.sendTransform(tmp_tf_stamped);
+		ros::Time transform_expiration = stamp + transform_tolerance;
+
+		geometry_msgs::TransformStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = global_frame_id_;
+		tmp_tf_stamped.header.stamp = transform_expiration;
+		tmp_tf_stamped.child_frame_id = odom_frame_id_;
+		tf2::convert(latest_tf.inverse(), tmp_tf_stamped.transform);
+
+		tf_broadcaster_.sendTransform(tmp_tf_stamped);
+	}
 }
 
 }  // namespace mrpt_rbpf_slam

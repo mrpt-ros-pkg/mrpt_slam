@@ -320,7 +320,7 @@ void CMapMerger::mergeMaps()
 			m_logger->logFmt(
 				LVL_INFO, "Adding map of agent \"%s\" to the stack",
 				neighbor.agent.topic_namespace.data.c_str());
-			convert(*neighbor.nav_map, *map);
+			mrpt::ros1bridge::fromROS(*neighbor.nav_map, *map);
 
 			// visualize map in corresponding window
 			addToWindow(neighbor_win_manager->win, *map);

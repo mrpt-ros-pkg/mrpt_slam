@@ -9,6 +9,11 @@
  */
 #pragma once
 
+#include <mrpt/ros1bridge/time.h>
+#include <mrpt/ros1bridge/laser_scan.h>
+#include <mrpt/ros1bridge/pose.h>
+#include <mrpt/ros1bridge/map.h>
+
 namespace mrpt
 {
 namespace graphslam
@@ -476,7 +481,7 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 			m_anchor_frame_id;	// with regards to base_link...
 
 		// position
-		mrpt_bridge::convert(mrpt_pose, geom_pose.pose);
+		geom_pose.pose = mrpt::ros1bridge::toROS_Pose(mrpt_pose);
 		m_curr_robot_pos_pub.publish(geom_pose);
 	}
 
@@ -511,7 +516,7 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 
 			// grab the pose - convert to geometry_msgs::Pose format
 			const pose_t& mrpt_pose = n_cit->second;
-			mrpt_bridge::convert(mrpt_pose, geom_pose);
+			geom_pose = mrpt::ros1bridge::toROS_Pose(mrpt_pose);
 			geom_poses.poses.push_back(geom_pose);
 			geom_pose_stamped.pose = geom_pose;
 
@@ -540,18 +545,17 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 	{
 		std_msgs::Header h;
 		mrpt::system::TTimeStamp mrpt_time;
-		mrpt::maps::COccupancyGridMap2D::Ptr mrpt_gridmap =
-			mrpt::maps::COccupancyGridMap2D::Create();
+		auto mrpt_gridmap = mrpt::maps::COccupancyGridMap2D::Create();
 		this->m_engine->getMap(mrpt_gridmap, &mrpt_time);
 
 		// timestamp
-		mrpt_bridge::convert(mrpt_time, h.stamp);
+		h.stamp = mrpt::ros1bridge::toROS(mrpt_time);
 		h.seq = m_pub_seq;
 		h.frame_id = m_anchor_frame_id;
 
 		// nav gridmap
 		nav_msgs::OccupancyGrid nav_gridmap;
-		mrpt_bridge::convert(*mrpt_gridmap, nav_gridmap, h);
+		mrpt::ros1bridge::toROS(*mrpt_gridmap, nav_gridmap, h);
 		m_gridmap_pub.publish(nav_gridmap);
 	}
 
@@ -572,11 +576,11 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 		stats.edges_total = edge_stats["edges_total"];
 		if (edge_stats.find("ICP2D") != edge_stats.end())
 		{
-			stats.edges_ICP2D = edge_stats["ICP2D"];
+			stats.edges_icp_2d = edge_stats["ICP2D"];
 		}
 		if (edge_stats.find("ICP3D") != edge_stats.end())
 		{
-			stats.edges_ICP3D = edge_stats["ICP3D"];
+			stats.edges_icp_3d = edge_stats["ICP3D"];
 		}
 		if (edge_stats.find("Odometry") != edge_stats.end())
 		{
@@ -588,7 +592,7 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 		this->m_engine->getDeformationEnergyVector(
 			&stats.slam_evaluation_metric);
 
-		mrpt_bridge::convert(mrpt_time, stats.header.stamp);
+		stats.header.stamp = mrpt::ros1bridge::toROS(mrpt_time);
 
 		m_stats_pub.publish(stats);
 	}
@@ -621,7 +625,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffLaserScan(
 	// build the CObservation2DRangeScan
 	m_mrpt_laser_scan = CObservation2DRangeScan::Create();
 	mrpt::poses::CPose3D rel_pose;	// pose is 0.
-	mrpt_bridge::convert(*ros_laser_scan, rel_pose, *m_mrpt_laser_scan);
+	mrpt::ros1bridge::fromROS(*ros_laser_scan, rel_pose, *m_mrpt_laser_scan);
 
 	m_received_laser_scan = true;
 	CObservation::Ptr tmp =
@@ -669,12 +673,9 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
 
 	// build and fill an MRPT CObservationOdometry instance for manipulation
 	// from the main algorithm
-	mrpt_bridge::convert(
-		/* src = */ ros_odom->header.stamp,
-		/* dst = */ m_mrpt_odom->timestamp);
-	mrpt_bridge::convert(
-		/* src = */ ros_odom->pose.pose,
-		/* dst = */ m_mrpt_odom->odometry);
+	m_mrpt_odom->timestamp = mrpt::ros1bridge::fromROS(ros_odom->header.stamp);
+	m_mrpt_odom->odometry =
+		mrpt::poses::CPose2D(mrpt::ros1bridge::fromROS(ros_odom->pose.pose));
 
 	// if this is the first call odometry should be 0. Decrement by the
 	// corresponding offset
@@ -692,9 +693,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
 		pose_stamped.header = ros_odom->header;
 
 		// just for convenience - convert the MRPT pose back to PoseStamped
-		mrpt_bridge::convert(
-			/* src = */ m_mrpt_odom->odometry,
-			/* des = */ pose_stamped.pose);
+		pose_stamped.pose = mrpt::ros1bridge::toROS_Pose(m_mrpt_odom->odometry);
 		m_odom_path.poses.push_back(pose_stamped);
 	}
 

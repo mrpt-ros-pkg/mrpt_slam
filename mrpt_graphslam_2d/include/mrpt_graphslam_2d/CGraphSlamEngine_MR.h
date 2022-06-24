@@ -17,8 +17,8 @@
 #include "mrpt_graphslam_2d/CConnectionManager.h"
 #include "mrpt_graphslam_2d/misc/common.h"
 
+#include <mrpt_msgs/NodeIDWithPoseVec.h>
 #include <mrpt_msgs/NodeIDWithLaserScan.h>
-#include <mrpt_msgs/NodeIDWithPose_vec.h>
 #include <mrpt_msgs/NetworkOfPoses.h>
 #include <mrpt_msgs/GetCMGraph.h>  // service
 #include <mrpt_msgs_bridge/network_of_poses.h>
@@ -129,7 +129,8 @@ class CGraphSlamEngine_MR : public CGraphSlamEngine_ROS<GRAPH_T>
 		/**\{ */
 		/**\brief Update nodeIDs + corresponding estimated poses */
 		void fetchUpdatedNodesList(
-			const mrpt_msgs::NodeIDWithPose_vec::ConstPtr& nodes);
+			const mrpt_msgs::NodeIDWithPoseVec::ConstPtr& nodes);
+
 		/**\brief Fill the LaserScan of the last registered nodeID */
 		void fetchLastRegdIDScan(
 			const mrpt_msgs::NodeIDWithLaserScan::ConstPtr& last_regd_id_scan);

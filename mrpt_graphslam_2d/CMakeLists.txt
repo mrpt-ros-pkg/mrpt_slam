@@ -129,6 +129,7 @@ target_link_libraries(${PROJECT_NAME}_mr_node
   mrpt::gui
   mrpt::graphslam
   mrpt::ros1bridge
+  ${catkin_LIBRARIES}
   )
 target_link_libraries(map_merger_node
   mrpt::gui
