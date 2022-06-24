@@ -14,8 +14,10 @@
 // add ros libraries
 #include <ros/ros.h>
 #include <ros/package.h>
-#include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "geometry_msgs/TransformStamped.h"
 // add ros msgs
 #include <nav_msgs/OccupancyGrid.h>
 #include "nav_msgs/MapMetaData.h"
@@ -30,12 +32,12 @@
 // mrpt msgs
 #include "mrpt_msgs/ObservationRangeBeacon.h"
 // mrpt bridge libs
-#include <mrpt_bridge/pose.h>
-#include <mrpt_bridge/map.h>
-#include <mrpt_bridge/mrpt_log_macros.h>
-#include <mrpt_bridge/laser_scan.h>
-#include <mrpt_bridge/beacon.h>
-#include <mrpt_bridge/time.h>
+#include <mrpt/ros1bridge/pose.h>
+#include <mrpt/ros1bridge/map.h>
+#include <mrpt/ros1bridge/logging.h>
+#include <mrpt/ros1bridge/laser_scan.h>
+#include <mrpt_msgs_bridge/beacon.h>
+#include <mrpt/ros1bridge/time.h>
 
 #include <mrpt/obs/CObservationBeaconRanges.h>
 
@@ -170,20 +172,21 @@ class PFslamWrapper : public PFslam
 	std::vector<ros::Subscriber> sensorSub_;  ///< list of sensors topics
 
 	// read rawlog file
+	// vector of pairs of actions and obsrvations from rawlog file
 	std::vector<
 		std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>
-		data_;	///< vector of pairs of actions
-				///< and obsrvations from
-				/// rawlog file
+		data_;
 
 	std::vector<mrpt::opengl::CEllipsoid3D::Ptr> viz_beacons_;
 
+	// publishers for map and pose particles
 	ros::Publisher pub_map_, pub_metadata_, pub_particles_,
-		pub_particles_beacons_,
-		beacon_viz_pub_;  ///< publishers for map and pose particles
+		pub_particles_beacons_, beacon_viz_pub_;
 
-	tf::TransformListener listenerTF_;	///< transform listener
-	tf::TransformBroadcaster tf_broadcaster_;  ///< transform broadcaster
+	tf2_ros::Buffer tf_buffer_;
+	tf2_ros::TransformListener listenerTF_{tf_buffer_};
+	tf2_ros::TransformBroadcaster tf_broadcaster_;	///< transform broadcaster
+
 	mrpt::system::CTicTac tictac_;	///< timer for SLAM performance evaluation
 	float t_exec_;	///< the time which take one SLAM update execution
 };

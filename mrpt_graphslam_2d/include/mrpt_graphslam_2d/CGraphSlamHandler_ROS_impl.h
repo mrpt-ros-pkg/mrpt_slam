@@ -15,6 +15,15 @@ namespace graphslam
 {
 namespace apps
 {
+// From:
+// https://answers.ros.org/question/364561/tfcreatequaternionfromyaw-equivalent-in-ros2/
+static inline auto createQuaternionMsgFromYaw(double yaw)
+{
+	tf2::Quaternion q;
+	q.setRPY(0, 0, yaw);
+	return tf2::toMsg(q);
+}
+
 // static member variables
 template <class GRAPH_T>
 const std::string CGraphSlamHandler_ROS<GRAPH_T>::sep_header(40, '=');
@@ -211,13 +220,8 @@ void CGraphSlamHandler_ROS<GRAPH_T>::getROSParameters(std::string* str_out)
 	ss << "Enable MRPT visuals?      = "
 	   << (this->m_enable_visuals ? "TRUE" : "FALSE") << endl;
 	ss << "Logging verbosity Level   = "
-	   << COutputLogger::logging_levels_to_names
-#if MRPT_VERSION >= 0x199
-		()
-#endif
-			[m_min_logging_level]
-	   << endl;
-	;
+	   << COutputLogger::logging_levels_to_names()[m_min_logging_level] << endl;
+
 	ss << endl;
 
 	*str_out = ss.str();
@@ -448,7 +452,7 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 
 	// rotation
 	anchor_base_link_transform.transform.rotation =
-		tf::createQuaternionMsgFromYaw(mrpt_pose.phi());
+		createQuaternionMsgFromYaw(mrpt_pose.phi());
 
 	// TODO - potential error in the rotation, investigate this
 	m_broadcaster.sendTransform(anchor_base_link_transform);
@@ -482,11 +486,7 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 		this->m_logger->logFmt(
 			LVL_DEBUG, "Publishing the current robot trajectory");
 		typename GRAPH_T::global_poses_t graph_poses;
-#if MRPT_VERSION >= 0x199
 		graph_poses = this->m_engine->getRobotEstimatedTrajectory();
-#else
-		this->m_engine->getRobotEstimatedTrajectory(&graph_poses);
-#endif
 
 		nav_msgs::Path path;
 

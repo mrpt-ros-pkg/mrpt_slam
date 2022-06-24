@@ -9,21 +9,20 @@ project(mrpt_icp_slam_2d)
 find_package(catkin REQUIRED COMPONENTS
   roslib
   roscpp
-  tf
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
   std_msgs
   nav_msgs
   sensor_msgs
   visualization_msgs
-  mrpt_bridge
   dynamic_reconfigure
   roslaunch)
 
 #find mrpt packages
-find_package(MRPT 1.5 REQUIRED gui obs slam)
-message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
-if(MRPT_VERSION VERSION_LESS "1.9.9")
-  set (CMAKE_CXX_STANDARD 14)
-endif()
+find_package(mrpt-gui REQUIRED)
+find_package(mrpt-slam REQUIRED)
+find_package(mrpt-ros1bridge REQUIRED)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	# High level of warnings.
@@ -42,10 +41,13 @@ ENDIF()
 
 catkin_package(
 	CATKIN_DEPENDS
-  nav_msgs
-  sensor_msgs
-  std_msgs
-  visualization_msgs
+	nav_msgs
+	sensor_msgs
+	std_msgs
+	visualization_msgs
+	tf2
+	tf2_ros
+	tf2_geometry_msgs
 )
 
 ###########
@@ -64,8 +66,11 @@ add_executable(mrpt_icp_slam_2d
     src/mrpt_icp_slam_2d_app.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_icp_slam_2d ${MRPT_LIBRARIES}
-    ${catkin_LIBRARIES}
+TARGET_LINK_LIBRARIES(mrpt_icp_slam_2d
+  mrpt::slam
+  mrpt::gui
+  mrpt::ros1bridge
+  ${catkin_LIBRARIES}
 )
 
 #############

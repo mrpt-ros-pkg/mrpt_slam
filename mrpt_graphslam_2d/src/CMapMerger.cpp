@@ -22,7 +22,6 @@ using namespace mrpt::opengl;
 using namespace ros;
 using namespace nav_msgs;
 using namespace std;
-using namespace mrpt_bridge;
 
 // helper methods
 

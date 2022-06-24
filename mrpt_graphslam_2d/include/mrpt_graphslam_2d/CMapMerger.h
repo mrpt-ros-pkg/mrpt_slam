@@ -21,7 +21,7 @@
 #include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt/maps/CSimplePointsMap.h>
 #include <mrpt/slam/CGridMapAligner.h>
-#include <mrpt_bridge/map.h>
+#include <mrpt/ros1bridge/map.h>
 #include <mrpt/system/filesystem.h>
 #include <mrpt/system/os.h>
 #include <mrpt/math/utils.h>
@@ -29,21 +29,17 @@
 #include <mrpt/opengl/CAxis.h>
 #include <mrpt/opengl/CGridPlaneXY.h>
 #include <mrpt/opengl/CSetOfLines.h>
-
-#include <mrpt/version.h>
-#if MRPT_VERSION >= 0x199
 #include <mrpt/system/COutputLogger.h>
 #include <mrpt/img/TColorManager.h>
-using namespace mrpt::system;
-using namespace mrpt::img;
-#else
-#include <mrpt/system/COutputLogger.h>
-#include <mrpt/system/TColorManager.h>
-#endif
 
 #include <iterator>
 
 const mrpt::poses::CPose3D EMPTY_POSE;
+
+using namespace mrpt::system;
+using namespace mrpt::img;
+using namespace mrpt::maps;
+using namespace mrpt::obs;
 
 namespace mrpt
 {

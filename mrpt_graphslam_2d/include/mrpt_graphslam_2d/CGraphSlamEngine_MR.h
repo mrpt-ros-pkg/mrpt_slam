@@ -21,40 +21,34 @@
 #include <mrpt_msgs/NodeIDWithPose_vec.h>
 #include <mrpt_msgs/NetworkOfPoses.h>
 #include <mrpt_msgs/GetCMGraph.h>  // service
-#include <mrpt_bridge/network_of_poses.h>
-#include <mrpt_bridge/laser_scan.h>
+#include <mrpt_msgs_bridge/network_of_poses.h>
+#include <mrpt/ros1bridge/laser_scan.h>
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/String.h>
 #include <mrpt/poses/CPosePDFGaussian.h>
 #include <mrpt/poses/CPosePDFSOG.h>
-
 #include <mrpt/math/utils.h>
 #include <mrpt/system/os.h>
 #include <mrpt/slam/CGridMapAligner.h>
 #include <mrpt/graphs/TMRSlamNodeAnnotations.h>
 #include <mrpt/graphslam/misc/TUncertaintyPath.h>
 #include <mrpt/graphslam/misc/TNodeProps.h>
-
-#include <mrpt/version.h>
-#if MRPT_VERSION >= 0x199
 #include <mrpt/img/TColorManager.h>
 #include <mrpt/img/TColor.h>
 #include <mrpt/graphs/TNodeID.h>
 #include <mrpt/config/CConfigFileBase.h>
 #include <mrpt/system/COutputLogger.h>
 #include <mrpt/containers/stl_containers_utils.h>
+
+#include <set>
+#include <iterator>
+#include <algorithm>
+
 using namespace mrpt::img;
 using namespace mrpt::graphs;
 using namespace mrpt::config;
 using namespace mrpt::system;
 using namespace mrpt::containers;
-#else
-#include <mrpt/system/TColorManager.h>
-#endif
-
-#include <set>
-#include <iterator>
-#include <algorithm>
 
 namespace mrpt
 {

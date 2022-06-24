@@ -13,7 +13,7 @@
 #include <mrpt_msgs/GraphSlamAgents.h>
 #include <mrpt/system/COutputLogger.h>
 #include <mrpt/maps/COccupancyGridMap2D.h>
-#include <mrpt_bridge/map.h>
+#include <mrpt/ros1bridge/map.h>
 #include "mrpt_graphslam_2d/CMapMerger.h"
 #include "mrpt_graphslam_2d/TNeighborAgentMapProps.h"
 

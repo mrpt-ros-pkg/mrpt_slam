@@ -12,14 +12,10 @@
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_MR.h"
 #include "mrpt_graphslam_2d/CConnectionManager.h"
 #include <mrpt/graphslam/interfaces/CRangeScanEdgeRegistrationDecider.h>
-
 #include <string>
-
-#if MRPT_VERSION >= 0x199
 #include <mrpt/graphs/TNodeID.h>
+
 using namespace mrpt::graphs;
-#else
-#endif
 
 namespace mrpt
 {

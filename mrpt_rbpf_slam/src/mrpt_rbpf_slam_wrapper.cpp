@@ -150,23 +150,23 @@ bool PFslamWrapper::waitForTransform(
 	const std::string& source_frame, const ros::Time& time,
 	const ros::Duration& timeout, const ros::Duration& polling_sleep_duration)
 {
-	tf::StampedTransform transform;
+	geometry_msgs::TransformStamped transform;
 	try
 	{
-		listenerTF_.waitForTransform(
-			target_frame, source_frame, time, timeout, polling_sleep_duration);
-		listenerTF_.lookupTransform(
-			target_frame, source_frame, time, transform);
+		transform = tf_buffer_.lookupTransform(
+			target_frame, source_frame, time, timeout);
 	}
-	catch (const tf::TransformException& ex)
+	catch (const tf2::TransformException& e)
 	{
-		ROS_ERROR(
-			"Failed to get transform target_frame (%s) to source_frame (%s). "
-			"TransformException: %s",
-			target_frame.c_str(), source_frame.c_str(), ex.what());
+		ROS_WARN(
+			"Failed to get transform target_frame (%s) to source_frame (%s): "
+			"%s",
+			target_frame.c_str(), source_frame.c_str(), e.what());
 		return false;
 	}
-	mrpt_bridge::convert(transform, des);
+	tf2::Transform tx;
+	tf2::fromMsg(transform.transform, tx);
+	des = mrpt::ros1bridge::fromROS(tx);
 	return true;
 }
 
@@ -254,14 +254,9 @@ void PFslamWrapper::publishMapPose()
 
 	COccupancyGridMap2D* grid = nullptr;
 	CBeaconMap* bm = nullptr;
-#if MRPT_VERSION >= 0x199
 	if (metric_map_->countMapsByClass<COccupancyGridMap2D>())
 		grid = metric_map_->mapByClass<COccupancyGridMap2D>().get();
 	bm = metric_map_->mapByClass<CBeaconMap>().get();
-#else
-	if (metric_map_->m_gridMaps.size()) grid = metric_map_->m_gridMaps[0].get();
-	bm = metric_map_->getMapByClass<CBeaconMap>().get();
-#endif
 
 	if (grid)
 	{
@@ -434,15 +429,9 @@ bool PFslamWrapper::rawlogPlay()
 
 				COccupancyGridMap2D* grid = nullptr;
 				CBeaconMap* bm = nullptr;
-#if MRPT_VERSION >= 0x199
 				if (metric_map_->countMapsByClass<COccupancyGridMap2D>())
 					grid = metric_map_->mapByClass<COccupancyGridMap2D>().get();
 				bm = metric_map_->mapByClass<CBeaconMap>().get();
-#else
-				if (metric_map_->m_gridMaps.size())
-					grid = metric_map_->m_gridMaps[0].get();
-				bm = metric_map_->getMapByClass<CBeaconMap>().get();
-#endif
 
 				// if I received new grid maps from 2D laser scan sensors
 				if (grid)

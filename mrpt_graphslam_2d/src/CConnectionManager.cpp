@@ -33,7 +33,7 @@ bool operator==(
 	const mrpt_msgs::GraphSlamAgent& agent2)
 {
 	return (
-		agent1.agent_ID == agent2.agent_ID &&
+		agent1.agent_id == agent2.agent_id &&
 		agent1.topic_namespace.data == agent2.topic_namespace.data);
 }
 ////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ bool operator<(
 	const mrpt_msgs::GraphSlamAgent& agent1,
 	const mrpt_msgs::GraphSlamAgent& agent2)
 {
-	return agent1.agent_ID < agent2.agent_ID;
+	return agent1.agent_id < agent2.agent_id;
 }
 ////////////////////////////////////////////////////////////
 
@@ -241,15 +241,15 @@ bool CConnectionManager::convert(
 		ros_master.uri, &slam_agent->port);
 	slam_agent->hostname.data = hostname;
 
-	// agent_ID - last field of the IP address
+	// agent_id - last field of the IP address
 	vector<string> tokens;
 	mrpt::system::tokenize(ip_addr, ".", tokens);
-	slam_agent->agent_ID = atoi(tokens.rbegin()->c_str());
+	slam_agent->agent_id = atoi(tokens.rbegin()->c_str());
 
 	// robot topic namespace
 	{
 		// stringstream ss("");
-		// ss << slam_agent->name.data  << "_" << slam_agent->agent_ID;
+		// ss << slam_agent->name.data  << "_" << slam_agent->agent_id;
 		// slam_agent->topic_namespace.data = ss.str().c_str();
 		slam_agent->topic_namespace.data = slam_agent->name.data;
 

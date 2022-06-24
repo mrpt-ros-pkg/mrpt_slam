@@ -53,7 +53,7 @@ Changelog for package mrpt_ekf_slam_3d
 * Make formatting conform to ROS C++ Style Guide.
 * fix eigen3 dependency problem
 * Output logs only in ROS.
-* Add a guard for new mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl and mrpt_bridge::mrptToROSLoggerCallback functions for MRPT version less than 1.5.0.
+* Add a guard for new mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl and mrpt::ros1bridge::mrptToROSLoggerCallback functions for MRPT version less than 1.5.0.
 * Add streaming of MRPT logs to ROS logs.
 * Contributors: Jose Luis Blanco, Logrus, Vladislav Tananaev
 

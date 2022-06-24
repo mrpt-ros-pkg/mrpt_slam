@@ -6,6 +6,8 @@
 
   <url type="website">http://www.mrpt.org/</url>
   <maintainer email="v.d.tananaev@gmail.com">Vladislav Tananaev</maintainer>
+  <maintainer email="joseluisblancoc@gmail.com">Jose Luis Blanco-Claraco</maintainer>
+
   <author>Vladislav Tananaev</author>
   <license>BSD</license>
 
@@ -15,15 +17,17 @@
 
   <depend>dynamic_reconfigure</depend>
   <depend>mrpt2</depend>
-  <depend>mrpt_bridge</depend>
   <depend>nav_msgs</depend>
   <depend>roscpp</depend>
   <depend>roslaunch</depend>
   <depend>roslib</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
-  <depend>tf</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
   <depend>visualization_msgs</depend>
+  <depend>mrpt_msgs_bridge</depend>
 
   <exec_depend>mrpt_rawlog</exec_depend>
   <exec_depend>mvsim</exec_depend>

@@ -10,6 +10,7 @@
   <url type="website">http://www.mrpt.org/</url>
   <url type="documentation">https://wiki.ros.org/mrpt_slam</url>
   <maintainer email="nickkouk@gmail.com">Nikos Koukis</maintainer>
+  <maintainer email="joseluisblancoc@gmail.com">Jose Luis Blanco-Claraco</maintainer>
   <author email="nickkouk@gmail.com">Nikos Koukis</author>
   <license>BSD</license>
 
@@ -22,10 +23,11 @@
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>mrpt2</depend>
-  <depend>mrpt_bridge</depend>
   <depend>mrpt_msgs</depend>
-  <depend>tf</depend>
+  <depend>mrpt_msgs_bridge</depend>
   <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
   <depend>fkie_multimaster_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->

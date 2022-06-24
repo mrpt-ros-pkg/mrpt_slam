@@ -6,7 +6,7 @@
 
 #include "mrpt_ekf_slam_3d/mrpt_ekf_slam_3d.h"
 #include <ros/console.h>
-#include <mrpt_bridge/utils.h>
+#include <mrpt/ros1bridge/logging.h>
 
 EKFslam::EKFslam()
 {
@@ -49,14 +49,14 @@ void EKFslam::read_iniFile(std::string ini_filename)
 	log4cxx::LoggerPtr ros_logger =
 		log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
 	mapping.setVerbosityLevel(
-		mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+		mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
 	mapping.logging_enable_console_output = false;
 
 	mapping.logRegisterCallback([](std::string_view msg,
 								   const mrpt::system::VerbosityLevel level,
 								   std::string_view loggerName,
 								   const mrpt::Clock::time_point timestamp) {
-		mrpt_bridge::mrptToROSLoggerCallback(
+		mrpt::ros1bridge::mrptToROSLoggerCallback(
 			std::string(msg), level, std::string(loggerName), timestamp);
 	});
 
@@ -122,7 +122,7 @@ void EKFslam::run3Dwindow()
 		const CPose3D robotPoseMean3D = CPose3D(robotPose_.mean);
 
 		// Build the path:
-		meanPath.push_back(mrpt_bridge::p2t(robotPoseMean3D));
+		meanPath.push_back(robotPoseMean3D.asTPose());
 
 		// create the scene
 		COpenGLScene::Ptr scene3D = COpenGLScene::Create();
@@ -137,7 +137,7 @@ void EKFslam::run3Dwindow()
 		TPose3D init_pose;
 		if (!meanPath.empty())
 		{
-			init_pose = mrpt_bridge::p2t(CPose3D(meanPath[0]));
+			init_pose = CPose3D(meanPath[0]).asTPose();
 			int path_decim = 0;
 			for (std::vector<TPose3D>::iterator it = meanPath.begin();
 				 it != meanPath.end(); ++it)

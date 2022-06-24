@@ -12,7 +12,6 @@
 
 // ROS
 #include <ros/ros.h>
-#include <mrpt_bridge/mrpt_bridge.h>
 #include <mrpt_msgs/GraphSlamStats.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
@@ -23,7 +22,9 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <std_msgs/Header.h>
 
-#include <tf/transform_datatypes.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>

@@ -7,23 +7,24 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   roslib
   roscpp
-  tf
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
   std_msgs
   nav_msgs
   sensor_msgs
   visualization_msgs
-  mrpt_bridge
   dynamic_reconfigure
-  roslaunch)
+  roslaunch
+  mrpt_msgs_bridge
+)
 
 #find mrpt packages
-find_package(MRPT 1.5 REQUIRED gui obs slam)
+find_package(mrpt-gui REQUIRED)
+find_package(mrpt-slam REQUIRED)
+find_package(mrpt-ros1bridge REQUIRED)
 message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
 
-if (MRPT_VERSION VERSION_LESS "1.9.9")
-  set (CMAKE_CXX_STANDARD 14)
-	add_compile_options("-Wno-deprecated-declarations")
-endif()
 if (CMAKE_COMPILER_IS_GNUCXX)
 	# High level of warnings.
 	# The -Wno-long-long is required in 64bit systems when including sytem headers.
@@ -40,12 +41,16 @@ IF(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
 ENDIF()
 
 catkin_package(
-    CATKIN_DEPENDS
-		nav_msgs
+  CATKIN_DEPENDS
+    nav_msgs
     sensor_msgs
     std_msgs
     visualization_msgs
-    )
+    tf2
+    tf2_ros
+    tf2_geometry_msgs
+    mrpt_msgs_bridge
+)
 
 ###########
 ## Build ##
@@ -58,18 +63,17 @@ include_directories(
 )
 
 
-IF(${MRPT_VERSION} LESS 1.5.0)
-  MESSAGE(WARNING "Target mrpt_ekf_slam_3d will not be built. It requires MRPT version 1.5.0 or higher, but you have ${MRPT_VERSION}.")
-else()
-
 add_executable(mrpt_ekf_slam_3d
     src/mrpt_ekf_slam_3d.cpp
     src/mrpt_ekf_slam_3d_wrapper.cpp
     src/mrpt_ekf_slam_3d_app.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_ekf_slam_3d ${MRPT_LIBRARIES}
-    ${catkin_LIBRARIES}
+TARGET_LINK_LIBRARIES(mrpt_ekf_slam_3d
+  mrpt::gui
+  mrpt::slam
+  mrpt::ros1bridge
+  ${catkin_LIBRARIES}
 )
 
 #############
@@ -96,4 +100,3 @@ install(DIRECTORY
 # Add testing for *.launch files
 roslaunch_add_file_check(launch)
 
-endif()

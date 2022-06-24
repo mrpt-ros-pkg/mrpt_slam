@@ -76,7 +76,7 @@ Changelog for package mrpt_rbpf_slam
 * Fix missing CObservationBeaconRanges.h include in mrpt_rbpf_slam.
 * Fix description of the rbpf package.
 * Output logs only in ROS.
-* Add a guard for new mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl and mrpt_bridge::mrptToROSLoggerCallback functions for MRPT version less than 1.5.0.
+* Add a guard for new mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl and mrpt::ros1bridge::mrptToROSLoggerCallback functions for MRPT version less than 1.5.0.
 * Add streaming of MRPT logs to ROS logs.
 * Update example config files with new localizeLinDistance and localizeAngDistance_deg.
 * Fix build against MRPT<1.3.0

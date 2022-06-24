@@ -13,20 +13,20 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   geometry_msgs
   nav_msgs
-  mrpt_bridge
   mrpt_msgs
-  tf
+  mrpt_msgs_bridge
   tf2
+  tf2_ros
+  tf2_geometry_msgs
   fkie_multimaster_msgs
   )
 ## System dependencies are found with CMake's conventions
-find_package(MRPT 1.5 REQUIRED gui obs maps opengl graphslam)
+find_package(mrpt-gui REQUIRED)
+find_package(mrpt-graphslam REQUIRED)
+find_package(mrpt-ros1bridge REQUIRED)
+
 message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
 
-if (MRPT_VERSION VERSION_LESS "1.9.9")
-  set (CMAKE_CXX_STANDARD 14)
-#	add_compile_options(-Wno-deprecated-declarations)
-endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	# High level of warnings.
@@ -59,16 +59,18 @@ catkin_package(
 #  INCLUDE_DIRS include
   #LIBRARIES mrpt_graphslam_2d
   CATKIN_DEPENDS
-  roscpp
-  rospy
-  std_msgs
-  sensor_msgs
-  geometry_msgs
-  nav_msgs
-  mrpt_bridge
-  mrpt_msgs
-  tf
-  fkie_multimaster_msgs
+    roscpp
+    rospy
+    std_msgs
+    sensor_msgs
+    geometry_msgs
+    nav_msgs
+    mrpt_msgs
+    mrpt_msgs_bridge
+    tf2
+    tf2_ros
+    tf2_geometry_msgs
+    fkie_multimaster_msgs
   #  DEPENDS system_lib
   )
 
@@ -83,81 +85,80 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 	)
 
-IF(${MRPT_VERSION} LESS 1.5.0)
-  set(WARN_MSG "${WARN_MSG}\"${PROJECT_NAME}\" requires MRPT version 1.5.0 or higher ")
-  set(WARN_MSG "${WARN_MSG} - Current MRPT version: ${MRPT_VERSION}\n")
-  set(WARN_MSG "${WARN_MSG}Ignoring target \"${PROJECT_NAME}\"...")
-  MESSAGE(WARNING ${WARN_MSG})
-else()
+set(SR_GRAPHSLAM_SRC
+  src/CConnectionManager.cpp
+  src/common.cpp
+  )
 
-  set(SR_GRAPHSLAM_SRC
-    src/CConnectionManager.cpp
-  	src/common.cpp
-    )
+set(MR_GRAPHSLAM_MERGER_SRC
+  src/CMapMerger.cpp
+  src/TNeighborAgentMapProps.cpp
+  )
 
-  set(MR_GRAPHSLAM_MERGER_SRC
-  	src/CMapMerger.cpp
-  	src/TNeighborAgentMapProps.cpp
-  	)
+add_library(${PROJECT_NAME}
+  ${SR_GRAPHSLAM_SRC}
+  )
+add_executable(${PROJECT_NAME}_node
+  ${SR_GRAPHSLAM_SRC}
+  src/${PROJECT_NAME}_node.cpp
+  )
+add_executable(${PROJECT_NAME}_mr_node
+  ${SR_GRAPHSLAM_SRC}
+  src/${PROJECT_NAME}_mr_node.cpp
+  )
+add_executable(map_merger_node
+  ${SR_GRAPHSLAM_SRC}
+  ${MR_GRAPHSLAM_MERGER_SRC}
+  src/map_merger_node.cpp
+  )
 
-  add_library(${PROJECT_NAME}
-    ${SR_GRAPHSLAM_SRC}
-    )
-  add_executable(${PROJECT_NAME}_node
-    ${SR_GRAPHSLAM_SRC}
-    src/${PROJECT_NAME}_node.cpp
-    )
-  add_executable(${PROJECT_NAME}_mr_node
-    ${SR_GRAPHSLAM_SRC}
-    src/${PROJECT_NAME}_mr_node.cpp
-    )
-  add_executable(map_merger_node
-  	${SR_GRAPHSLAM_SRC}
-  	${MR_GRAPHSLAM_MERGER_SRC}
-  	src/map_merger_node.cpp
-  	)
+## Specify libraries to link a library or executable target against
+target_link_libraries(${PROJECT_NAME}
+  mrpt::gui
+  mrpt::graphslam
+  mrpt::ros1bridge
+  ${catkin_LIBRARIES}
+  )
+target_link_libraries(${PROJECT_NAME}_node
+  mrpt::gui
+  mrpt::graphslam
+  mrpt::ros1bridge
+  ${catkin_LIBRARIES}
+  )
+target_link_libraries(${PROJECT_NAME}_mr_node
+  mrpt::gui
+  mrpt::graphslam
+  mrpt::ros1bridge
+  )
+target_link_libraries(map_merger_node
+  mrpt::gui
+  mrpt::graphslam
+  mrpt::ros1bridge
+  ${catkin_LIBRARIES}
+  )
 
-  ## Specify libraries to link a library or executable target against
-  target_link_libraries(${PROJECT_NAME}
-    ${MRPT_LIBRARIES}
-    ${catkin_LIBRARIES}
-    )
-  target_link_libraries(${PROJECT_NAME}_node
-    ${MRPT_LIBRARIES}
-    ${catkin_LIBRARIES}
-    )
-  target_link_libraries(${PROJECT_NAME}_mr_node
-    ${MRPT_LIBRARIES}
-    ${catkin_LIBRARIES}
-    )
-  target_link_libraries(map_merger_node
-  	${MRPT_LIBRARIES}
-  	${catkin_LIBRARIES}
-  	)
+#############
+## Install ##
+#############
 
-  #############
-  ## Install ##
-  #############
+# Mark executables and/or libraries for installation
+install(
+  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node ${PROJECT_NAME}_mr_node map_merger_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
 
-  # Mark executables and/or libraries for installation
-  install(
-  	TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node ${PROJECT_NAME}_mr_node map_merger_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-    )
+# Mark other files for installation (e.g. launch and bag files, etc.)
+install(DIRECTORY
+  launch
+  config
+  rviz
+  rosbags
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  )
 
-  # Mark other files for installation (e.g. launch and bag files, etc.)
-  install(DIRECTORY
-    launch
-    config
-    rviz
-    rosbags
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-    )
+#############
+## Testing ##
+#############
 
-  #############
-  ## Testing ##
-  #############
-
-endif()

@@ -12,9 +12,11 @@
 // add ros libraries
 #include <ros/ros.h>
 #include <ros/package.h>
-#include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
-//#include <tf_conversions/tf_eigen.h>
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "geometry_msgs/TransformStamped.h"
+
 #include "Eigen/Core"
 #include "Eigen/Geometry"
 // add ros msgs
@@ -25,10 +27,10 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <visualization_msgs/Marker.h>
 // mrpt bridge libs
-#include <mrpt_bridge/pose.h>
-#include <mrpt_bridge/landmark.h>
-#include <mrpt_bridge/mrpt_log_macros.h>
-#include <mrpt_bridge/time.h>
+#include <mrpt/ros1bridge/pose.h>
+#include <mrpt_msgs_bridge/landmark.h>
+#include <mrpt/ros1bridge/logging.h>
+#include <mrpt/ros1bridge/time.h>
 #include <mrpt/io/CFileGZInputStream.h>
 #include <mrpt/io/CFileGZOutputStream.h>
 #include <mrpt/config/CConfigFile.h>
@@ -88,7 +90,7 @@ class EKFslamWrapper : EKFslam
 	 * @param covariance covariance matrix for current landmarks or robot pose
 	 */
 	void computeEllipseOrientationScale(
-		tf::Quaternion& orientation, Eigen::Vector3d& scale,
+		tf2::Quaternion& orientation, Eigen::Vector3d& scale,
 		const mrpt::math::CMatrixDouble33& covariance);
 	/**
 	 * @brief initialize publishers subscribers and EKF 3d slam
@@ -188,6 +190,8 @@ class EKFslamWrapper : EKFslam
 	float t_exec;  ///< the time which take one SLAM update execution
 
 	ros::Publisher data_association_viz_pub_, state_viz_pub_;
-	tf::TransformListener listenerTF_;	///< transform listener
-	tf::TransformBroadcaster tf_broadcaster_;  ///< transform broadcaster
+
+	tf2_ros::Buffer tf_buffer_;
+	tf2_ros::TransformListener listenerTF_{tf_buffer_};
+	tf2_ros::TransformBroadcaster tf_broadcaster_;	///< transform broadcaster
 };

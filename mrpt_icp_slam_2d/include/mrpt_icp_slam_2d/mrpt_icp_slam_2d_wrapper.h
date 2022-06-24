@@ -30,8 +30,11 @@
 // add ros libraries
 #include <ros/ros.h>
 #include <ros/package.h>
-#include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "geometry_msgs/TransformStamped.h"
+
 // add ros msgs
 #include <nav_msgs/OccupancyGrid.h>
 #include "nav_msgs/MapMetaData.h"
@@ -49,14 +52,12 @@
 #include <visualization_msgs/Marker.h>
 
 // mrpt bridge libs
-#include <mrpt_bridge/pose.h>
-#include <mrpt_bridge/map.h>
-#include <mrpt_bridge/mrpt_log_macros.h>
-#include <mrpt_bridge/laser_scan.h>
-#include <mrpt_bridge/time.h>
-#include <mrpt_bridge/point_cloud.h>
-#include <mrpt/version.h>
-#if MRPT_VERSION >= 0x130
+#include <mrpt/ros1bridge/pose.h>
+#include <mrpt/ros1bridge/map.h>
+#include <mrpt/ros1bridge/logging.h>
+#include <mrpt/ros1bridge/laser_scan.h>
+#include <mrpt/ros1bridge/time.h>
+#include <mrpt/ros1bridge/point_cloud.h>
 #include <mrpt/obs/CActionRobotMovement2D.h>
 #include <mrpt/obs/CActionRobotMovement3D.h>
 #include <mrpt/obs/CActionCollection.h>
@@ -64,17 +65,9 @@
 #include <mrpt/obs/CSensoryFrame.h>
 #include <mrpt/maps/CMultiMetricMap.h>
 #include <mrpt/obs/CRawlog.h>
+
 using namespace mrpt::maps;
 using namespace mrpt::obs;
-#else
-#include <mrpt/slam/CActionRobotMovement2D.h>
-#include <mrpt/slam/CActionRobotMovement3D.h>
-#include <mrpt/slam/CActionCollection.h>
-#include <mrpt/slam/CObservationOdometry.h>
-#include <mrpt/slam/CSensoryFrame.h>
-#include <mrpt/slam/CMultiMetricMap.h>
-#include <mrpt/slam/CRawlog.h>
-#endif
 using namespace mrpt;
 using namespace mrpt::slam;
 using namespace mrpt::opengl;
@@ -212,8 +205,9 @@ class ICPslamWrapper
 	ros::Publisher pub_map_, pub_metadata_, pub_pose_,
 		pub_point_cloud_;  ///< publishers for map and pose particles
 
-	tf::TransformListener listenerTF_;	///< transform listener
-	tf::TransformBroadcaster tf_broadcaster_;  ///< transform broadcaster
+	tf2_ros::Buffer tf_buffer_;
+	tf2_ros::TransformListener listenerTF_{tf_buffer_};
+	tf2_ros::TransformBroadcaster tf_broadcaster_;	///< transform broadcaster
 
 	CTicTac tictac;	 ///< timer for SLAM performance evaluation
 	float t_exec;  ///< the time which take one SLAM update execution
@@ -221,8 +215,6 @@ class ICPslamWrapper
 	CObservation::Ptr observation;
 	mrpt::system::TTimeStamp
 		timeLastUpdate_;  ///< last update of the pose and map
-
-	ros::Time stamp;  ///< timestamp for observations
 
 	mrpt::gui::CDisplayWindow3D::Ptr win3D_;  ///< MRPT window
 

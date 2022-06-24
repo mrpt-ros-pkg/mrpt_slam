@@ -3,7 +3,7 @@
   <name>mrpt_ekf_slam_2d</name>
   <version>0.1.10</version>
   <description>This package is a wrapper for the implementation of EKF-based SLAM with range-bearing sensors, odometry, and a 2D (+heading) robot pose, and 2D landmarks.</description>
-  <maintainer email="jlblanco@ual.es">Jose Luis</maintainer>
+  <maintainer email="joseluisblancoc@gmail.com">Jose Luis Blanco-Claraco</maintainer>
 
   <license>BSD</license>
 
@@ -19,14 +19,16 @@
   <depend>roscpp</depend>
   <depend>roslaunch</depend>
   <depend>roslib</depend>
-  <depend>tf</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>nav_msgs</depend>
-  <depend>mrpt_bridge</depend>
   <depend>dynamic_reconfigure</depend>
   <depend>mrpt2</depend>
+  <depend>mrpt_msgs_bridge</depend>
 
   <exec_depend>rviz</exec_depend>
   <exec_depend>mrpt_rawlog</exec_depend>

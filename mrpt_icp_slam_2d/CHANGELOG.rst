@@ -65,7 +65,7 @@ Changelog for package mrpt_icp_slam_2d
 ------------------
 * Make formatting conform to ROS C++ Style Guide.
 * Output logs only in ROS.
-* Add a guard for new mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl and mrpt_bridge::mrptToROSLoggerCallback functions for MRPT version less than 1.5.0.
+* Add a guard for new mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl and mrpt::ros1bridge::mrptToROSLoggerCallback functions for MRPT version less than 1.5.0.
 * Add streaming of MRPT logs to ROS logs.
 * Contributors: Logrus, Vladislav Tananaev
 

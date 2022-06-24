@@ -10,7 +10,6 @@
 #pragma once
 
 #include <chrono>
-#include <mrpt/version.h>
 #include <thread>
 
 #include <mrpt/math/CMatrixFixed.h>
@@ -150,11 +149,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::addNodeBatchFromNeighbor(
 		constraint_t c;
 		c.mean = node_props_to_connect.second.pose -
 				 neighbor->last_integrated_pair_neighbor_frame.second;
-#if MRPT_VERSION >= 0x199
 		c.cov_inv.setIdentity();
-#else
-		c.cov_inv.unit();
-#endif
 		graph_conn.setEdge(c);
 
 		graph_conn.from = INVALID_NODEID;
@@ -389,11 +384,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::findTFWithNeighbor(
 		constraint_t c;
 		c.mean = pose_out;
 		// assign the inverse of the found covariance to c
-#if MRPT_VERSION >= 0x199
 		cov_out = c.cov_inv.inverse();
-#else
-		cov_out.inv(c.cov_inv);
-#endif
 		graph_conn.setEdge(c);
 		// TODO - change this.
 		graph_conn.from = 0;  // self

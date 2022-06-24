@@ -9,14 +9,9 @@
 
 #include <mrpt/math/utils.h>
 #include "mrpt_graphslam_2d/misc/common.h"
-
-#include <mrpt/version.h>
-#if MRPT_VERSION >= 0x199
 #include <mrpt/containers/stl_containers_utils.h>
-using namespace mrpt::containers;
-#else
-#endif
 
+using namespace mrpt::containers;
 using namespace mrpt::poses;
 using namespace mrpt::math;
 using namespace std;

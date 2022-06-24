@@ -21,7 +21,6 @@
 #include <mrpt/system/filesystem.h>
 #include <mrpt/system/os.h>
 #include <mrpt/gui/CDisplayWindow3D.h>
-#include <mrpt/version.h>
 #include <mrpt/maps/CMultiMetricMap.h>
 #include <mrpt/obs/CActionCollection.h>
 #include <mrpt/obs/CActionRobotMovement2D.h>

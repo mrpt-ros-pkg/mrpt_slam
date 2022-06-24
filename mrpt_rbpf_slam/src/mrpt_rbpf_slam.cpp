@@ -4,13 +4,9 @@
  *
  *
  */
-#include <mrpt/version.h>
-#include <mrpt_bridge/utils.h>
+#include <mrpt/ros1bridge/logging.h>
 #include <mrpt_rbpf_slam/mrpt_rbpf_slam.h>
-
-#if MRPT_VERSION >= 0x199
 #include <mrpt/serialization/CArchive.h>
-#endif
 
 namespace mrpt_rbpf_slam
 {
@@ -117,14 +113,14 @@ void PFslam::initSlam(PFslam::Options options)
 	log4cxx::LoggerPtr ros_logger =
 		log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
 	mapBuilder_.setVerbosityLevel(
-		mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+		mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
 	mapBuilder_.logging_enable_console_output = false;
 
 	mapBuilder_.logRegisterCallback(
 		[](std::string_view msg, const mrpt::system::VerbosityLevel level,
 		   std::string_view loggerName,
 		   const mrpt::Clock::time_point timestamp) {
-			mrpt_bridge::mrptToROSLoggerCallback(
+			mrpt::ros1bridge::mrptToROSLoggerCallback(
 				std::string(msg), level, std::string(loggerName), timestamp);
 		});
 
@@ -237,22 +233,11 @@ void PFslam::run3Dwindow()
 			mrpt::poses::CPose3DPDFParticles poseParts;
 			mapBuilder_.mapPDF.getEstimatedPosePDFAtTime(k, poseParts);
 
-#if MRPT_VERSION >= 0x199
 			const auto [COV, meanPose] = poseParts.getCovarianceAndMean();
-#else
-			mrpt::poses::CPose3D meanPose;
-			mrpt::math::CMatrixDouble66 COV;
-			poseParts.getCovarianceAndMean(COV, meanPose);
-#endif
 
 			if (meanPose.distanceTo(lastMeanPose) > minDistBtwPoses)
 			{
-				mrpt::math::CMatrixDouble33 COV3 =
-#if MRPT_VERSION >= 0x199
-					COV.blockCopy<3, 3>(0, 0);
-#else
-					COV.block(0, 0, 3, 3);
-#endif
+				mrpt::math::CMatrixDouble33 COV3 = COV.blockCopy<3, 3>(0, 0);
 
 				minDistBtwPoses = 6 * sqrt(COV3(0, 0) + COV3(1, 1));
 

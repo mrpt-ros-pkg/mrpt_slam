@@ -11,7 +11,7 @@
 EKFslamWrapper::EKFslamWrapper()
 {
 	rawlog_play_ = false;
-	mrpt_bridge::convert(ros::Time(0), timeLastUpdate_);
+	timeLastUpdate_ = mrpt::Clock::now();
 }
 EKFslamWrapper::~EKFslamWrapper() {}
 bool EKFslamWrapper::is_file_exists(const std::string& name)
@@ -120,22 +120,26 @@ void EKFslamWrapper::odometryForCallback(
 
 void EKFslamWrapper::updateSensorPose(std::string _frame_id)
 {
-	mrpt::poses::CPose3D pose;
-	tf::StampedTransform transform;
+	geometry_msgs::TransformStamped transformStmp;
 	try
 	{
-		listenerTF_.lookupTransform(
-			base_frame_id, _frame_id, ros::Time(0), transform);
-
-		mrpt_bridge::convert(transform, pose);
-
-		landmark_poses_[_frame_id] = pose;
+		ros::Duration timeout(1.0);
+		transformStmp = tf_buffer_.lookupTransform(
+			base_frame_id, _frame_id, ros::Time(0), timeout);
 	}
-	catch (const tf::TransformException& ex)
+	catch (const tf2::TransformException& e)
 	{
-		ROS_ERROR("%s", ex.what());
-		ros::Duration(1.0).sleep();
+		ROS_WARN(
+			"Failed to get transform target_frame (%s) to source_frame (%s): "
+			"%s",
+			base_frame_id.c_str(), _frame_id.c_str(), e.what());
+		return;
 	}
+	tf2::Transform transform;
+	tf2::fromMsg(transformStmp.transform, transform);
+	const mrpt::poses::CPose3D pose = mrpt::ros1bridge::fromROS(transform);
+
+	landmark_poses_[_frame_id] = pose;
 }
 
 bool EKFslamWrapper::waitForTransform(
@@ -143,22 +147,23 @@ bool EKFslamWrapper::waitForTransform(
 	const std::string& source_frame, const ros::Time& time,
 	const ros::Duration& timeout, const ros::Duration& polling_sleep_duration)
 {
-	tf::StampedTransform transform;
+	geometry_msgs::TransformStamped transform;
 	try
 	{
-		listenerTF_.waitForTransform(
-			target_frame, source_frame, time, polling_sleep_duration);
-		listenerTF_.lookupTransform(
-			target_frame, source_frame, time, transform);
+		transform = tf_buffer_.lookupTransform(
+			target_frame, source_frame, time, timeout);
 	}
-	catch (const tf::TransformException& ex)
+	catch (const tf2::TransformException& e)
 	{
-		ROS_INFO(
-			"Failed to get transform target_frame (%s) to source_frame (%s)",
-			target_frame.c_str(), source_frame.c_str());
+		ROS_WARN(
+			"Failed to get transform target_frame (%s) to source_frame (%s): "
+			"%s",
+			target_frame.c_str(), source_frame.c_str(), e.what());
 		return false;
 	}
-	mrpt_bridge::convert(transform, des);
+	tf2::Transform tx;
+	tf2::fromMsg(transform.transform, tx);
+	des = mrpt::ros1bridge::fromROS(tx);
 	return true;
 }
 
@@ -177,7 +182,7 @@ void EKFslamWrapper::landmarkCallback(
 	else
 	{
 		mrpt::poses::CPose3D pose = landmark_poses_[_msg.header.frame_id];
-		mrpt_bridge::convert(
+		mrpt_msgs_bridge::fromROS(
 			_msg, landmark_poses_[_msg.header.frame_id], *landmark);
 
 		sf = CSensoryFrame::Create();
@@ -280,10 +285,10 @@ void EKFslamWrapper::makeRightHanded(
 }
 
 void EKFslamWrapper::computeEllipseOrientationScale2D(
-	tf::Quaternion& orientation, Eigen::Vector2d& scale,
+	tf2::Quaternion& orientation, Eigen::Vector2d& scale,
 	const mrpt::math::CMatrixDouble22& covariance)
 {
-	tf::Matrix3x3 tf3d;
+	tf2::Matrix3x3 tf3d;
 	Eigen::Vector2d eigenvalues(Eigen::Vector2d::Identity());
 	Eigen::Matrix2d eigenvectors(Eigen::Matrix2d::Zero());
 
@@ -421,7 +426,7 @@ void EKFslamWrapper::viz_state()
 		const auto pose = mrpt::poses::CPose3D(landmark->getPose());
 
 		// covariance ellipses
-		tf::Quaternion orientation;
+		tf2::Quaternion orientation;
 		Eigen::Vector2d scale;
 
 		computeEllipseOrientationScale2D(orientation, scale, covariance);
@@ -481,23 +486,28 @@ void EKFslamWrapper::viz_state()
 void EKFslamWrapper::publishTF()
 {
 	mapping.getCurrentState(robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
-	// Most of this code was copy and pase from ros::amcl
-	mrpt::poses::CPose3D robotPose;
-	robotPose = mrpt::poses::CPose3D(robotPose_.mean);
 
-	tf::Stamped<tf::Pose> odom_to_map;
-	tf::Transform tmp_tf;
-	ros::Time stamp;
-	mrpt_bridge::convert(timeLastUpdate_, stamp);
-	mrpt_bridge::convert(robotPose, tmp_tf);
+	// Most of this code was copy and pase from ros::amcl
+	const mrpt::poses::CPose3D robotPoseTF =
+		mrpt::poses::CPose3D(robotPose_.mean);
+
+	const ros::Time stamp = mrpt::ros1bridge::toROS(timeLastUpdate_);
+
+	geometry_msgs::PoseStamped odom_to_map;
 
 	try
 	{
-		tf::Stamped<tf::Pose> tmp_tf_stamped(
-			tmp_tf.inverse(), stamp, base_frame_id);
-		listenerTF_.transformPose(odom_frame_id, tmp_tf_stamped, odom_to_map);
+		tf2::Transform tmp_tf =
+			mrpt::ros1bridge::toROS_tfTransform(robotPoseTF);
+
+		geometry_msgs::PoseStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = base_frame_id;
+		tmp_tf_stamped.header.stamp = stamp;
+		tf2::toMsg(tmp_tf.inverse(), tmp_tf_stamped.pose);
+
+		tf_buffer_.transform(tmp_tf_stamped, odom_to_map, odom_frame_id);
 	}
-	catch (const tf::TransformException&)
+	catch (const tf2::TransformException&)
 	{
 		ROS_INFO(
 			"Failed to subtract global_frame (%s) from odom_frame (%s)",
@@ -505,16 +515,22 @@ void EKFslamWrapper::publishTF()
 		return;
 	}
 
-	tf::Transform latest_tf_ = tf::Transform(
-		tf::Quaternion(odom_to_map.getRotation()),
-		tf::Point(odom_to_map.getOrigin()));
+	{
+		tf2::Transform latest_tf;
+		tf2::convert(odom_to_map.pose, latest_tf);
 
-	// We want to send a transform that is good up until a
-	// tolerance time so that odom can be used
-	ros::Duration transform_tolerance_(0.1);
-	ros::Time transform_expiration = (stamp + transform_tolerance_);
-	tf::StampedTransform tmp_tf_stamped(
-		latest_tf_.inverse(), transform_expiration, global_frame_id,
-		odom_frame_id);
-	tf_broadcaster_.sendTransform(tmp_tf_stamped);
+		// We want to send a transform that is good up until a
+		// tolerance time so that odom can be used
+		ros::Duration transform_tolerance(0.1);
+
+		ros::Time transform_expiration = stamp + transform_tolerance;
+
+		geometry_msgs::TransformStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = global_frame_id;
+		tmp_tf_stamped.header.stamp = transform_expiration;
+		tmp_tf_stamped.child_frame_id = odom_frame_id;
+		tf2::convert(latest_tf.inverse(), tmp_tf_stamped.transform);
+
+		tf_broadcaster_.sendTransform(tmp_tf_stamped);
+	}
 }

@@ -5,20 +5,26 @@
  */
 
 #include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.h"
-#include <mrpt/version.h>
-#include <mrpt_bridge/utils.h>
 #include <mrpt/serialization/CArchive.h>
-
+#include <mrpt/ros1bridge/logging.h>
 #include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt/maps/CSimplePointsMap.h>
 
 using mrpt::maps::COccupancyGridMap2D;
 using mrpt::maps::CSimplePointsMap;
 
+// From:
+// https://answers.ros.org/question/364561/tfcreatequaternionfromyaw-equivalent-in-ros2/
+static inline auto createQuaternionMsgFromYaw(double yaw)
+{
+	tf2::Quaternion q;
+	q.setRPY(0, 0, yaw);
+	return tf2::toMsg(q);
+}
+
 ICPslamWrapper::ICPslamWrapper()
 {
 	rawlog_play_ = false;
-	stamp = ros::Time(0);
 	// Default parameters for 3D window
 	SHOW_PROGRESS_3D_REAL_TIME = false;
 	SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS = 0;  // this parameter is not used
@@ -57,7 +63,7 @@ bool ICPslamWrapper::is_file_exists(const std::string& name)
 
 void ICPslamWrapper::read_iniFile(std::string ini_filename)
 {
-	CConfigFile iniFile(ini_filename);
+	mrpt::config::CConfigFile iniFile(ini_filename);
 
 	mapBuilder.ICP_options.loadFromConfigFile(iniFile, "MappingApplication");
 	mapBuilder.ICP_params.loadFromConfigFile(iniFile, "ICP");
@@ -66,14 +72,14 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename)
 	log4cxx::LoggerPtr ros_logger =
 		log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
 	mapBuilder.setVerbosityLevel(
-		mrpt_bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+		mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
 	mapBuilder.logging_enable_console_output = false;
 
 	mapBuilder.logRegisterCallback([](std::string_view msg,
 									  const mrpt::system::VerbosityLevel level,
 									  std::string_view loggerName,
 									  const mrpt::Clock::time_point timestamp) {
-		mrpt_bridge::mrptToROSLoggerCallback(
+		mrpt::ros1bridge::mrptToROSLoggerCallback(
 			std::string(msg), level, std::string(loggerName), timestamp);
 	});
 
@@ -239,11 +245,7 @@ void ICPslamWrapper::run3Dwindow()
 			// Rawlog in "Observation-only" format:
 			if (isObsBasedRawlog)
 			{
-#if MRPT_VERSION >= 0x199
 				if (IS_CLASS(*observation, CObservation2DRangeScan))
-#else
-				if (IS_CLASS(observation, CObservation2DRangeScan))
-#endif
 				{
 					lst_current_laser_scans.push_back(
 						mrpt::ptr_cast<CObservation2DRangeScan>::from(
@@ -354,12 +356,9 @@ void ICPslamWrapper::init()
 
 void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
 {
-#if MRPT_VERSION >= 0x130
 	using namespace mrpt::maps;
 	using namespace mrpt::obs;
-#else
-	using namespace mrpt::slam;
-#endif
+
 	CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
 	if (laser_poses_.find(_msg.header.frame_id) == laser_poses_.end())
 	{
@@ -368,10 +367,11 @@ void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
 	else
 	{
 		mrpt::poses::CPose3D pose = laser_poses_[_msg.header.frame_id];
-		mrpt_bridge::convert(_msg, laser_poses_[_msg.header.frame_id], *laser);
+		mrpt::ros1bridge::fromROS(
+			_msg, laser_poses_[_msg.header.frame_id], *laser);
 		// CObservation::Ptr obs = CObservation::Ptr(laser);
 		observation = CObservation::Ptr(laser);
-		stamp = ros::Time(0);
+		timeLastUpdate_ = laser->timestamp;
 		tictac.Tic();
 		mapBuilder.processObservation(observation);
 		t_exec = tictac.Tac();
@@ -390,22 +390,16 @@ void ICPslamWrapper::publishMapPose()
 	// publish map
 	COccupancyGridMap2D* grid = nullptr;
 	CSimplePointsMap* pm = nullptr;
-#if MRPT_VERSION >= 0x199
 	if (metric_map_->countMapsByClass<COccupancyGridMap2D>())
 		grid = metric_map_->mapByClass<COccupancyGridMap2D>().get();
 	if (metric_map_->countMapsByClass<CSimplePointsMap>())
 		pm = metric_map_->mapByClass<CSimplePointsMap>().get();
-#else
-	if (metric_map_->m_gridMaps.size()) grid = metric_map_->m_gridMaps[0].get();
-	if (metric_map_->m_pointsMaps.size())
-		pm = metric_map_->m_pointsMaps[0].get();
-#endif
 
 	if (grid)
 	{
 		nav_msgs::OccupancyGrid _msg;
 		// if we have new map for current sensor update it
-		mrpt_bridge::convert(*grid, _msg);
+		mrpt::ros1bridge::toROS(*grid, _msg);
 		pub_map_.publish(_msg);
 		pub_metadata_.publish(_msg.info);
 	}
@@ -416,7 +410,7 @@ void ICPslamWrapper::publishMapPose()
 		header.stamp = ros::Time(0);
 		header.frame_id = global_frame_id;
 		// if we have new map for current sensor update it
-		mrpt_bridge::point_cloud::mrpt2ros(*pm, header, _msg);
+		mrpt::ros1bridge::toROS(*pm, header, _msg);
 		pub_point_cloud_.publish(_msg);
 	}
 
@@ -431,37 +425,34 @@ void ICPslamWrapper::publishMapPose()
 	pose.pose.position.x = robotPose.x();
 	pose.pose.position.y = robotPose.y();
 	pose.pose.position.z = 0.0;
-	pose.pose.orientation = tf::createQuaternionMsgFromYaw(robotPose.yaw());
+	pose.pose.orientation = createQuaternionMsgFromYaw(robotPose.yaw());
 
 	pub_pose_.publish(pose);
 }
 void ICPslamWrapper::updateSensorPose(std::string _frame_id)
 {
-	CPose3D pose;
-	tf::StampedTransform transform;
+	geometry_msgs::TransformStamped transformStmp;
 	try
 	{
-		listenerTF_.lookupTransform(
-			base_frame_id, _frame_id, ros::Time(0), transform);
-
-		tf::Vector3 translation = transform.getOrigin();
-		tf::Quaternion quat = transform.getRotation();
-		pose.x() = translation.x();
-		pose.y() = translation.y();
-		pose.z() = translation.z();
-		tf::Matrix3x3 Rsrc(quat);
-		CMatrixDouble33 Rdes;
-		for (int c = 0; c < 3; c++)
-			for (int r = 0; r < 3; r++) Rdes(r, c) = Rsrc.getRow(r)[c];
-		pose.setRotationMatrix(Rdes);
-		laser_poses_[_frame_id] = pose;
+		ros::Duration timeout(1.0);
+		transformStmp = tf_buffer_.lookupTransform(
+			base_frame_id, _frame_id, ros::Time(0), timeout);
 	}
-	catch (const tf::TransformException& ex)
+	catch (const tf2::TransformException& e)
 	{
-		ROS_ERROR("%s", ex.what());
-		ros::Duration(1.0).sleep();
+		ROS_WARN(
+			"Failed to get transform target_frame (%s) to source_frame (%s): "
+			"%s",
+			base_frame_id.c_str(), _frame_id.c_str(), e.what());
+		return;
 	}
+	tf2::Transform transform;
+	tf2::fromMsg(transformStmp.transform, transform);
+	const mrpt::poses::CPose3D pose = mrpt::ros1bridge::fromROS(transform);
+
+	laser_poses_[_frame_id] = pose;
 }
+
 bool ICPslamWrapper::rawlogPlay()
 {
 	if (rawlog_play_ == false)
@@ -507,24 +498,17 @@ bool ICPslamWrapper::rawlogPlay()
 				// publish map
 				COccupancyGridMap2D* grid = nullptr;
 				CSimplePointsMap* pm = nullptr;
-#if MRPT_VERSION >= 0x199
 				if (metric_map_->countMapsByClass<COccupancyGridMap2D>())
 					grid = metric_map_->mapByClass<COccupancyGridMap2D>().get();
 				if (metric_map_->countMapsByClass<CSimplePointsMap>())
 					pm = metric_map_->mapByClass<CSimplePointsMap>().get();
-#else
-				if (metric_map_->m_gridMaps.size())
-					grid = metric_map_->m_gridMaps[0].get();
-				if (metric_map_->m_pointsMaps.size())
-					pm = metric_map_->m_pointsMaps[0].get();
-#endif
 
 				if (grid)
 				{
 					nav_msgs::OccupancyGrid _msg;
 
 					// if we have new map for current sensor update it
-					mrpt_bridge::convert(*grid, _msg);
+					mrpt::ros1bridge::toROS(*grid, _msg);
 					pub_map_.publish(_msg);
 					pub_metadata_.publish(_msg.info);
 				}
@@ -536,7 +520,7 @@ bool ICPslamWrapper::rawlogPlay()
 					header.stamp = ros::Time(0);
 					header.frame_id = global_frame_id;
 					// if we have new map for current sensor update it
-					mrpt_bridge::point_cloud::mrpt2ros(*pm, header, _msg);
+					mrpt::ros1bridge::toROS(*pm, header, _msg);
 					pub_point_cloud_.publish(_msg);
 					// pub_metadata_.publish(_msg.info)
 				}
@@ -550,7 +534,7 @@ bool ICPslamWrapper::rawlogPlay()
 				pose.pose.position.y = robotPose.y();
 				pose.pose.position.z = 0.0;
 				pose.pose.orientation =
-					tf::createQuaternionMsgFromYaw(robotPose.yaw());
+					createQuaternionMsgFromYaw(robotPose.yaw());
 
 				pub_pose_.publish(pose);
 			}
@@ -570,21 +554,26 @@ bool ICPslamWrapper::rawlogPlay()
 void ICPslamWrapper::publishTF()
 {
 	// Most of this code was copy and pase from ros::amcl
-	mrpt::poses::CPose3D robotPoseTF;
-	mapBuilder.getCurrentPoseEstimation()->getMean(robotPoseTF);
+	const mrpt::poses::CPose3D robotPoseTF =
+		mapBuilder.getCurrentPoseEstimation()->getMeanVal();
 
-	stamp = ros::Time(0);
-	tf::Stamped<tf::Pose> odom_to_map;
-	tf::Transform tmp_tf;
-	mrpt_bridge::convert(robotPoseTF, tmp_tf);
+	const ros::Time stamp = mrpt::ros1bridge::toROS(timeLastUpdate_);
+
+	geometry_msgs::PoseStamped odom_to_map;
 
 	try
 	{
-		tf::Stamped<tf::Pose> tmp_tf_stamped(
-			tmp_tf.inverse(), stamp, base_frame_id);
-		listenerTF_.transformPose(odom_frame_id, tmp_tf_stamped, odom_to_map);
+		tf2::Transform tmp_tf =
+			mrpt::ros1bridge::toROS_tfTransform(robotPoseTF);
+
+		geometry_msgs::PoseStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = base_frame_id;
+		tmp_tf_stamped.header.stamp = stamp;
+		tf2::toMsg(tmp_tf.inverse(), tmp_tf_stamped.pose);
+
+		tf_buffer_.transform(tmp_tf_stamped, odom_to_map, odom_frame_id);
 	}
-	catch (const tf::TransformException&)
+	catch (const tf2::TransformException&)
 	{
 		ROS_INFO(
 			"Failed to subtract global_frame (%s) from odom_frame (%s)",
@@ -592,14 +581,24 @@ void ICPslamWrapper::publishTF()
 		return;
 	}
 
-	tf::Transform latest_tf_ = tf::Transform(
-		tf::Quaternion(odom_to_map.getRotation()),
-		tf::Point(odom_to_map.getOrigin()));
+	{
+		tf2::Transform latest_tf;
+		tf2::convert(odom_to_map.pose, latest_tf);
 
-	tf::StampedTransform tmp_tf_stamped(
-		latest_tf_.inverse(), stamp, global_frame_id, odom_frame_id);
+		// We want to send a transform that is good up until a
+		// tolerance time so that odom can be used
+		ros::Duration transform_tolerance(0.1);
 
-	tf_broadcaster_.sendTransform(tmp_tf_stamped);
+		ros::Time transform_expiration = stamp + transform_tolerance;
+
+		geometry_msgs::TransformStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = global_frame_id;
+		tmp_tf_stamped.header.stamp = transform_expiration;
+		tmp_tf_stamped.child_frame_id = odom_frame_id;
+		tf2::convert(latest_tf.inverse(), tmp_tf_stamped.transform);
+
+		tf_broadcaster_.sendTransform(tmp_tf_stamped);
+	}
 }
 
 void ICPslamWrapper::updateTrajectoryTimerCallback(const ros::TimerEvent& event)

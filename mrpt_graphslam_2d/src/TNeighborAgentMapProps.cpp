@@ -10,12 +10,7 @@
 
 #include "mrpt_graphslam_2d/TNeighborAgentMapProps.h"
 
-#include <mrpt/version.h>
-#if MRPT_VERSION >= 0x199
 using namespace mrpt::system;
-#else
-#endif
-
 using namespace mrpt_msgs;
 using namespace mrpt::maps;
 using namespace mrpt::graphslam;

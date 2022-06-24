@@ -13,7 +13,6 @@
 #include <fkie_multimaster_msgs/DiscoverMasters.h>
 #include <mrpt_msgs/GraphSlamAgent.h>
 #include <mrpt_msgs/GraphSlamAgents.h>
-#include <mrpt_bridge/mrpt_bridge.h>
 
 #include <mrpt/system/COutputLogger.h>
 #include <mrpt/system/datetime.h>
@@ -162,7 +161,7 @@ bool operator!=(
 	const fkie_multimaster_msgs::ROSMaster& master2);
 /**\{*/
 
-/**\brief GraphSlamAgent instances are considered the same if the "agent_ID"
+/**\brief GraphSlamAgent instances are considered the same if the "agent_id"
  * field is the same and the topic_namespace is the same
  */
 /**\{*/
