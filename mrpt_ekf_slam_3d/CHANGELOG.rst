@@ -2,6 +2,13 @@
 Changelog for package mrpt_ekf_slam_3d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Ported to tf2 and mrpt::ros1bridge
+* Fixed all 2D and 3D EKF wrappers to work with mrpt 2.x API
+* Update build dep to mrpt2
+* Contributors: Jose Luis Blanco Claraco
+
 0.1.10 (2019-10-05)
 -------------------
 * fix build against mrpt2

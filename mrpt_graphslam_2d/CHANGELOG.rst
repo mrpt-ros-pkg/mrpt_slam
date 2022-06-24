@@ -2,6 +2,20 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Ported to tf2 and mrpt::ros1bridge
+* Fix build with mrpt2
+* Update multimaster_msgs_fkie to fkie\_ prefix
+* Merge branch 'master' of ssh://github.com/mrpt-ros-pkg/mrpt_slam
+* Update URLs to https
+* Update build dep to mrpt2
+* Merge pull request `#65 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/65>`_ from Pillowline/patch-1
+  setting trajectory publishers to latched
+* setting trajectory publishers to latched
+  So you can obtain data when running mrpt_graphslam with a bagfile, even after the playback has finished.
+* Contributors: Jose Luis Blanco-Claraco, Pillowline
+
 0.1.10 (2019-10-05)
 -------------------
 * fix build against current mrpt2

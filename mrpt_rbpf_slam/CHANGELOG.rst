@@ -2,6 +2,19 @@
 Changelog for package mrpt_rbpf_slam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Ported to tf2 and mrpt::ros1bridge
+* Coarser grid resolution
+* fix build with mrpt2
+* Fixed all 2D and 3D EKF wrappers to work with mrpt 2.x API
+* Update URLs to https
+* Update build dep to mrpt2
+* Merge pull request `#62 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/62>`_ from mx-robotics/master
+  Flag added to switch between a static and moving sensor
+* Flag added to switch between a static and moving sensor
+* Contributors: Jose Luis Blanco-Claraco, Markus Bader
+
 0.1.10 (2019-10-05)
 -------------------
 * fix build against mrpt2
