@@ -4,7 +4,6 @@
 |  ROS1 Noetic @ u20.04 |  |  |
 |  ROS2 Rolling @ u22.04 |  |  |
 
-<img align="center" src="https://mrpt.github.io/imgs/mrpt_slam_ros_pkg_demo_video.gif">
 
 
 MRPT-based SLAM packages
