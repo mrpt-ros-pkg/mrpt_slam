@@ -20,7 +20,9 @@
   <exec_depend>mrpt_ekf_slam_3d</exec_depend>
   <exec_depend>mrpt_ekf_slam_2d</exec_depend>
   <exec_depend>mrpt_icp_slam_2d</exec_depend>
-  <exec_depend>mrpt_graphslam_2d</exec_depend>
+  <!-- Disabled for MELODIC due to missing dependencies
+    <exec_depend>mrpt_graphslam_2d</exec_depend>
+  -->
   <exec_depend>mrpt_rbpf_slam</exec_depend>
 
   <export>
