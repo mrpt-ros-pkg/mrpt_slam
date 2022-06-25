@@ -2,8 +2,8 @@
 Changelog for package mrpt_slam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.12 (2022-06-25)
+-------------------
 * Remove mrpt_graphslam_2d for melodic due to missing dependency
 * Contributors: Jose Luis Blanco Claraco
 
