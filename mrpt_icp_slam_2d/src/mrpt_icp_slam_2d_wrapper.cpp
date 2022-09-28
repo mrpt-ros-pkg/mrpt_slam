@@ -337,18 +337,9 @@ void ICPslamWrapper::init()
 	sensorSub_.resize(lstSources.size());
 	for (size_t i = 0; i < lstSources.size(); i++)
 	{
-		if (lstSources[i].find("scan") != std::string::npos)
-		{
-			sensorSub_[i] = n_.subscribe(
-				lstSources[i], 1, &ICPslamWrapper::laserCallback, this);
-		}
-		else
-		{
-			std::cout
-				<< "Sensor topics should be 2d laser scans which inlude in the "
-				   "name the word scan "
-				<< "\n";
-		}
+		ROS_INFO_STREAM("Subscribing to: " << lstSources[i]);
+		sensorSub_[i] = n_.subscribe(
+			lstSources[i], 1, &ICPslamWrapper::laserCallback, this);
 	}
 
 	init3Dwindow();
@@ -359,29 +350,39 @@ void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
 	using namespace mrpt::maps;
 	using namespace mrpt::obs;
 
-	CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
-	if (laser_poses_.find(_msg.header.frame_id) == laser_poses_.end())
+	try
 	{
-		updateSensorPose(_msg.header.frame_id);
-	}
-	else
-	{
-		mrpt::poses::CPose3D pose = laser_poses_[_msg.header.frame_id];
-		mrpt::ros1bridge::fromROS(
-			_msg, laser_poses_[_msg.header.frame_id], *laser);
-		// CObservation::Ptr obs = CObservation::Ptr(laser);
-		observation = CObservation::Ptr(laser);
-		timeLastUpdate_ = laser->timestamp;
-		tictac.Tic();
-		mapBuilder.processObservation(observation);
-		t_exec = tictac.Tac();
-		ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
+		ROS_INFO_STREAM("2D LIDAR rx: " << _msg.header.frame_id);
 
-		run3Dwindow();
-		publishTF();
-		publishMapPose();
+		CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
+		if (laser_poses_.find(_msg.header.frame_id) == laser_poses_.end())
+		{
+			updateSensorPose(_msg.header.frame_id);
+		}
+
+		{
+			mrpt::poses::CPose3D pose = laser_poses_[_msg.header.frame_id];
+			mrpt::ros1bridge::fromROS(
+				_msg, laser_poses_[_msg.header.frame_id], *laser);
+			// CObservation::Ptr obs = CObservation::Ptr(laser);
+			observation = CObservation::Ptr(laser);
+			timeLastUpdate_ = laser->timestamp;
+			tictac.Tic();
+			mapBuilder.processObservation(observation);
+			t_exec = tictac.Tac();
+			ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
+
+			run3Dwindow();
+			publishTF();
+			publishMapPose();
+		}
+	}
+	catch (const std::exception& e)
+	{
+		ROS_ERROR_STREAM(e.what());
 	}
 }
+
 void ICPslamWrapper::publishMapPose()
 {
 	// get currently builded map

@@ -105,16 +105,18 @@ bool PFslamWrapper::init(ros::NodeHandle& nh)
 	sensorSub_.resize(lstSources.size());
 	for (size_t i = 0; i < lstSources.size(); i++)
 	{
-		if (lstSources[i].find("scan") != std::string::npos)
+		// if (lstSources[i].find("scan") != std::string::npos)
 		{
 			sensorSub_[i] = nh.subscribe(
 				lstSources[i], 1, &PFslamWrapper::laserCallback, this);
 		}
+#if 0
 		else
 		{
 			sensorSub_[i] = nh.subscribe(
 				lstSources[i], 1, &PFslamWrapper::callbackBeacon, this);
 		}
+#endif
 	}
 
 	mapBuilder_ =

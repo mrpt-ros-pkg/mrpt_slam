@@ -87,6 +87,7 @@ install(TARGETS mrpt_rbpf_slam
 
 # Mark other files for installation (e.g. launch and bag files, etc.)
 install(DIRECTORY
+  config
   launch
   tutorial
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
