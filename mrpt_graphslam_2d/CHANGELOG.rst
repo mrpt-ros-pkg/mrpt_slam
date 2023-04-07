@@ -4,6 +4,9 @@ Changelog for package mrpt_graphslam_2d
 
 Forthcoming
 -----------
+* Fix build against last mrpt 2.7.x
+* chagelogs
+* Contributors: Jose Luis Blanco Claraco, Jose Luis Blanco-Claraco
 
 
 0.1.11 (2022-06-24)

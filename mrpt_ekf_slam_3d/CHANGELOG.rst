@@ -4,6 +4,10 @@ Changelog for package mrpt_ekf_slam_3d
 
 Forthcoming
 -----------
+* Fix build against last mrpt 2.7.x
+* chagelogs
+* 0.1.12
+* Contributors: Jose Luis Blanco Claraco, Jose Luis Blanco-Claraco
 
 0.1.12 (2022-06-25)
 -------------------
