@@ -7,6 +7,7 @@
 #include <mrpt/ros1bridge/logging.h>
 #include <mrpt_rbpf_slam/mrpt_rbpf_slam.h>
 #include <mrpt/serialization/CArchive.h>
+#include <mrpt/opengl/COpenGLScene.h>
 
 namespace mrpt_rbpf_slam
 {
@@ -118,8 +119,8 @@ void PFslam::initSlam(PFslam::Options options)
 
 	mapBuilder_.logRegisterCallback(
 		[](std::string_view msg, const mrpt::system::VerbosityLevel level,
-		   std::string_view loggerName,
-		   const mrpt::Clock::time_point timestamp) {
+		   std::string_view loggerName, const mrpt::Clock::time_point timestamp)
+		{
 			mrpt::ros1bridge::mrptToROSLoggerCallback(
 				std::string(msg), level, std::string(loggerName), timestamp);
 		});

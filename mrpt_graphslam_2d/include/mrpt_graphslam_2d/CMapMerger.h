@@ -29,6 +29,7 @@
 #include <mrpt/opengl/CAxis.h>
 #include <mrpt/opengl/CGridPlaneXY.h>
 #include <mrpt/opengl/CSetOfLines.h>
+#include <mrpt/opengl/COpenGLScene.h>
 #include <mrpt/system/COutputLogger.h>
 #include <mrpt/img/TColorManager.h>
 
