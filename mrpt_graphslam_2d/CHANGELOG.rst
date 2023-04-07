@@ -8,6 +8,8 @@ Forthcoming
 * chagelogs
 * Contributors: Jose Luis Blanco Claraco, Jose Luis Blanco-Claraco
 
+0.1.12 (2022-06-24)
+-------------------
 
 0.1.11 (2022-06-24)
 -------------------
