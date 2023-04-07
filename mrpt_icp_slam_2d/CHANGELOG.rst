@@ -2,8 +2,8 @@
 Changelog for package mrpt_icp_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.13 (2023-04-07)
+-------------------
 * chagelogs
 * 0.1.12
 * fix mvsim param: should not publish fake loc

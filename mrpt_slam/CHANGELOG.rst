@@ -2,8 +2,8 @@
 Changelog for package mrpt_slam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.13 (2023-04-07)
+-------------------
 * chagelogs
 * 0.1.12
 * Contributors: Jose Luis Blanco Claraco, Jose Luis Blanco-Claraco

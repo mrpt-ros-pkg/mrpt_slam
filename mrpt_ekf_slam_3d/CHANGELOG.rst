@@ -2,8 +2,8 @@
 Changelog for package mrpt_ekf_slam_3d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.13 (2023-04-07)
+-------------------
 * Fix build against last mrpt 2.7.x
 * chagelogs
 * 0.1.12
