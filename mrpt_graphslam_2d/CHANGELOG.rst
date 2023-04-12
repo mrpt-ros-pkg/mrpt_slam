@@ -10,8 +10,8 @@ Changelog for package mrpt_graphslam_2d
 0.1.12 (2022-06-24)
 -------------------
 
-Forthcoming
------------
+0.1.14 (2023-04-12)
+-------------------
 * 0.1.13
 * fix version
 * changelog

@@ -2,8 +2,8 @@
 Changelog for package mrpt_ekf_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.14 (2023-04-12)
+-------------------
 * Fix build against last mrpt 2.7.x
 * Contributors: Jose Luis Blanco-Claraco
 

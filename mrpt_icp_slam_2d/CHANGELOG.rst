@@ -2,8 +2,8 @@
 Changelog for package mrpt_icp_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.14 (2023-04-12)
+-------------------
 * fix mvsim param: should not publish fake loc
 * fixes for the new mvsim-based demo
 * Contributors: Jose Luis Blanco-Claraco
