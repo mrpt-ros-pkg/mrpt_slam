@@ -13,8 +13,10 @@ MRPT-based SLAM packages
 ROS wrappers for SLAM algorithms in Mobile Robot Programming Toolkit (MRPT).
 Refer to https://wiki.ros.org/mrpt_slam for further documentation.
 
-Branches:
-  * `ros2`: Main development branch, for ROS distributions.
-  * `ros1`: Development branch for ROS1 distributions.
+Active branches:
+  * `ros2`: Main development branch, for ROS 2 distributions (WIP).
+  * `ros1`: Development branch for ROS 1 distributions.
+
+Obsolete branches:
   * `master` and `compat-mrpt-1.3`: Deprecated, for backwards compatibility only, do not use.
   * `melodic-devel`: Branch for melodic only (required due to lack of dependencies, one pkg disabled)
