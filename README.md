@@ -1,8 +1,11 @@
 | Distro | Build dev | Build release | Stable sync |
 | --- | --- | --- | --- |
-| ROS1 Melodic @ u18.04 | [![Build Status](http://build.ros.org/job/Mdev__mrpt_slam__ubuntu_bionic_amd64/badge/icon)](http://build.ros.org/job/Mdev__mrpt_slam__ubuntu_bionic_amd64/) | [![Build Status](http://build.ros.org/job/Mbin_uB64__mrpt_slam__ubuntu_bionic_amd64__binary/badge/icon)](http://build.ros.org/job/Mbin_uB64__mrpt_slam__ubuntu_bionic_amd64__binary/) | [![Version](https://img.shields.io/ros/v/melodic/mrpt_slam)](https://index.ros.org/search/?term=mrpt_slam) |
 |  ROS1 Noetic @ u20.04 | [![Build Status](https://build.ros.org/job/Ndev__mrpt_slam__ubuntu_focal_amd64/badge/icon)](https://build.ros.org/job/Ndev__mrpt_slam__ubuntu_focal_amd64/) | [![Build Status](https://build.ros.org/job/Nbin_uF64__mrpt_slam__ubuntu_focal_amd64__binary/badge/icon)](https://build.ros.org/job/Nbin_uF64__mrpt_slam__ubuntu_focal_amd64__binary/) | [![Version](https://img.shields.io/ros/v/noetic/mrpt_slam)](https://index.ros.org/search/?term=mrpt_slam) |
 |  ROS2 Rolling @ u22.04 |  |  |
+
+| EOL Distros | Last release |
+| --- | --- |
+| ROS1 Melodic @ u18.04 | [![Version](https://img.shields.io/ros/v/melodic/mrpt_slam)](https://index.ros.org/search/?term=mrpt_slam) |
 
 <img align="center" src="https://mrpt.github.io/imgs/mrpt_slam_ros_pkg_demo_video_s90.gif">
 
