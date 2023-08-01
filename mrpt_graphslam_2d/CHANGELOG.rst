@@ -2,13 +2,11 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.1.13 (2023-04-07)
--------------------
-* Fix build against last mrpt 2.7.x
+Forthcoming
+-----------
+* Fix build errors and warnings with latest mrpt2 versions
+  (Closes: `#71 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/71>`_)
 * Contributors: Jose Luis Blanco-Claraco
-
-0.1.12 (2022-06-24)
--------------------
 
 0.1.14 (2023-04-12)
 -------------------

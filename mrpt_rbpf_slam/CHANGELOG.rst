@@ -2,6 +2,9 @@
 Changelog for package mrpt_rbpf_slam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.1.14 (2023-04-12)
 -------------------
 * Fix build against last mrpt 2.7.x

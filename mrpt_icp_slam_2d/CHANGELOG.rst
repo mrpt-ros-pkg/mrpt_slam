@@ -2,6 +2,12 @@
 Changelog for package mrpt_icp_slam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix build errors and warnings with latest mrpt2 versions
+  (Closes: `#71 <https://github.com/mrpt-ros-pkg/mrpt_slam/issues/71>`_)
+* Contributors: Jose Luis Blanco-Claraco
+
 0.1.14 (2023-04-12)
 -------------------
 * fix mvsim param: should not publish fake loc
