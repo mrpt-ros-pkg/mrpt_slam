@@ -158,7 +158,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::addNodeBatchFromNeighbor(
 		graph_conn.from = INVALID_NODEID;
 		// get the nodeID of the last integrated neighbor node after remapping
 		// in own graph numbering
-		for (const auto n : this->m_graph.nodes)
+		for (const auto& n : this->m_graph.nodes)
 		{
 			if (n.second.agent_ID_str == neighbor->getAgentNs() &&
 				n.second.nodeID_loc ==

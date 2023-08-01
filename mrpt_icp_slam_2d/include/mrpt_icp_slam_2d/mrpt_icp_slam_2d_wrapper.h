@@ -199,8 +199,9 @@ class ICPslamWrapper
 	// Subscribers
 	std::vector<ros::Subscriber> sensorSub_;  ///< list of sensors topics
 
-	const CMultiMetricMap*
-		metric_map_;  ///< receive map after iteration of SLAM to metric map
+	// receive map after iteration of SLAM to metric map
+	CMultiMetricMap metric_map_;
+
 	// CPose3DPDF::Ptr curPDF;          ///<current robot pose
 	ros::Publisher pub_map_, pub_metadata_, pub_pose_,
 		pub_point_cloud_;  ///< publishers for map and pose particles

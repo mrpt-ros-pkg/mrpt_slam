@@ -197,15 +197,15 @@ void ICPslamWrapper::run3Dwindow()
 
 		// The maps:
 		{
-			opengl::CSetOfObjects::Ptr obj = metric_map_->getVisualization();
+			opengl::CSetOfObjects::Ptr obj = metric_map_.getVisualization();
 			view->insert(obj);
 
 			// now, only the point map in another OpenGL view:
 
 			// publish map
 			CSimplePointsMap* pm = nullptr;
-			if (metric_map_->countMapsByClass<CSimplePointsMap>())
-				pm = metric_map_->mapByClass<CSimplePointsMap>().get();
+			if (metric_map_.countMapsByClass<CSimplePointsMap>())
+				pm = metric_map_.mapByClass<CSimplePointsMap>().get();
 
 			if (pm) view_map->insert(pm->getVisualization());
 		}
@@ -391,10 +391,10 @@ void ICPslamWrapper::publishMapPose()
 	// publish map
 	COccupancyGridMap2D* grid = nullptr;
 	CSimplePointsMap* pm = nullptr;
-	if (metric_map_->countMapsByClass<COccupancyGridMap2D>())
-		grid = metric_map_->mapByClass<COccupancyGridMap2D>().get();
-	if (metric_map_->countMapsByClass<CSimplePointsMap>())
-		pm = metric_map_->mapByClass<CSimplePointsMap>().get();
+	if (metric_map_.countMapsByClass<COccupancyGridMap2D>())
+		grid = metric_map_.mapByClass<COccupancyGridMap2D>().get();
+	if (metric_map_.countMapsByClass<CSimplePointsMap>())
+		pm = metric_map_.mapByClass<CSimplePointsMap>().get();
 
 	if (grid)
 	{
@@ -499,10 +499,10 @@ bool ICPslamWrapper::rawlogPlay()
 				// publish map
 				COccupancyGridMap2D* grid = nullptr;
 				CSimplePointsMap* pm = nullptr;
-				if (metric_map_->countMapsByClass<COccupancyGridMap2D>())
-					grid = metric_map_->mapByClass<COccupancyGridMap2D>().get();
-				if (metric_map_->countMapsByClass<CSimplePointsMap>())
-					pm = metric_map_->mapByClass<CSimplePointsMap>().get();
+				if (metric_map_.countMapsByClass<COccupancyGridMap2D>())
+					grid = metric_map_.mapByClass<COccupancyGridMap2D>().get();
+				if (metric_map_.countMapsByClass<CSimplePointsMap>())
+					pm = metric_map_.mapByClass<CSimplePointsMap>().get();
 
 				if (grid)
 				{
