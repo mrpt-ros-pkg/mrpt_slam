@@ -2,6 +2,9 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.1.15 (2023-08-02)
 -------------------
 * Fix build errors and warnings with latest mrpt2 versions
