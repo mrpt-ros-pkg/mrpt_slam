@@ -17,7 +17,7 @@ PFslam::~PFslam()
 	{
 		std::string sOutMap = "mrpt_rbpfslam_";
 		mrpt::system::TTimeParts parts;
-		mrpt::system::timestampToParts(mrpt::system::now(), parts, true);
+		mrpt::system::timestampToParts(mrpt::Clock::now(), parts, true);
 		sOutMap += mrpt::format(
 			"%04u-%02u-%02u_%02uh%02um%02us", (unsigned int)parts.year,
 			(unsigned int)parts.month, (unsigned int)parts.day,
@@ -119,8 +119,8 @@ void PFslam::initSlam(PFslam::Options options)
 
 	mapBuilder_.logRegisterCallback(
 		[](std::string_view msg, const mrpt::system::VerbosityLevel level,
-		   std::string_view loggerName, const mrpt::Clock::time_point timestamp)
-		{
+		   std::string_view loggerName,
+		   const mrpt::Clock::time_point timestamp) {
 			mrpt::ros1bridge::mrptToROSLoggerCallback(
 				std::string(msg), level, std::string(loggerName), timestamp);
 		});
