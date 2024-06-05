@@ -2,8 +2,8 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.17 (2024-06-05)
+-------------------
 * Update to fix builds against mrpt>=2.13.0
 * Contributors: Jose Luis Blanco-Claraco
 
