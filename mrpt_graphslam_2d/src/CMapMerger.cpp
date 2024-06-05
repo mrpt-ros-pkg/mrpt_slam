@@ -520,18 +520,6 @@ void CMapMerger::mergeMaps()
 				curr_gridmap->saveMetricMapRepresentationToFile(ss.str());
 			}
 
-			// save correspondences image
-			if (save_map_merging_results)
-			{
-				stringstream ss;
-				ss << output_dir_fname << "/"
-				   << "fusing_proc_with"
-				   << "_" << merge_counter;
-				COccupancyGridMap2D::saveAsEMFTwoMapsWithCorrespondences(
-					ss.str(), fused_map.get(), curr_gridmap,
-					results.correspondences);
-			}
-
 			// Add current map to the fused map visualization
 			{
 				COpenGLScene::Ptr fused_scene =
