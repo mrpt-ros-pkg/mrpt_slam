@@ -2,8 +2,8 @@
 Changelog for package mrpt_ekf_slam_3d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.18 (2024-09-05)
+-------------------
 * Port to new 'mrpt_lib*' packages
 * Contributors: Jose Luis Blanco-Claraco
 
