@@ -16,7 +16,9 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>dynamic_reconfigure</depend>
-  <depend>mrpt2</depend>
+  <depend>mrpt_libros_bridge</depend>
+  <depend>mrpt_libgui</depend>
+  <depend>mrpt_libslam</depend>
   <depend>nav_msgs</depend>
   <depend>roscpp</depend>
   <depend>roslaunch</depend>

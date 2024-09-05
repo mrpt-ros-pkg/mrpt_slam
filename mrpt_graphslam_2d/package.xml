@@ -22,7 +22,9 @@
   <depend>nav_msgs</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>mrpt2</depend>
+  <depend>mrpt_libros_bridge</depend>
+  <depend>mrpt_libgui</depend>
+  <depend>mrpt_libapps</depend>
   <depend>mrpt_msgs</depend>
   <depend>mrpt_msgs_bridge</depend>
   <depend>tf2</depend>

@@ -27,7 +27,9 @@
   <depend>visualization_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>dynamic_reconfigure</depend>
-  <depend>mrpt2</depend>
+  <depend>mrpt_libros_bridge</depend>
+  <depend>mrpt_libgui</depend>
+  <depend>mrpt_libslam</depend>
   <depend>mrpt_msgs_bridge</depend>
 
   <exec_depend>rviz</exec_depend>
