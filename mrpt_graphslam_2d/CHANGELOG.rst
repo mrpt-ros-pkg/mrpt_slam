@@ -2,8 +2,8 @@
 Changelog for package mrpt_graphslam_2d
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.19 (2024-09-18)
+-------------------
 * Fix cmake target creation
 * Workaround for missing TBB::tbb target in Noetic
 * cmake: fix case and whitespaces
