@@ -25,8 +25,14 @@ find_package(mrpt-gui REQUIRED)
 find_package(mrpt-graphslam REQUIRED)
 find_package(mrpt-ros1bridge REQUIRED)
 
-message(STATUS "MRPT_VERSION: ${MRPT_VERSION}")
+message(STATUS "MRPT_VERSION: ${mrpt-slam_VERSION}")
 
+# fix for Noetic:
+if(NOT EXISTS TBB::tbb AND TBB_LIBRARY AND TBB_INCLUDE_DIRS)
+  add_library(TBB::tbb INTERFACE)
+  target_include_directories(TBB::tbb INTERFACE ${TBB_INCLUDE_DIRS})
+  target_link_libraries(TBB::tbb INTERFACE ${TBB_LIBRARY})
+endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
 	# High level of warnings.
