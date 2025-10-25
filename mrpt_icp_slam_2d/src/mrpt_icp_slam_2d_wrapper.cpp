@@ -75,13 +75,13 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename)
 		mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
 	mapBuilder.logging_enable_console_output = false;
 
-	mapBuilder.logRegisterCallback([](std::string_view msg,
-									  const mrpt::system::VerbosityLevel level,
-									  std::string_view loggerName,
-									  const mrpt::Clock::time_point timestamp) {
-		mrpt::ros1bridge::mrptToROSLoggerCallback(
-			std::string(msg), level, std::string(loggerName), timestamp);
-	});
+	mapBuilder.logRegisterCallback(
+		[](std::string_view msg, const mrpt::system::VerbosityLevel level,
+		   std::string_view loggerName, const mrpt::Clock::time_point timestamp)
+		{
+			mrpt::ros1bridge::mrptToROSLoggerCallback(
+				std::string(msg), level, std::string(loggerName), timestamp);
+		});
 
 	mapBuilder.options.alwaysInsertByClass.fromString(
 		iniFile.read_string("MappingApplication", "alwaysInsertByClass", ""));
@@ -309,7 +309,7 @@ void ICPslamWrapper::init()
 		n_.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
 	// publish point map
 	pub_point_cloud_ =
-		n_.advertise<sensor_msgs::PointCloud>("PointCloudMap", 1, true);
+		n_.advertise<sensor_msgs::PointCloud2>("PointCloudMap", 1, true);
 
 	trajectory_pub_ = n_.advertise<nav_msgs::Path>("trajectory", 1, true);
 
@@ -406,7 +406,7 @@ void ICPslamWrapper::publishMapPose()
 	}
 	if (pm)
 	{
-		sensor_msgs::PointCloud _msg;
+		sensor_msgs::PointCloud2 _msg;
 		std_msgs::Header header;
 		header.stamp = ros::Time(0);
 		header.frame_id = global_frame_id;
@@ -516,7 +516,7 @@ bool ICPslamWrapper::rawlogPlay()
 
 				if (pm)
 				{
-					sensor_msgs::PointCloud _msg;
+					sensor_msgs::PointCloud2 _msg;
 					std_msgs::Header header;
 					header.stamp = ros::Time(0);
 					header.frame_id = global_frame_id;
