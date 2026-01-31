@@ -4,11 +4,12 @@
  *
  */
 
-#include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.h"
+#include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.hpp"
 #include <mrpt/serialization/CArchive.h>
-#include <mrpt/ros1bridge/logging.h>
 #include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt/maps/CSimplePointsMap.h>
+#include <mrpt/opengl/CPointCloud.h>
+#include <mrpt/opengl/CSetOfObjects.h>
 
 using mrpt::maps::COccupancyGridMap2D;
 using mrpt::maps::CSimplePointsMap;
@@ -22,7 +23,11 @@ static inline auto createQuaternionMsgFromYaw(double yaw)
 	return tf2::toMsg(q);
 }
 
-ICPslamWrapper::ICPslamWrapper()
+namespace mrpt_icp_slam_2d
+{
+
+ICPslamWrapper::ICPslamWrapper(const rclcpp::NodeOptions& options)
+	: Node("mrpt_icp_slam_2d", options)
 {
 	rawlog_play_ = false;
 	// Default parameters for 3D window
@@ -31,7 +36,9 @@ ICPslamWrapper::ICPslamWrapper()
 	SHOW_LASER_SCANS_3D = true;
 	CAMERA_3DSCENE_FOLLOWS_ROBOT = true;
 	isObsBasedRawlog = true;
+	timeLastUpdate_ = mrpt::Clock::now();
 }
+
 ICPslamWrapper::~ICPslamWrapper()
 {
 	try
@@ -47,14 +54,15 @@ ICPslamWrapper::~ICPslamWrapper()
 		sOutMap += ".simplemap";
 
 		sOutMap = mrpt::system::fileNameStripInvalidChars(sOutMap);
-		ROS_INFO("Saving built map to `%s`", sOutMap.c_str());
+		RCLCPP_INFO(this->get_logger(), "Saving built map to `%s`", sOutMap.c_str());
 		mapBuilder.saveCurrentMapToFile(sOutMap);
 	}
 	catch (std::exception& e)
 	{
-		ROS_ERROR("Exception: %s", e.what());
+		RCLCPP_ERROR(this->get_logger(), "Exception: %s", e.what());
 	}
 }
+
 bool ICPslamWrapper::is_file_exists(const std::string& name)
 {
 	std::ifstream f(name.c_str());
@@ -69,18 +77,33 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename)
 	mapBuilder.ICP_params.loadFromConfigFile(iniFile, "ICP");
 	mapBuilder.initialize();
 
-	log4cxx::LoggerPtr ros_logger =
-		log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
-	mapBuilder.setVerbosityLevel(
-		mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+	// Set up MRPT logging to use ROS2 logger
+	mapBuilder.setVerbosityLevel(mrpt::system::LVL_INFO);
 	mapBuilder.logging_enable_console_output = false;
 
 	mapBuilder.logRegisterCallback(
-		[](std::string_view msg, const mrpt::system::VerbosityLevel level,
-		   std::string_view loggerName, const mrpt::Clock::time_point timestamp)
+		[this](std::string_view msg, const mrpt::system::VerbosityLevel level,
+		       [[maybe_unused]] std::string_view loggerName,
+		       [[maybe_unused]] const mrpt::Clock::time_point timestamp)
 		{
-			mrpt::ros1bridge::mrptToROSLoggerCallback(
-				std::string(msg), level, std::string(loggerName), timestamp);
+			// Convert MRPT log to ROS2 log
+			switch(level)
+			{
+				case mrpt::system::LVL_DEBUG:
+					RCLCPP_DEBUG(this->get_logger(), "%s", std::string(msg).c_str());
+					break;
+				case mrpt::system::LVL_INFO:
+					RCLCPP_INFO(this->get_logger(), "%s", std::string(msg).c_str());
+					break;
+				case mrpt::system::LVL_WARN:
+					RCLCPP_WARN(this->get_logger(), "%s", std::string(msg).c_str());
+					break;
+				case mrpt::system::LVL_ERROR:
+					RCLCPP_ERROR(this->get_logger(), "%s", std::string(msg).c_str());
+					break;
+				default:
+					RCLCPP_INFO(this->get_logger(), "%s", std::string(msg).c_str());
+			}
 		});
 
 	mapBuilder.options.alwaysInsertByClass.fromString(
@@ -104,273 +127,139 @@ void ICPslamWrapper::read_iniFile(std::string ini_filename)
 
 void ICPslamWrapper::get_param()
 {
-	ROS_INFO("READ PARAM FROM LAUNCH FILE");
-	n_.param<double>("rawlog_play_delay", rawlog_play_delay, 0.1);
-	ROS_INFO("rawlog_play_delay: %f", rawlog_play_delay);
+	RCLCPP_INFO(this->get_logger(), "READ PARAM FROM LAUNCH FILE");
 
-	n_.getParam("rawlog_filename", rawlog_filename);
-	ROS_INFO("rawlog_filename: %s", rawlog_filename.c_str());
+	// Declare and get parameters
+	this->declare_parameter<double>("rawlog_play_delay", 0.1);
+	rawlog_play_delay_ = this->get_parameter("rawlog_play_delay").as_double();
+	RCLCPP_INFO(this->get_logger(), "rawlog_play_delay: %f", rawlog_play_delay_);
 
-	n_.getParam("ini_filename", ini_filename);
-	ROS_INFO("ini_filename: %s", ini_filename.c_str());
+	this->declare_parameter<std::string>("rawlog_filename", "");
+	rawlog_filename_ = this->get_parameter("rawlog_filename").as_string();
+	RCLCPP_INFO(this->get_logger(), "rawlog_filename: %s", rawlog_filename_.c_str());
 
-	n_.param<std::string>("global_frame_id", global_frame_id, "map");
-	ROS_INFO("global_frame_id: %s", global_frame_id.c_str());
+	this->declare_parameter<std::string>("ini_filename", "");
+	ini_filename_ = this->get_parameter("ini_filename").as_string();
+	RCLCPP_INFO(this->get_logger(), "ini_filename: %s", ini_filename_.c_str());
 
-	n_.param<std::string>("odom_frame_id", odom_frame_id, "odom");
-	ROS_INFO("odom_frame_id: %s", odom_frame_id.c_str());
+	this->declare_parameter<std::string>("global_frame_id", "map");
+	global_frame_id_ = this->get_parameter("global_frame_id").as_string();
+	RCLCPP_INFO(this->get_logger(), "global_frame_id: %s", global_frame_id_.c_str());
 
-	n_.param<std::string>("base_frame_id", base_frame_id, "base_link");
-	ROS_INFO("base_frame_id: %s", base_frame_id.c_str());
+	this->declare_parameter<std::string>("odom_frame_id", "odom");
+	odom_frame_id_ = this->get_parameter("odom_frame_id").as_string();
+	RCLCPP_INFO(this->get_logger(), "odom_frame_id: %s", odom_frame_id_.c_str());
 
-	n_.param<std::string>("sensor_source", sensor_source, "scan");
-	ROS_INFO("sensor_source: %s", sensor_source.c_str());
+	this->declare_parameter<std::string>("base_frame_id", "base_link");
+	base_frame_id_ = this->get_parameter("base_frame_id").as_string();
+	RCLCPP_INFO(this->get_logger(), "base_frame_id: %s", base_frame_id_.c_str());
 
-	n_.param("trajectory_update_rate", trajectory_update_rate, 10.0);
-	ROS_INFO("trajectory_update_rate: %f", trajectory_update_rate);
+	this->declare_parameter<std::string>("sensor_source", "scan");
+	sensor_source_ = this->get_parameter("sensor_source").as_string();
+	RCLCPP_INFO(this->get_logger(), "sensor_source: %s", sensor_source_.c_str());
 
-	n_.param("trajectory_publish_rate", trajectory_publish_rate, 5.0);
-	ROS_INFO("trajectory_publish_rate: %f", trajectory_publish_rate);
-}
-void ICPslamWrapper::init3Dwindow()
-{
-#if MRPT_HAS_WXWIDGETS
-	if (SHOW_PROGRESS_3D_REAL_TIME)
-	{
-		win3D_ = mrpt::gui::CDisplayWindow3D::Create(
-			"pf-localization - The MRPT project", 1000, 600);
-		win3D_->setCameraZoom(20);
-		win3D_->setCameraAzimuthDeg(-45);
-	}
+	this->declare_parameter<double>("trajectory_update_rate", 10.0);
+	trajectory_update_rate_ = this->get_parameter("trajectory_update_rate").as_double();
+	RCLCPP_INFO(this->get_logger(), "trajectory_update_rate: %f", trajectory_update_rate_);
 
-#endif
+	this->declare_parameter<double>("trajectory_publish_rate", 5.0);
+	trajectory_publish_rate_ = this->get_parameter("trajectory_publish_rate").as_double();
+	RCLCPP_INFO(this->get_logger(), "trajectory_publish_rate: %f", trajectory_publish_rate_);
 }
 
-void ICPslamWrapper::run3Dwindow()
-{
-	// Create 3D window if requested (the code is copied from
-	// ../mrpt/apps/icp-slam/icp-slam_main.cpp):
-	if (SHOW_PROGRESS_3D_REAL_TIME && win3D_)
-	{
-		// get currently builded map
-		metric_map_ = mapBuilder.getCurrentlyBuiltMetricMap();
-
-		lst_current_laser_scans.clear();
-
-		CPose3D robotPose;
-		mapBuilder.getCurrentPoseEstimation()->getMean(robotPose);
-		COpenGLScene::Ptr scene = COpenGLScene::Create();
-
-		COpenGLViewport::Ptr view = scene->getViewport("main");
-
-		COpenGLViewport::Ptr view_map = scene->createViewport("mini-map");
-		view_map->setBorderSize(2);
-		view_map->setViewportPosition(0.01, 0.01, 0.35, 0.35);
-		view_map->setTransparent(false);
-
-		{
-			mrpt::opengl::CCamera& cam = view_map->getCamera();
-			cam.setAzimuthDegrees(-90);
-			cam.setElevationDegrees(90);
-			cam.setPointingAt(robotPose);
-			cam.setZoomDistance(20);
-			cam.setOrthogonal();
-		}
-
-		// The ground:
-		mrpt::opengl::CGridPlaneXY::Ptr groundPlane =
-			mrpt::opengl::CGridPlaneXY::Create(-200, 200, -200, 200, 0, 5);
-		groundPlane->setColor(0.4, 0.4, 0.4);
-		view->insert(groundPlane);
-		view_map->insert(CRenderizable::Ptr(groundPlane));	// A copy
-
-		// The camera pointing to the current robot pose:
-		if (CAMERA_3DSCENE_FOLLOWS_ROBOT)
-		{
-			scene->enableFollowCamera(true);
-
-			mrpt::opengl::CCamera& cam = view_map->getCamera();
-			cam.setAzimuthDegrees(-45);
-			cam.setElevationDegrees(45);
-			cam.setPointingAt(robotPose);
-		}
-
-		// The maps:
-		{
-			opengl::CSetOfObjects::Ptr obj = metric_map_.getVisualization();
-			view->insert(obj);
-
-			// now, only the point map in another OpenGL view:
-
-			// publish map
-			CSimplePointsMap* pm = nullptr;
-			if (metric_map_.countMapsByClass<CSimplePointsMap>())
-				pm = metric_map_.mapByClass<CSimplePointsMap>().get();
-
-			if (pm) view_map->insert(pm->getVisualization());
-		}
-
-		// Draw the robot path:
-		CPose3DPDF::Ptr posePDF = mapBuilder.getCurrentPoseEstimation();
-		CPose3D curRobotPose;
-		posePDF->getMean(curRobotPose);
-		{
-			opengl::CSetOfObjects::Ptr obj =
-				opengl::stock_objects::RobotPioneer();
-			obj->setPose(curRobotPose);
-			view->insert(obj);
-		}
-		{
-			opengl::CSetOfObjects::Ptr obj =
-				opengl::stock_objects::RobotPioneer();
-			obj->setPose(curRobotPose);
-			view_map->insert(obj);
-		}
-
-		opengl::COpenGLScene::Ptr& ptrScene = win3D_->get3DSceneAndLock();
-		ptrScene = scene;
-
-		win3D_->unlockAccess3DScene();
-
-		// Move camera:
-		win3D_->setCameraPointingToPoint(
-			curRobotPose.x(), curRobotPose.y(), curRobotPose.z());
-
-		// Update:
-		win3D_->forceRepaint();
-
-		// Build list of scans:
-		if (SHOW_LASER_SCANS_3D)
-		{
-			// Rawlog in "Observation-only" format:
-			if (isObsBasedRawlog)
-			{
-				if (IS_CLASS(*observation, CObservation2DRangeScan))
-				{
-					lst_current_laser_scans.push_back(
-						mrpt::ptr_cast<CObservation2DRangeScan>::from(
-							observation));
-				}
-			}
-			else
-			{
-				// Rawlog in the Actions-SF format:
-				for (size_t i = 0;; i++)
-				{
-					CObservation2DRangeScan::Ptr new_obs =
-						observations
-							->getObservationByClass<CObservation2DRangeScan>(i);
-					if (!new_obs)
-						break;	// There're no more scans
-					else
-						lst_current_laser_scans.push_back(new_obs);
-				}
-			}
-		}
-
-		// Draw laser scanners in 3D:
-		if (SHOW_LASER_SCANS_3D)
-		{
-			for (size_t i = 0; i < lst_current_laser_scans.size(); i++)
-			{
-				// Create opengl object and load scan data from the scan
-				// observation:
-				opengl::CPlanarLaserScan::Ptr obj =
-					opengl::CPlanarLaserScan::Create();
-				obj->setScan(*lst_current_laser_scans[i]);
-				obj->setPose(curRobotPose);
-				obj->setSurfaceColor(1.0f, 0.0f, 0.0f, 0.5f);
-				// inser into the scene:
-				view->insert(obj);
-			}
-		}
-	}
-}
 void ICPslamWrapper::init()
 {
 	// get parameters from ini file
-	if (!is_file_exists(ini_filename))
+	if (!is_file_exists(ini_filename_))
 	{
-		ROS_ERROR_STREAM("CAN'T READ INI FILE");
+		RCLCPP_ERROR_STREAM(this->get_logger(), "CAN'T READ INI FILE: " << ini_filename_);
 		return;
 	}
-	read_iniFile(ini_filename);
-	// read rawlog file if it  exists
-	if (is_file_exists(rawlog_filename))
+	read_iniFile(ini_filename_);
+
+	// read rawlog file if it exists
+	if (is_file_exists(rawlog_filename_))
 	{
-		ROS_WARN_STREAM("PLAY FROM RAWLOG FILE: " << rawlog_filename.c_str());
+		RCLCPP_WARN_STREAM(this->get_logger(), "PLAY FROM RAWLOG FILE: " << rawlog_filename_.c_str());
 		rawlog_play_ = true;
 	}
 
-	/// Create publishers///
-	// publish grid map
-	pub_map_ = n_.advertise<nav_msgs::OccupancyGrid>("map", 1, true);
-	pub_metadata_ =
-		n_.advertise<nav_msgs::MapMetaData>("map_metadata", 1, true);
-	// publish point map
-	pub_point_cloud_ =
-		n_.advertise<sensor_msgs::PointCloud2>("PointCloudMap", 1, true);
+	/// Create TF2 components ///
+	tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+	tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
-	trajectory_pub_ = n_.advertise<nav_msgs::Path>("trajectory", 1, true);
+	/// Create publishers ///
+	pub_map_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
+		"map", rclcpp::QoS(1).transient_local());
+	pub_metadata_ = this->create_publisher<nav_msgs::msg::MapMetaData>(
+		"map_metadata", rclcpp::QoS(1).transient_local());
+	pub_point_cloud_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
+		"PointCloudMap", rclcpp::QoS(1).transient_local());
+	trajectory_pub_ = this->create_publisher<nav_msgs::msg::Path>(
+		"trajectory", rclcpp::QoS(1).transient_local());
+	pub_pose_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+		"robot_pose", 1);
 
-	// robot pose
-	pub_pose_ = n_.advertise<geometry_msgs::PoseStamped>("robot_pose", 1);
+	// Create timers with std::chrono
+	update_trajectory_timer_ = this->create_wall_timer(
+		std::chrono::duration<double>(1.0 / trajectory_update_rate_),
+		std::bind(&ICPslamWrapper::updateTrajectoryTimerCallback, this));
 
-	update_trajector_timer = n_.createTimer(
-		ros::Duration(1.0 / trajectory_update_rate),
-		&ICPslamWrapper::updateTrajectoryTimerCallback, this, false);
-
-	publish_trajectory_timer = n_.createTimer(
-		ros::Duration(1.0 / trajectory_publish_rate),
-		&ICPslamWrapper::publishTrajectoryTimerCallback, this, false);
+	publish_trajectory_timer_ = this->create_wall_timer(
+		std::chrono::duration<double>(1.0 / trajectory_publish_rate_),
+		std::bind(&ICPslamWrapper::publishTrajectoryTimerCallback, this));
 
 	// read sensor topics
 	std::vector<std::string> lstSources;
-	mrpt::system::tokenize(sensor_source, " ,\t\n", lstSources);
-	ROS_ASSERT_MSG(
-		!lstSources.empty(),
-		"*Fatal*: At least one sensor source must be provided in "
-		"~sensor_sources (e.g. "
-		"\"scan\" or \"beacon\")");
+	mrpt::system::tokenize(sensor_source_, " ,\t\n", lstSources);
+	if (lstSources.empty())
+	{
+		RCLCPP_FATAL(
+			this->get_logger(),
+			"*Fatal*: At least one sensor source must be provided in "
+			"~sensor_sources (e.g. \"scan\" or \"beacon\")");
+		return;
+	}
 
-	/// Create subscribers///
+	/// Create subscribers ///
 	sensorSub_.resize(lstSources.size());
 	for (size_t i = 0; i < lstSources.size(); i++)
 	{
-		ROS_INFO_STREAM("Subscribing to: " << lstSources[i]);
-		sensorSub_[i] = n_.subscribe(
-			lstSources[i], 1, &ICPslamWrapper::laserCallback, this);
+		RCLCPP_INFO_STREAM(this->get_logger(), "Subscribing to: " << lstSources[i]);
+		sensorSub_[i] = this->create_subscription<sensor_msgs::msg::LaserScan>(
+			lstSources[i], 1,
+			std::bind(&ICPslamWrapper::laserCallback, this, std::placeholders::_1));
 	}
 
 	init3Dwindow();
 }
 
-void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
+void ICPslamWrapper::laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg)
 {
 	using namespace mrpt::maps;
 	using namespace mrpt::obs;
 
 	try
 	{
-		ROS_INFO_STREAM("2D LIDAR rx: " << _msg.header.frame_id);
+		RCLCPP_INFO_STREAM(this->get_logger(), "2D LIDAR rx: " << msg->header.frame_id);
 
 		CObservation2DRangeScan::Ptr laser = CObservation2DRangeScan::Create();
-		if (laser_poses_.find(_msg.header.frame_id) == laser_poses_.end())
+		if (laser_poses_.find(msg->header.frame_id) == laser_poses_.end())
 		{
-			updateSensorPose(_msg.header.frame_id);
+			updateSensorPose(msg->header.frame_id);
 		}
 
 		{
-			mrpt::poses::CPose3D pose = laser_poses_[_msg.header.frame_id];
-			mrpt::ros1bridge::fromROS(
-				_msg, laser_poses_[_msg.header.frame_id], *laser);
-			// CObservation::Ptr obs = CObservation::Ptr(laser);
+			mrpt::poses::CPose3D pose = laser_poses_[msg->header.frame_id];
+			mrpt::ros2bridge::fromROS(
+				*msg, laser_poses_[msg->header.frame_id], *laser);
 			observation = CObservation::Ptr(laser);
 			timeLastUpdate_ = laser->timestamp;
 			tictac.Tic();
 			mapBuilder.processObservation(observation);
 			t_exec = tictac.Tac();
-			ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
+			RCLCPP_INFO(this->get_logger(), "Map building executed in %.03fms", 1000.0f * t_exec);
 
 			run3Dwindow();
 			publishTF();
@@ -379,13 +268,13 @@ void ICPslamWrapper::laserCallback(const sensor_msgs::LaserScan& _msg)
 	}
 	catch (const std::exception& e)
 	{
-		ROS_ERROR_STREAM(e.what());
+		RCLCPP_ERROR_STREAM(this->get_logger(), e.what());
 	}
 }
 
 void ICPslamWrapper::publishMapPose()
 {
-	// get currently builded map
+	// get currently built map
 	metric_map_ = mapBuilder.getCurrentlyBuiltMetricMap();
 
 	// publish map
@@ -398,29 +287,26 @@ void ICPslamWrapper::publishMapPose()
 
 	if (grid)
 	{
-		nav_msgs::OccupancyGrid _msg;
-		// if we have new map for current sensor update it
-		mrpt::ros1bridge::toROS(*grid, _msg);
-		pub_map_.publish(_msg);
-		pub_metadata_.publish(_msg.info);
+		nav_msgs::msg::OccupancyGrid _msg;
+		mrpt::ros2bridge::toROS(*grid, _msg);
+		pub_map_->publish(_msg);
+		pub_metadata_->publish(_msg.info);
 	}
 	if (pm)
 	{
-		sensor_msgs::PointCloud2 _msg;
-		std_msgs::Header header;
-		header.stamp = ros::Time(0);
-		header.frame_id = global_frame_id;
-		// if we have new map for current sensor update it
-		mrpt::ros1bridge::toROS(*pm, header, _msg);
-		pub_point_cloud_.publish(_msg);
+		sensor_msgs::msg::PointCloud2 _msg;
+		std_msgs::msg::Header header;
+		header.stamp = this->now();
+		header.frame_id = global_frame_id_;
+		mrpt::ros2bridge::toROS(*pm, header, _msg);
+		pub_point_cloud_->publish(_msg);
 	}
 
 	CPose3D robotPose;
 	mapBuilder.getCurrentPoseEstimation()->getMean(robotPose);
 
 	// publish pose
-	// geometry_msgs::PoseStamped pose;
-	pose.header.frame_id = global_frame_id;
+	pose.header.frame_id = global_frame_id_;
 
 	// the pose
 	pose.pose.position.x = robotPose.x();
@@ -428,28 +314,29 @@ void ICPslamWrapper::publishMapPose()
 	pose.pose.position.z = 0.0;
 	pose.pose.orientation = createQuaternionMsgFromYaw(robotPose.yaw());
 
-	pub_pose_.publish(pose);
+	pub_pose_->publish(pose);
 }
+
 void ICPslamWrapper::updateSensorPose(std::string _frame_id)
 {
-	geometry_msgs::TransformStamped transformStmp;
+	geometry_msgs::msg::TransformStamped transformStmp;
 	try
 	{
-		ros::Duration timeout(1.0);
-		transformStmp = tf_buffer_.lookupTransform(
-			base_frame_id, _frame_id, ros::Time(0), timeout);
+		auto tf_timeout = std::chrono::seconds(1);
+		transformStmp = tf_buffer_->lookupTransform(
+			base_frame_id_, _frame_id, tf2::TimePointZero, tf_timeout);
 	}
 	catch (const tf2::TransformException& e)
 	{
-		ROS_WARN(
-			"Failed to get transform target_frame (%s) to source_frame (%s): "
-			"%s",
-			base_frame_id.c_str(), _frame_id.c_str(), e.what());
+		RCLCPP_WARN(
+			this->get_logger(),
+			"Failed to get transform target_frame (%s) to source_frame (%s): %s",
+			base_frame_id_.c_str(), _frame_id.c_str(), e.what());
 		return;
 	}
 	tf2::Transform transform;
 	tf2::fromMsg(transformStmp.transform, transform);
-	const mrpt::poses::CPose3D pose = mrpt::ros1bridge::fromROS(transform);
+	const mrpt::poses::CPose3D pose = mrpt::ros2bridge::fromROS(transform);
 
 	laser_poses_[_frame_id] = pose;
 }
@@ -463,33 +350,32 @@ bool ICPslamWrapper::rawlogPlay()
 	else
 	{
 		size_t rawlogEntry = 0;
-		mrpt::io::CFileGZInputStream rawlog_stream(rawlog_filename);
+		mrpt::io::CFileGZInputStream rawlog_stream(rawlog_filename_);
 		auto rawlogFile = mrpt::serialization::archiveFrom(rawlog_stream);
 
 		CActionCollection::Ptr action;
 
 		for (;;)
 		{
-			if (ros::ok())
+			if (rclcpp::ok())
 			{
 				if (!CRawlog::getActionObservationPairOrObservation(
 						rawlogFile, action, observations, observation,
 						rawlogEntry))
 				{
-					break;	// file EOF
+					break;  // file EOF
 				}
 				isObsBasedRawlog = (bool)observation;
-				// Execute:
-				// ----------------------------------------
+
 				tictac.Tic();
 				if (isObsBasedRawlog)
 					mapBuilder.processObservation(observation);
 				else
 					mapBuilder.processActionObservation(*action, *observations);
 				t_exec = tictac.Tac();
-				ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
+				RCLCPP_INFO(this->get_logger(), "Map building executed in %.03fms", 1000.0f * t_exec);
 
-				ros::Duration(rawlog_play_delay).sleep();
+				rclcpp::sleep_for(std::chrono::nanoseconds(static_cast<int64_t>(rawlog_play_delay_ * 1e9)));
 
 				metric_map_ = mapBuilder.getCurrentlyBuiltMetricMap();
 
@@ -506,79 +392,68 @@ bool ICPslamWrapper::rawlogPlay()
 
 				if (grid)
 				{
-					nav_msgs::OccupancyGrid _msg;
-
-					// if we have new map for current sensor update it
-					mrpt::ros1bridge::toROS(*grid, _msg);
-					pub_map_.publish(_msg);
-					pub_metadata_.publish(_msg.info);
+					nav_msgs::msg::OccupancyGrid _msg;
+					mrpt::ros2bridge::toROS(*grid, _msg);
+					pub_map_->publish(_msg);
+					pub_metadata_->publish(_msg.info);
 				}
 
 				if (pm)
 				{
-					sensor_msgs::PointCloud2 _msg;
-					std_msgs::Header header;
-					header.stamp = ros::Time(0);
-					header.frame_id = global_frame_id;
-					// if we have new map for current sensor update it
-					mrpt::ros1bridge::toROS(*pm, header, _msg);
-					pub_point_cloud_.publish(_msg);
-					// pub_metadata_.publish(_msg.info)
+					sensor_msgs::msg::PointCloud2 _msg;
+					std_msgs::msg::Header header;
+					header.stamp = this->now();
+					header.frame_id = global_frame_id_;
+					mrpt::ros2bridge::toROS(*pm, header, _msg);
+					pub_point_cloud_->publish(_msg);
 				}
 
 				// publish pose
-				// geometry_msgs::PoseStamped pose;
-				pose.header.frame_id = global_frame_id;
-
-				// the pose
+				pose.header.frame_id = global_frame_id_;
 				pose.pose.position.x = robotPose.x();
 				pose.pose.position.y = robotPose.y();
 				pose.pose.position.z = 0.0;
-				pose.pose.orientation =
-					createQuaternionMsgFromYaw(robotPose.yaw());
+				pose.pose.orientation = createQuaternionMsgFromYaw(robotPose.yaw());
 
-				pub_pose_.publish(pose);
+				pub_pose_->publish(pose);
 			}
 
 			run3Dwindow();
-			ros::spinOnce();
+			rclcpp::spin_some(this->shared_from_this());
 		}
 
-		// if there is mrpt_gui it will wait until push any key in order to
-		// close the window
 		if (win3D_) win3D_->waitForKey();
-
 		return true;
 	}
 }
 
 void ICPslamWrapper::publishTF()
 {
-	// Most of this code was copy and pase from ros::amcl
 	const mrpt::poses::CPose3D robotPoseTF =
 		mapBuilder.getCurrentPoseEstimation()->getMeanVal();
 
-	const ros::Time stamp = mrpt::ros1bridge::toROS(timeLastUpdate_);
+	const rclcpp::Time stamp = mrpt::ros2bridge::toROS(timeLastUpdate_);
 
-	geometry_msgs::PoseStamped odom_to_map;
+	geometry_msgs::msg::PoseStamped odom_to_map;
 
 	try
 	{
 		tf2::Transform tmp_tf =
-			mrpt::ros1bridge::toROS_tfTransform(robotPoseTF);
+			mrpt::ros2bridge::toROS_tfTransform(robotPoseTF);
 
-		geometry_msgs::PoseStamped tmp_tf_stamped;
-		tmp_tf_stamped.header.frame_id = base_frame_id;
+		geometry_msgs::msg::PoseStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = base_frame_id_;
 		tmp_tf_stamped.header.stamp = stamp;
 		tf2::toMsg(tmp_tf.inverse(), tmp_tf_stamped.pose);
 
-		tf_buffer_.transform(tmp_tf_stamped, odom_to_map, odom_frame_id);
+		tf_buffer_->transform(tmp_tf_stamped, odom_to_map, odom_frame_id_);
 	}
 	catch (const tf2::TransformException&)
 	{
-		ROS_INFO(
+		RCLCPP_INFO(
+			this->get_logger(),
 			"Failed to subtract global_frame (%s) from odom_frame (%s)",
-			global_frame_id.c_str(), odom_frame_id.c_str());
+			global_frame_id_.c_str(), odom_frame_id_.c_str());
 		return;
 	}
 
@@ -588,31 +463,159 @@ void ICPslamWrapper::publishTF()
 
 		// We want to send a transform that is good up until a
 		// tolerance time so that odom can be used
-		ros::Duration transform_tolerance(0.1);
+		auto transform_tolerance = rclcpp::Duration::from_seconds(0.1);
 
-		ros::Time transform_expiration = stamp + transform_tolerance;
+		rclcpp::Time transform_expiration = stamp + transform_tolerance;
 
-		geometry_msgs::TransformStamped tmp_tf_stamped;
-		tmp_tf_stamped.header.frame_id = global_frame_id;
+		geometry_msgs::msg::TransformStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = global_frame_id_;
 		tmp_tf_stamped.header.stamp = transform_expiration;
-		tmp_tf_stamped.child_frame_id = odom_frame_id;
+		tmp_tf_stamped.child_frame_id = odom_frame_id_;
 		tf2::convert(latest_tf.inverse(), tmp_tf_stamped.transform);
 
-		tf_broadcaster_.sendTransform(tmp_tf_stamped);
+		tf_broadcaster_->sendTransform(tmp_tf_stamped);
 	}
 }
 
-void ICPslamWrapper::updateTrajectoryTimerCallback(const ros::TimerEvent& event)
+void ICPslamWrapper::updateTrajectoryTimerCallback()
 {
-	ROS_DEBUG("update trajectory");
-	path.header.frame_id = global_frame_id;
-	path.header.stamp = ros::Time(0);
+	RCLCPP_DEBUG(this->get_logger(), "update trajectory");
+	path.header.frame_id = global_frame_id_;
+	path.header.stamp = this->now();
 	path.poses.push_back(pose);
 }
 
-void ICPslamWrapper::publishTrajectoryTimerCallback(
-	const ros::TimerEvent& event)
+void ICPslamWrapper::publishTrajectoryTimerCallback()
 {
-	ROS_DEBUG("publish trajectory");
-	trajectory_pub_.publish(path);
+	RCLCPP_DEBUG(this->get_logger(), "publish trajectory");
+	trajectory_pub_->publish(path);
 }
+
+void ICPslamWrapper::init3Dwindow()
+{
+#if MRPT_HAS_WXWIDGETS
+	if (!SHOW_PROGRESS_3D_REAL_TIME) return;
+
+	RCLCPP_INFO(this->get_logger(), "[init3Dwindow] Creating 3D window...");
+
+	if (win3D_)
+	{
+		RCLCPP_ERROR(
+			this->get_logger(), "[init3Dwindow] 3D window already exists! Closing and "
+			"reopening...");
+		win3D_.reset();
+	}
+
+	win3D_ = mrpt::gui::CDisplayWindow3D::Create(
+		"ICP-SLAM @ MRPT C++ Library", 600, 500);
+	win3D_->setCameraZoom(20);
+	win3D_->setCameraAzimuthDeg(-45);
+
+	// Create the 3D scene and get the map only once, later we'll modify
+	// only the necessary elements.
+	mrpt::opengl::COpenGLScene::Ptr scene =
+		mrpt::opengl::COpenGLScene::Create();
+
+	// The ground:
+	mrpt::opengl::CGridPlaneXY::Ptr groundPlane =
+		mrpt::opengl::CGridPlaneXY::Create(-200, 200, -200, 200, 0, 5);
+	groundPlane->setColor(0.4f, 0.4f, 0.4f);
+	scene->insert(groundPlane);
+
+	// The camera pointing to the current robot pose:
+	if (CAMERA_3DSCENE_FOLLOWS_ROBOT)
+	{
+		mrpt::opengl::CCamera::Ptr objCam =
+			mrpt::opengl::CCamera::Create();
+		objCam->setName("CameraAtRobotPose");
+		scene->insert(objCam);
+	}
+
+	{
+		mrpt::opengl::CSetOfObjects::Ptr obj =
+			mrpt::opengl::stock_objects::RobotPioneer();
+		obj->setName("robot");
+		scene->insert(obj);
+	}
+
+	{
+		mrpt::opengl::CPointCloud::Ptr obj = mrpt::opengl::CPointCloud::Create();
+		obj->setColor(1, 0, 0);
+		obj->setPointSize(1.5);
+		obj->setName("points");
+		scene->insert(obj);
+	}
+
+	{
+		mrpt::opengl::CSetOfObjects::Ptr obj =
+			mrpt::opengl::CSetOfObjects::Create();
+		obj->setName("robot_poses");
+		scene->insert(obj);
+	}
+
+	win3D_->get3DSceneAndLock() = scene;
+	win3D_->unlockAccess3DScene();
+	win3D_->repaint();
+
+	RCLCPP_INFO(this->get_logger(), "[init3Dwindow] 3D window created.");
+
+#endif
+}
+
+void ICPslamWrapper::run3Dwindow()
+{
+#if MRPT_HAS_WXWIDGETS
+	if (!SHOW_PROGRESS_3D_REAL_TIME) return;
+	if (!win3D_) return;
+
+	const CPose3D currentRobotPose =
+		mapBuilder.getCurrentPoseEstimation()->getMeanVal();
+
+	mrpt::opengl::COpenGLScene::Ptr scene = win3D_->get3DSceneAndLock();
+
+	// Update the 3D view:
+	if (CAMERA_3DSCENE_FOLLOWS_ROBOT)
+	{
+		mrpt::opengl::CCamera::Ptr cam =
+			scene->getByClass<mrpt::opengl::CCamera>();
+		if (cam)
+		{
+			const CPose3D camPose =
+				currentRobotPose + CPose3D(0, 0, 0, -90.0_deg, 0.0_deg, -90.0_deg);
+			cam->setPose(camPose);
+		}
+	}
+
+	// Draw latest robot pose:
+	auto obj_robot_renderable = scene->getByName("robot");
+	if (obj_robot_renderable)
+	{
+		auto obj_robot = std::dynamic_pointer_cast<mrpt::opengl::CSetOfObjects>(obj_robot_renderable);
+		if (obj_robot) obj_robot->setPose(currentRobotPose);
+	}
+
+	// Draw laser scan:
+	if (SHOW_LASER_SCANS_3D && observation)
+	{
+		mrpt::opengl::CPointCloud::Ptr gl_points =
+			scene->getByClass<mrpt::opengl::CPointCloud>();
+		if (gl_points)
+		{
+			CSimplePointsMap pointsMap;
+			pointsMap.insertObservation(*observation);
+
+			gl_points->loadFromPointsMap(&pointsMap);
+		}
+	}
+
+	win3D_->unlockAccess3DScene();
+	win3D_->repaint();
+
+	// Update at a limited rate:
+	std::this_thread::sleep_for(
+		std::chrono::milliseconds(SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS));
+
+#endif
+}
+
+}  // namespace mrpt_icp_slam_2d

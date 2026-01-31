@@ -1,18 +1,40 @@
-#include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.h"
+/*
+ * File: mrpt_icp_slam_2d_app.cpp
+ * Author: Vladislav Tananaev
+ *
+ */
+
+#include "mrpt_icp_slam_2d/mrpt_icp_slam_2d_wrapper.hpp"
+#include <rclcpp/rclcpp.hpp>
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "mrpt_icp_slam_2d");
-	ros::NodeHandle n;
-	ros::Rate r(100);
-	ICPslamWrapper slam;
-	slam.get_param();
-	slam.init();
+	// Initialize ROS2
+	rclcpp::init(argc, argv);
 
-	ROS_INFO_STREAM("About to enter the main spin loop.");
+	// Create SLAM node with default options
+	auto slam_node = std::make_shared<mrpt_icp_slam_2d::ICPslamWrapper>();
 
-	// if (!slam.rawlogPlay())
-	{  // if not play from rawlog file
-		ros::spin();
+	// Initialize parameters and SLAM
+	slam_node->get_param();
+	slam_node->init();
+
+	RCLCPP_INFO_STREAM(slam_node->get_logger(), "About to enter the main spin loop.");
+
+	// If rawlog playback mode, play and exit
+	if (slam_node->rawlogPlay())
+	{
+		rclcpp::shutdown();
+		return EXIT_SUCCESS;
 	}
+
+	// Main loop with executor
+	rclcpp::executors::SingleThreadedExecutor executor;
+	executor.add_node(slam_node);
+
+	// Spin - callbacks will be invoked by subscribers
+	executor.spin();
+
+	rclcpp::shutdown();
+	return EXIT_SUCCESS;
 }

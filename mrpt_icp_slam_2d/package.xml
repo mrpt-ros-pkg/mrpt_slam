@@ -1,9 +1,12 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>mrpt_icp_slam_2d</name>
-  <version>0.1.19</version>
+  <version>0.1.20</version>
   <description>mrpt_icp_slam_2d contains a wrapper on MRPT's 2D ICP-SLAM algorithms.</description>
   <maintainer email="joseluisblancoc@gmail.com">Jose Luis Blanco-Claraco</maintainer>
+  <maintainer email="shravansomashekara.rai@gmail.com">Shravan Somashekara Rai</maintainer>
+
 
   <license>BSD</license>
 
@@ -13,24 +16,41 @@
   <author>Jose Luis Blanco Claraco</author>
   <author>Vladislav Tananaev</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>roslaunch</depend>
-  <depend>roscpp</depend>
-  <depend>roslib</depend>
+  <!-- ROS2 dependencies -->
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>ament_index_cpp</depend>
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
-  <depend>std_msgs</depend>
-  <depend>sensor_msgs</depend>
-  <depend>visualization_msgs</depend>
   <depend>nav_msgs</depend>
-  <depend>dynamic_reconfigure</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
+
+  <!-- MRPT dependencies -->
   <depend>mrpt_libros_bridge</depend>
   <depend>mrpt_libgui</depend>
   <depend>mrpt_libslam</depend>
 
-  <exec_depend>rviz</exec_depend>
+  <!-- Test dependencies -->
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>launch_testing</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  <test_depend>python3-yaml</test_depend>
+
+  <!-- Execution dependencies -->
+  <exec_depend>rviz2</exec_depend>
   <exec_depend>mrpt_rawlog</exec_depend>
+  <exec_depend>mvsim</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 
 </package>
