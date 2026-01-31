@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-
-<launch>
-  <node pkg="rviz" type="rviz" name="rviz_nav" output="screen" args="-d $(find mrpt_rbpf_slam)/rviz/rviz_conf.rviz"></node>
-</launch>

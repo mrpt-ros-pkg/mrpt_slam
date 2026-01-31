@@ -4,8 +4,8 @@
  */
 #pragma once
 #include <mrpt_rbpf_slam/mrpt_rbpf_slam.h>
-#include <ros/node_handle.h>
+#include <rclcpp/rclcpp.hpp>
 
 namespace mrpt_rbpf_slam{
-bool loadOptions(const ros::NodeHandle& nh, PFslam::Options& options);
+bool loadOptions(rclcpp::Node::SharedPtr node, PFslam::Options& options);
 }

@@ -1,37 +1,52 @@
 #include "mrpt_rbpf_slam/mrpt_rbpf_slam_wrapper.h"
+#include <rclcpp/rclcpp.hpp>
+#include <chrono>
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "mrpt_rpbf_slam");
-  ros::NodeHandle nh;
-  ros::NodeHandle nh_p("~");
+	// Initialize ROS2
+	rclcpp::init(argc, argv);
 
-  // Setup ros loop frequency from params
-  double frequency;
-  nh_p.param("update_loop_frequency", frequency, 100.);
-  ros::Rate rate(frequency);
+	// Create node
+	auto node = std::make_shared<rclcpp::Node>("mrpt_rbpf_slam");
 
-  mrpt_rbpf_slam::PFslamWrapper slam;
-  // Read parameters and configure node
-  // and setup callbacks
-  if (!slam.getParams(nh_p) || !slam.init(nh))
-  {
-    return EXIT_FAILURE;
-  }
+	// Get update frequency parameter
+	node->declare_parameter("update_loop_frequency", 100.0);
+	double frequency = node->get_parameter("update_loop_frequency").as_double();
 
-  ros::Duration(1).sleep();
+	// Create SLAM wrapper
+	auto slam = std::make_shared<mrpt_rbpf_slam::PFslamWrapper>();
 
-  // If play from rawlog file options is specified
-  // play and then terminate application
-  if (slam.rawlogPlay())
-  {
-    return EXIT_SUCCESS;
-  }
+	// Initialize
+	if (!slam->getParams(node) || !slam->init(node))
+	{
+		RCLCPP_ERROR(node->get_logger(), "Failed to initialize SLAM");
+		rclcpp::shutdown();
+		return EXIT_FAILURE;
+	}
 
-  // Otherwise work as a usual rosnode
-  while (ros::ok())
-  {
-    ros::spinOnce();
-    rate.sleep();
-  }
+	// Brief sleep for initialization
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	// If rawlog playback mode, play and exit
+	if (slam->rawlogPlay())
+	{
+		rclcpp::shutdown();
+		return EXIT_SUCCESS;
+	}
+
+	// Main loop with executor
+	rclcpp::executors::SingleThreadedExecutor executor;
+	executor.add_node(node);
+
+	rclcpp::Rate rate(frequency);
+
+	while (rclcpp::ok())
+	{
+		executor.spin_some();
+		rate.sleep();
+	}
+
+	rclcpp::shutdown();
+	return EXIT_SUCCESS;
 }

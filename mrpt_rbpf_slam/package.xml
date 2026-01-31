@@ -1,38 +1,54 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>mrpt_rbpf_slam</name>
-  <version>0.1.19</version>
+  <version>0.1.20</version>
   <description>This package is used for gridmap SLAM. The interface is similar to gmapping (https://wiki.ros.org/gmapping) but the package supports different particle-filter algorithms, range-only SLAM, can work with several grid maps simultaneously and more.</description>
 
-  <url type="website">http://www.mrpt.org/</url>
   <maintainer email="v.d.tananaev@gmail.com">Vladislav Tananaev</maintainer>
   <maintainer email="joseluisblancoc@gmail.com">Jose Luis Blanco-Claraco</maintainer>
+  <maintainer email="shravansomashekara.rai@gmail.com">Shravan Somashekara Rai</maintainer>
 
   <author>Vladislav Tananaev</author>
   <license>BSD</license>
 
-  <url>http://mrpt.org/</url>
+  <url type="website">http://www.mrpt.org/</url>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>dynamic_reconfigure</depend>
-  <depend>mrpt_libros_bridge</depend>
-  <depend>mrpt_libgui</depend>
-  <depend>mrpt_libslam</depend>
-  <depend>nav_msgs</depend>
-  <depend>roscpp</depend>
-  <depend>roslaunch</depend>
-  <depend>roslib</depend>
-  <depend>sensor_msgs</depend>
-  <depend>std_msgs</depend>
+  <!-- ROS2 dependencies -->
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>ament_index_cpp</depend>
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>visualization_msgs</depend>
+
+  <!-- MRPT dependencies -->
+  <depend>mrpt_libros_bridge</depend>
+  <depend>mrpt_libgui</depend>
+  <depend>mrpt_libslam</depend>
   <depend>mrpt_msgs_bridge</depend>
 
+  <!-- Test dependencies -->
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>launch_testing</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  <test_depend>python3-yaml</test_depend>
+
+  <!-- Exec dependencies -->
+  <exec_depend>rviz2</exec_depend>
   <exec_depend>mrpt_rawlog</exec_depend>
   <exec_depend>mvsim</exec_depend>
-  <exec_depend>rviz</exec_depend>
 
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

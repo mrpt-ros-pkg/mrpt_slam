@@ -1,5 +1,5 @@
 Panels:
-  - Class: rviz/Displays
+  - Class: rviz_common/Displays
     Help Height: 78
     Name: Displays
     Property Tree Widget:
@@ -12,21 +12,21 @@ Panels:
         - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 330
-  - Class: rviz/Selection
+  - Class: rviz_common/Selection
     Name: Selection
-  - Class: rviz/Tool Properties
+  - Class: rviz_common/Tool Properties
     Expanded:
       - /2D Pose Estimate1
       - /2D Nav Goal1
       - /Publish Point1
     Name: Tool Properties
     Splitter Ratio: 0.588679
-  - Class: rviz/Views
+  - Class: rviz_common/Views
     Expanded:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
-  - Class: rviz/Time
+  - Class: rviz_common/Time
     Experimental: false
     Name: Time
     SyncMode: 0
@@ -36,7 +36,7 @@ Visualization Manager:
   Displays:
     - Alpha: 0.5
       Cell Size: 1
-      Class: rviz/Grid
+      Class: rviz_default_plugins/Grid
       Color: 160; 160; 164
       Enabled: true
       Line Style:
@@ -53,7 +53,7 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 0.7
-      Class: rviz/Map
+      Class: rviz_default_plugins/Map
       Color Scheme: map
       Draw Behind: false
       Enabled: true
@@ -61,20 +61,20 @@ Visualization Manager:
       Topic: /map
       Value: true
     - Arrow Length: 0.3
-      Class: rviz/PoseArray
+      Class: rviz_default_plugins/PoseArray
       Color: 255; 25; 0
       Enabled: true
       Name: PoseArray
       Topic: /particlecloud
       Value: true
     - Arrow Length: 0.3
-      Class: rviz/PoseArray
+      Class: rviz_default_plugins/PoseArray
       Color: 0; 255; 0
       Enabled: true
       Name: PoseArray
       Topic: /particlecloud_beacons
       Value: true
-    - Class: rviz/TF
+    - Class: rviz_default_plugins/TF
       Enabled: true
       Frame Timeout: 15
       Frames:
@@ -100,7 +100,7 @@ Visualization Manager:
                 {}
       Update Interval: 0
       Value: true
-    - Class: rviz/MarkerArray
+    - Class: rviz_default_plugins/MarkerArray
       Enabled: true
       Marker Topic: /beacons_viz
       Name: MarkerArray
@@ -115,23 +115,23 @@ Visualization Manager:
     Frame Rate: 30
   Name: root
   Tools:
-    - Class: rviz/Interact
+    - Class: rviz_default_plugins/Interact
       Hide Inactive Objects: true
-    - Class: rviz/MoveCamera
-    - Class: rviz/Select
-    - Class: rviz/FocusCamera
-    - Class: rviz/Measure
-    - Class: rviz/SetInitialPose
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+    - Class: rviz_default_plugins/SetInitialPose
       Topic: /initialpose
-    - Class: rviz/SetGoal
+    - Class: rviz_default_plugins/SetGoal
       Topic: /move_base_simple/goal
-    - Class: rviz/PublishPoint
+    - Class: rviz_default_plugins/PublishPoint
       Single click: true
       Topic: /clicked_point
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
+      Class: rviz_default_plugins/Orbit
       Distance: 35.884
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
@@ -146,7 +146,7 @@ Visualization Manager:
       Near Clip Distance: 0.01
       Pitch: 0.700398
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
+      Value: Orbit (rviz_default_plugins)
       Yaw: 4.6154
     Saved: ~
 Window Geometry:

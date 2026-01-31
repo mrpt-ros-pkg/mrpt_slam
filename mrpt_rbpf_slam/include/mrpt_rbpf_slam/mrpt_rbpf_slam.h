@@ -4,8 +4,6 @@
  */
 
 #pragma once
-#include <ros/console.h>
-
 #include <mrpt/gui/CDisplayWindow3D.h>
 #include <mrpt/random.h>
 #include <mrpt/slam/CMetricMapBuilderRBPF.h>

@@ -6,38 +6,42 @@
 
 #pragma once
 
-#include <iostream>	 // std::cout
-#include <fstream>	// std::ifstream
+#include <iostream>  // std::cout
+#include <fstream>  // std::ifstream
 #include <string>
+#include <memory>
 #include "mrpt_rbpf_slam/mrpt_rbpf_slam.h"
 
-// add ros libraries
-#include <ros/ros.h>
-#include <ros/package.h>
+// ROS2 libraries
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_ros/transform_listener.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include "geometry_msgs/TransformStamped.h"
-// add ros msgs
-#include <nav_msgs/OccupancyGrid.h>
-#include "nav_msgs/MapMetaData.h"
-#include <std_msgs/String.h>
-#include <std_msgs/Int32.h>
-#include <nav_msgs/GetMap.h>
-#include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <sensor_msgs/LaserScan.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <visualization_msgs/Marker.h>
-// mrpt msgs
-#include "mrpt_msgs/ObservationRangeBeacon.h"
-// mrpt bridge libs
-#include <mrpt/ros1bridge/pose.h>
-#include <mrpt/ros1bridge/map.h>
-#include <mrpt/ros1bridge/logging.h>
-#include <mrpt/ros1bridge/laser_scan.h>
-#include <mrpt_msgs_bridge/beacon.h>
-#include <mrpt/ros1bridge/time.h>
+#include "tf2_ros/buffer.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+
+// ROS2 messages
+#include <nav_msgs/msg/occupancy_grid.hpp>
+#include "nav_msgs/msg/map_meta_data.hpp"
+#include <nav_msgs/srv/get_map.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/int32.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
+#include <visualization_msgs/msg/marker.hpp>
+
+// MRPT msgs
+#include "mrpt_msgs/msg/observation_range_beacon.hpp"
+
+// MRPT bridge libs (ROS2 versions)
+#include <mrpt/ros2bridge/pose.h>
+#include <mrpt/ros2bridge/map.h>
+#include <mrpt/ros2bridge/laser_scan.h>
+#include <mrpt_msgs_bridge/beacon.hpp>
+#include <mrpt/ros2bridge/time.h>
 
 #include <mrpt/obs/CObservationBeaconRanges.h>
 
@@ -55,14 +59,14 @@ class PFslamWrapper : public PFslam
 	~PFslamWrapper() = default;
 
 	/**
-	 * @brief Read the parameters from launch file
+	 * @brief Read the parameters from ROS2 node
 	 */
-	bool getParams(const ros::NodeHandle& nh_p);
+	bool getParams(rclcpp::Node::SharedPtr node);
 
 	/**
 	 * @brief Initialize publishers subscribers and RBPF slam
 	 */
-	bool init(ros::NodeHandle& nh);
+	bool init(rclcpp::Node::SharedPtr node);
 
 	/**
 	 * @brief Play rawlog file
@@ -86,7 +90,7 @@ class PFslamWrapper : public PFslam
 	 *
 	 * @param msg  the beacon message
 	 */
-	void callbackBeacon(const mrpt_msgs::ObservationRangeBeacon& msg);
+	void callbackBeacon(const mrpt_msgs::msg::ObservationRangeBeacon::SharedPtr msg);
 
 	/**
 	 * @brief Callback function for the laser scans
@@ -98,7 +102,7 @@ class PFslamWrapper : public PFslam
 	 *
 	 * @param msg  the laser scan message
 	 */
-	void laserCallback(const sensor_msgs::LaserScan& msg);
+	void laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
 
 	/**
 	 * @brief Wait for transform between odometry frame and the robot frame
@@ -115,9 +119,9 @@ class PFslamWrapper : public PFslam
 	 */
 	bool waitForTransform(
 		mrpt::poses::CPose3D& des, const std::string& target_frame,
-		const std::string& source_frame, const ros::Time& time,
-		const ros::Duration& timeout,
-		const ros::Duration& polling_sleep_duration = ros::Duration(0.01));
+		const std::string& source_frame, const rclcpp::Time& time,
+		const rclcpp::Duration& timeout,
+		const rclcpp::Duration& polling_sleep_duration = rclcpp::Duration::from_seconds(0.01));
 
 	/**
 	 * @brief Get the odometry for received observation
@@ -127,7 +131,7 @@ class PFslamWrapper : public PFslam
 	 */
 	void odometryForCallback(
 		mrpt::obs::CObservationOdometry::Ptr& odometry,
-		const std_msgs::Header& msg_header);
+		const std_msgs::msg::Header& msg_header);
 
 	/**
 	 * @brief Update the pose of the sensor with respect to the robot
@@ -149,45 +153,52 @@ class PFslamWrapper : public PFslam
 	void vizBeacons();
 
    private:
-	double rawlog_play_delay_;	///< delay of replay from rawlog file
+	// Node handle
+	rclcpp::Node::SharedPtr node_;
+
+	double rawlog_play_delay_;  ///< delay of replay from rawlog file
 	bool rawlog_play_{false};  ///< true if rawlog file exists
 
 	std::string rawlog_filename_;  ///< name of rawlog file
-	std::string ini_filename_;	///< name of ini file
+	std::string ini_filename_;  ///< name of ini file
 	std::string global_frame_id_;  ///< /map frame
-	std::string odom_frame_id_;	 ///< /odom frame
-	std::string base_frame_id_;	 ///< robot frame
+	std::string odom_frame_id_;  ///< /odom frame
+	std::string base_frame_id_;  ///< robot frame
 
 	// Sensor source
-	std::string sensor_source_;	 ///< 2D laser scans
+	std::string sensor_source_;  ///< 2D laser scans
 	bool update_sensor_pose_;  ///< on true the sensor pose is updated on every
-							   ///< sensor reading
+	                           ///< sensor reading
 
 	std::map<std::string, mrpt::poses::CPose3D>
 		laser_poses_;  ///< laser scan poses with respect to the map
 	std::map<std::string, mrpt::poses::CPose3D>
-		beacon_poses_;	///< beacon poses with respect to the map
+		beacon_poses_;  ///< beacon poses with respect to the map
 
 	// Subscribers
-	std::vector<ros::Subscriber> sensorSub_;  ///< list of sensors topics
+	std::vector<rclcpp::SubscriptionBase::SharedPtr> sensorSub_;  ///< list of sensors topics
 
 	// read rawlog file
-	// vector of pairs of actions and obsrvations from rawlog file
+	// vector of pairs of actions and observations from rawlog file
 	std::vector<
 		std::pair<mrpt::obs::CActionCollection, mrpt::obs::CSensoryFrame>>
 		data_;
 
 	std::vector<mrpt::opengl::CEllipsoid3D::Ptr> viz_beacons_;
 
-	// publishers for map and pose particles
-	ros::Publisher pub_map_, pub_metadata_, pub_particles_,
-		pub_particles_beacons_, beacon_viz_pub_;
+	// Publishers for map and pose particles
+	rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_map_;
+	rclcpp::Publisher<nav_msgs::msg::MapMetaData>::SharedPtr pub_metadata_;
+	rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pub_particles_;
+	rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pub_particles_beacons_;
+	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr beacon_viz_pub_;
 
-	tf2_ros::Buffer tf_buffer_;
-	tf2_ros::TransformListener listenerTF_{tf_buffer_};
-	tf2_ros::TransformBroadcaster tf_broadcaster_;	///< transform broadcaster
+	// TF2 infrastructure
+	std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+	std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
-	mrpt::system::CTicTac tictac_;	///< timer for SLAM performance evaluation
-	float t_exec_;	///< the time which take one SLAM update execution
+	mrpt::system::CTicTac tictac_;  ///< timer for SLAM performance evaluation
+	float t_exec_;  ///< the time which take one SLAM update execution
 };
 }  // namespace mrpt_rbpf_slam

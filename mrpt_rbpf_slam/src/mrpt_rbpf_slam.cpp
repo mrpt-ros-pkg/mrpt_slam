@@ -4,7 +4,7 @@
  *
  *
  */
-#include <mrpt/ros1bridge/logging.h>
+// ROS2 bridge: logging is handled differently in ROS2
 #include <mrpt_rbpf_slam/mrpt_rbpf_slam.h>
 #include <mrpt/serialization/CArchive.h>
 #include <mrpt/opengl/COpenGLScene.h>
@@ -111,19 +111,13 @@ void PFslam::observation(
 
 void PFslam::initSlam(PFslam::Options options)
 {
-	log4cxx::LoggerPtr ros_logger =
-		log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
-	mapBuilder_.setVerbosityLevel(
-		mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+	// ROS2: Set MRPT logging to INFO level by default
+	// More sophisticated logging bridge can be added later if needed
+	mapBuilder_.setVerbosityLevel(mrpt::system::LVL_INFO);
 	mapBuilder_.logging_enable_console_output = false;
 
-	mapBuilder_.logRegisterCallback(
-		[](std::string_view msg, const mrpt::system::VerbosityLevel level,
-		   std::string_view loggerName,
-		   const mrpt::Clock::time_point timestamp) {
-			mrpt::ros1bridge::mrptToROSLoggerCallback(
-				std::string(msg), level, std::string(loggerName), timestamp);
-		});
+	// Note: mrpt::ros2bridge may provide logging callbacks in the future
+	// For now, we use MRPT's internal logging system
 
 	mapBuilder_.options.enableMapUpdating = true;
 	mapBuilder_.options.debugForceInsertion = false;
