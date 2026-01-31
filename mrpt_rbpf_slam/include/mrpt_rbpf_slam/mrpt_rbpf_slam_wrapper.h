@@ -52,21 +52,21 @@ namespace mrpt_rbpf_slam
  *Rao-Blackwellized Particle filter SLAM from MRPT libraries.
  *
  */
-class PFslamWrapper : public PFslam
+class PFslamWrapper : public PFslam, public rclcpp::Node
 {
    public:
-	PFslamWrapper();
+	PFslamWrapper(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 	~PFslamWrapper() = default;
 
 	/**
 	 * @brief Read the parameters from ROS2 node
 	 */
-	bool getParams(rclcpp::Node::SharedPtr node);
+	bool getParams();
 
 	/**
 	 * @brief Initialize publishers subscribers and RBPF slam
 	 */
-	bool init(rclcpp::Node::SharedPtr node);
+	bool init();
 
 	/**
 	 * @brief Play rawlog file
@@ -153,8 +153,7 @@ class PFslamWrapper : public PFslam
 	void vizBeacons();
 
    private:
-	// Node handle
-	rclcpp::Node::SharedPtr node_;
+	rclcpp::TimerBase::SharedPtr update_timer_;  ///< Timer for periodic updates in rawlog mode
 
 	double rawlog_play_delay_;  ///< delay of replay from rawlog file
 	bool rawlog_play_{false};  ///< true if rawlog file exists

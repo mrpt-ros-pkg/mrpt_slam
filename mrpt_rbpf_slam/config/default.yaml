@@ -1,35 +1,106 @@
+##############################################################################
+# MRPT RBPF SLAM - Default Configuration Parameters
+#
+# This file contains the default parameters for the MRPT RBPF SLAM node.
+# Override these values via launch files or command line for custom behavior.
+#
+# For more information about MRPT SLAM algorithms, see:
+# http://www.mrpt.org/tutorials/slam-algorithms/
+##############################################################################
+
 /**:
   ros__parameters:
-    # Ros loop update frequency
-    update_loop_frequency: 100.0 # Hz (or 100 updates per sec)
+    # ============================================================================
+    # ROS Node Configuration
+    # ============================================================================
 
-    # Absolute path to the folder where to save *.simplemap
-    # Note: everything in '/tmp' folder is removed if computer is restarted
+    # Ros loop update frequency (Hz)
+    # Higher values provide more responsive updates but use more CPU
+    # Default: 100.0 Hz (100 updates per second)
+    update_loop_frequency: 100.0
+
+    # ============================================================================
+    # File Storage Configuration
+    # ============================================================================
+
+    # Absolute path to the folder where to save *.simplemap files
+    # SimpleMaps contain the SLAM trajectory and observations for later replay
+    # Note: Files in '/tmp' folder are removed if computer is restarted
+    # Change this to a persistent location if you want to keep maps after reboot
     simplemap_save_folder: /tmp/
 
+    # ============================================================================
+    # Motion Model Configuration
+    # ============================================================================
+    # The motion model describes how the robot moves and is used for predicting
+    # particle positions during SLAM. Two models are available:
+    # - "thrun": Thrun's model (more common, better for differential drive robots)
+    # - "gaussian": Gaussian model (simpler, faster)
+    #
     # More documentation:
     # http://www.mrpt.org/tutorials/programming/odometry-and-motion-models/probabilistic_motion_models/
+
     motion_model:
-      type: "thrun" # choose thrun or gaussian
+      # Motion model type: "thrun" or "gaussian"
+      type: "thrun"
+
+      # ---Gaussian Motion Model Parameters---
+      # Used when type == "gaussian"
+      # These parameters define the uncertainty in the motion model
       gaussian_motion_model_options:
-        a1: 0.034
-        a2: 0.057
-        a3: 0.014
-        a4: 0.097
-        minStdXY:  0.005
-        minStdPHI: 0.05
+        a1: 0.034        # Uncertainty in rotation as function of rotation
+        a2: 0.057        # Uncertainty in rotation as function of translation
+        a3: 0.014        # Uncertainty in translation as function of translation
+        a4: 0.097        # Uncertainty in translation as function of rotation
+        minStdXY: 0.005  # Minimum standard deviation in XY position (meters)
+        minStdPHI: 0.05  # Minimum standard deviation in orientation (radians)
+
+      # ---Thrun Motion Model Parameters---
+      # Used when type == "thrun"
+      # This is the recommended model for most wheeled robots
       thrun_motion_model_options:
-        particle_count:     100
-        alfa1_rot_rot:      0.1
-        alfa2_rot_trans:    0.1
-        alfa3_trans_trans:  0.1
-        alfa4_trans_rot:    0.1
-        additional_std_XY:  0.1 # m
-        additional_std_phi: 0.1 # rad
+        particle_count: 100       # Number of particles for motion model
+        alfa1_rot_rot: 0.1        # Rot→Rot noise (rad²/rad)
+        alfa2_rot_trans: 0.1      # Trans→Rot noise (rad²/m)
+        alfa3_trans_trans: 0.1    # Trans→Trans noise (m²/m)
+        alfa4_trans_rot: 0.1      # Rot→Trans noise (m²/rad)
+        additional_std_XY: 0.1    # Additional uncertainty in XY (meters)
+        additional_std_phi: 0.1   # Additional uncertainty in heading (radians)
+
+    # ============================================================================
+    # Visualization Configuration (MRPT 3D Window)
+    # ============================================================================
+    # These parameters control the optional MRPT 3D visualization window
+    # Note: This is separate from RViz2 visualization
+    # Set show_window to true to enable the MRPT visualization window
 
     mrpt_visualization_options:
-      show_window:         false
-      camera_follow_robot: false
-      window_update_delay: 1     # [ms]
-      width:               600   # [pix]
-      height:              500   # [pix]
+      show_window: false          # Show MRPT 3D visualization window
+      camera_follow_robot: false  # Camera tracks robot automatically
+      window_update_delay: 1      # Window update delay in milliseconds
+      width: 600                  # Window width in pixels
+      height: 500                 # Window height in pixels
+
+    # ============================================================================
+    # Frame IDs
+    # ============================================================================
+    # These are typically set via launch file parameters, but can be overridden here
+    # Uncomment and modify as needed:
+
+    # global_frame_id: "map"              # Global reference frame
+    # odom_frame_id: "odom"               # Odometry frame
+    # base_frame_id: "base_link"          # Robot base frame
+    # sensor_source: "scan"               # Sensor topic name(s), comma-separated
+
+    # ============================================================================
+    # Advanced SLAM Configuration
+    # ============================================================================
+    # For advanced configuration of the RBPF SLAM algorithm itself
+    # (particle filter options, map building, etc.), use the INI file specified
+    # in the launch file parameter 'ini_filename'
+    #
+    # Example INI files can be found in the 'tutorial' directory
+
+##############################################################################
+# End of Configuration
+##############################################################################

@@ -16,68 +16,69 @@ bool isFileExists(const std::string& name)
 
 namespace mrpt_rbpf_slam
 {
-PFslamWrapper::PFslamWrapper() { timeLastUpdate_ = mrpt::Clock::now(); }
-
-bool PFslamWrapper::getParams(rclcpp::Node::SharedPtr node)
+PFslamWrapper::PFslamWrapper(const rclcpp::NodeOptions& options)
+	: Node("mrpt_rbpf_slam", options)
 {
-	// Store node reference for later use
-	node_ = node;
+	timeLastUpdate_ = mrpt::Clock::now();
+}
 
-	RCLCPP_INFO(node_->get_logger(), "READ PARAM FROM LAUNCH FILE");
+bool PFslamWrapper::getParams()
+{
+	RCLCPP_INFO(this->get_logger(), "READ PARAM FROM LAUNCH FILE");
 
 	// Declare and get all parameters
-	node_->declare_parameter<double>("rawlog_play_delay", 0.1);
-	rawlog_play_delay_ = node_->get_parameter("rawlog_play_delay").as_double();
-	RCLCPP_INFO(node_->get_logger(), "rawlog_play_delay: %f", rawlog_play_delay_);
+	this->declare_parameter<double>("rawlog_play_delay", 0.1);
+	rawlog_play_delay_ = this->get_parameter("rawlog_play_delay").as_double();
+	RCLCPP_INFO(this->get_logger(), "rawlog_play_delay: %f", rawlog_play_delay_);
 
-	node_->declare_parameter<std::string>("rawlog_filename", "");
-	rawlog_filename_ = node_->get_parameter("rawlog_filename").as_string();
-	RCLCPP_INFO(node_->get_logger(), "rawlog_filename: %s", rawlog_filename_.c_str());
+	this->declare_parameter<std::string>("rawlog_filename", "");
+	rawlog_filename_ = this->get_parameter("rawlog_filename").as_string();
+	RCLCPP_INFO(this->get_logger(), "rawlog_filename: %s", rawlog_filename_.c_str());
 
-	node_->declare_parameter<std::string>("ini_filename", "");
-	ini_filename_ = node_->get_parameter("ini_filename").as_string();
-	RCLCPP_INFO(node_->get_logger(), "ini_filename: %s", ini_filename_.c_str());
+	this->declare_parameter<std::string>("ini_filename", "");
+	ini_filename_ = this->get_parameter("ini_filename").as_string();
+	RCLCPP_INFO(this->get_logger(), "ini_filename: %s", ini_filename_.c_str());
 
-	node_->declare_parameter<std::string>("global_frame_id", "map");
-	global_frame_id_ = node_->get_parameter("global_frame_id").as_string();
-	RCLCPP_INFO(node_->get_logger(), "global_frame_id: %s", global_frame_id_.c_str());
+	this->declare_parameter<std::string>("global_frame_id", "map");
+	global_frame_id_ = this->get_parameter("global_frame_id").as_string();
+	RCLCPP_INFO(this->get_logger(), "global_frame_id: %s", global_frame_id_.c_str());
 
-	node_->declare_parameter<std::string>("odom_frame_id", "odom");
-	odom_frame_id_ = node_->get_parameter("odom_frame_id").as_string();
-	RCLCPP_INFO(node_->get_logger(), "odom_frame_id: %s", odom_frame_id_.c_str());
+	this->declare_parameter<std::string>("odom_frame_id", "odom");
+	odom_frame_id_ = this->get_parameter("odom_frame_id").as_string();
+	RCLCPP_INFO(this->get_logger(), "odom_frame_id: %s", odom_frame_id_.c_str());
 
-	node_->declare_parameter<std::string>("base_frame_id", "base_link");
-	base_frame_id_ = node_->get_parameter("base_frame_id").as_string();
-	RCLCPP_INFO(node_->get_logger(), "base_frame_id: %s", base_frame_id_.c_str());
+	this->declare_parameter<std::string>("base_frame_id", "base_link");
+	base_frame_id_ = this->get_parameter("base_frame_id").as_string();
+	RCLCPP_INFO(this->get_logger(), "base_frame_id: %s", base_frame_id_.c_str());
 
-	node_->declare_parameter<std::string>("sensor_source", "scan");
-	sensor_source_ = node_->get_parameter("sensor_source").as_string();
-	RCLCPP_INFO(node_->get_logger(), "sensor_source: %s", sensor_source_.c_str());
+	this->declare_parameter<std::string>("sensor_source", "scan");
+	sensor_source_ = this->get_parameter("sensor_source").as_string();
+	RCLCPP_INFO(this->get_logger(), "sensor_source: %s", sensor_source_.c_str());
 
-	node_->declare_parameter<bool>("update_sensor_pose", true);
-	update_sensor_pose_ = node_->get_parameter("update_sensor_pose").as_bool();
+	this->declare_parameter<bool>("update_sensor_pose", true);
+	update_sensor_pose_ = this->get_parameter("update_sensor_pose").as_bool();
 	RCLCPP_INFO(
-		node_->get_logger(), "update_sensor_pose: %s", (update_sensor_pose_ ? "TRUE" : "FALSE"));
+		this->get_logger(), "update_sensor_pose: %s", (update_sensor_pose_ ? "TRUE" : "FALSE"));
 
 	PFslam::Options options;
-	if (!loadOptions(node, options))
+	// Note: shared_from_this() requires the object to be managed by shared_ptr
+	// This is safe because the Node is always created as a shared_ptr in ROS2
+	auto node_ptr = std::dynamic_pointer_cast<rclcpp::Node>(this->shared_from_this());
+	if (!loadOptions(node_ptr, options))
 	{
-		RCLCPP_ERROR(node_->get_logger(), "Not able to read all parameters!");
+		RCLCPP_ERROR(this->get_logger(), "Not able to read all parameters!");
 		return false;
 	}
 	initSlam(std::move(options));
 	return true;
 }
 
-bool PFslamWrapper::init(rclcpp::Node::SharedPtr node)
+bool PFslamWrapper::init()
 {
-	// Store node reference
-	node_ = node;
-
 	// get parameters from ini file
 	if (!isFileExists(ini_filename_))
 	{
-		RCLCPP_ERROR_STREAM(node_->get_logger(), "CAN'T READ INI FILE" << ini_filename_);
+		RCLCPP_ERROR_STREAM(this->get_logger(), "CAN'T READ INI FILE" << ini_filename_);
 		return false;
 	}
 
@@ -86,29 +87,29 @@ bool PFslamWrapper::init(rclcpp::Node::SharedPtr node)
 	// read rawlog file if it  exists
 	if (isFileExists(rawlog_filename_))
 	{
-		RCLCPP_WARN_STREAM(node_->get_logger(), "PLAY FROM RAWLOG FILE: " << rawlog_filename_);
+		RCLCPP_WARN_STREAM(this->get_logger(), "PLAY FROM RAWLOG FILE: " << rawlog_filename_);
 		PFslam::readRawlog(rawlog_filename_, data_);
 		rawlog_play_ = true;
 	}
 
 	/// Create TF2 components ///
-	tf_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
+	tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
 	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-	tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
+	tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
 	/// Create publishers///
 	// publish grid map
-	pub_map_ = node_->create_publisher<nav_msgs::msg::OccupancyGrid>(
+	pub_map_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
 		"map", rclcpp::QoS(1).transient_local());
-	pub_metadata_ = node_->create_publisher<nav_msgs::msg::MapMetaData>(
+	pub_metadata_ = this->create_publisher<nav_msgs::msg::MapMetaData>(
 		"map_metadata", rclcpp::QoS(1).transient_local());
 	// robot pose
-	pub_particles_ = node_->create_publisher<geometry_msgs::msg::PoseArray>(
+	pub_particles_ = this->create_publisher<geometry_msgs::msg::PoseArray>(
 		"particlecloud", rclcpp::QoS(1).transient_local());
 	// ro particles poses
-	pub_particles_beacons_ = node_->create_publisher<geometry_msgs::msg::PoseArray>(
+	pub_particles_beacons_ = this->create_publisher<geometry_msgs::msg::PoseArray>(
 		"particlecloud_beacons", rclcpp::QoS(1).transient_local());
-	beacon_viz_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(
+	beacon_viz_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
 		"/beacons_viz", 1);
 
 	// read sensor topics
@@ -117,7 +118,7 @@ bool PFslamWrapper::init(rclcpp::Node::SharedPtr node)
 	if (lstSources.empty())
 	{
 		RCLCPP_FATAL(
-			node_->get_logger(),
+			this->get_logger(),
 			"*Fatal*: At least one sensor source must be provided in "
 			"~sensor_sources (e.g. \"scan\" or \"beacon\")");
 		return false;
@@ -129,14 +130,14 @@ bool PFslamWrapper::init(rclcpp::Node::SharedPtr node)
 	{
 		// if (lstSources[i].find("scan") != std::string::npos)
 		{
-			sensorSub_[i] = node_->create_subscription<sensor_msgs::msg::LaserScan>(
+			sensorSub_[i] = this->create_subscription<sensor_msgs::msg::LaserScan>(
 				lstSources[i], 1,
 				std::bind(&PFslamWrapper::laserCallback, this, std::placeholders::_1));
 		}
 #if 0
 		else
 		{
-			sensorSub_[i] = node_->create_subscription<mrpt_msgs::msg::ObservationRangeBeacon>(
+			sensorSub_[i] = this->create_subscription<mrpt_msgs::msg::ObservationRangeBeacon>(
 				lstSources[i], 1,
 				std::bind(&PFslamWrapper::callbackBeacon, this, std::placeholders::_1));
 		}
@@ -184,7 +185,7 @@ bool PFslamWrapper::waitForTransform(
 	catch (const tf2::TransformException& e)
 	{
 		RCLCPP_WARN(
-			node_->get_logger(),
+			this->get_logger(),
 			"Failed to get transform target_frame (%s) to source_frame (%s): "
 			"%s",
 			target_frame.c_str(), source_frame.c_str(), e.what());
@@ -227,7 +228,7 @@ void PFslamWrapper::laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr m
 		tictac_.Tic();
 		mapBuilder_.processActionObservation(*action_, *sensory_frame_);
 		t_exec_ = tictac_.Tac();
-		RCLCPP_INFO(node_->get_logger(), "Map building executed in %.03fms", 1000.0f * t_exec_);
+		RCLCPP_INFO(this->get_logger(), "Map building executed in %.03fms", 1000.0f * t_exec_);
 		publishMapPose();
 		run3Dwindow();
 		publishTF();
@@ -266,7 +267,7 @@ void PFslamWrapper::callbackBeacon(const mrpt_msgs::msg::ObservationRangeBeacon:
 		tictac_.Tic();
 		mapBuilder_.processActionObservation(*action_, *sensory_frame_);
 		t_exec_ = tictac_.Tac();
-		RCLCPP_INFO(node_->get_logger(), "Map building executed in %.03fms", 1000.0f * t_exec_);
+		RCLCPP_INFO(this->get_logger(), "Map building executed in %.03fms", 1000.0f * t_exec_);
 
 		publishMapPose();
 		run3Dwindow();
@@ -303,7 +304,7 @@ void PFslamWrapper::publishMapPose()
 
 		geometry_msgs::msg::PoseArray poseArrayBeacons;
 		poseArrayBeacons.header.frame_id = global_frame_id_;
-		poseArrayBeacons.header.stamp = node_->now();
+		poseArrayBeacons.header.stamp = this->now();
 
 		// Count the number of beacons
 		unsigned int objs_counter = 0;
@@ -329,7 +330,7 @@ void PFslamWrapper::publishMapPose()
 	// publish pose
 	geometry_msgs::msg::PoseArray poseArray;
 	poseArray.header.frame_id = global_frame_id_;
-	poseArray.header.stamp = node_->now();
+	poseArray.header.stamp = this->now();
 	poseArray.poses.resize(curPDF.particlesCount());
 	for (size_t i = 0; i < curPDF.particlesCount(); i++)
 	{
@@ -413,7 +414,7 @@ void PFslamWrapper::updateSensorPose(const std::string& frame_id)
 	catch (const tf2::TransformException& e)
 	{
 		RCLCPP_WARN(
-			node_->get_logger(),
+			this->get_logger(),
 			"Failed to get transform target_frame (%s) to source_frame (%s): "
 			"%s",
 			base_frame_id_.c_str(), frame_id.c_str(), e.what());
@@ -443,7 +444,7 @@ bool PFslamWrapper::rawlogPlay()
 				mapBuilder_.processActionObservation(
 					data_[i].first, data_[i].second);
 				t_exec_ = tictac_.Tac();
-				RCLCPP_INFO(node_->get_logger(), "Map building executed in %.03fms", 1000.0f * t_exec_);
+				RCLCPP_INFO(this->get_logger(), "Map building executed in %.03fms", 1000.0f * t_exec_);
 
 				rclcpp::sleep_for(std::chrono::nanoseconds(static_cast<int64_t>(rawlog_play_delay_ * 1e9)));
 
@@ -474,7 +475,7 @@ bool PFslamWrapper::rawlogPlay()
 
 					geometry_msgs::msg::PoseArray poseArrayBeacons;
 					poseArrayBeacons.header.frame_id = global_frame_id_;
-					poseArrayBeacons.header.stamp = node_->now();
+					poseArrayBeacons.header.stamp = this->now();
 
 					unsigned int objs_counter = 0;
 					while (objs->getByClass<mrpt::opengl::CEllipsoid3D>(
@@ -502,7 +503,7 @@ bool PFslamWrapper::rawlogPlay()
 				// publish pose
 				geometry_msgs::msg::PoseArray poseArray;
 				poseArray.header.frame_id = global_frame_id_;
-				poseArray.header.stamp = node_->now();
+				poseArray.header.stamp = this->now();
 				poseArray.poses.resize(curPDF.particlesCount());
 				for (size_t i = 0; i < curPDF.particlesCount(); i++)
 				{
@@ -513,7 +514,7 @@ bool PFslamWrapper::rawlogPlay()
 
 				pub_particles_->publish(poseArray);
 			}
-			rclcpp::spin_some(node_);
+			rclcpp::spin_some(this->shared_from_this());
 			run3Dwindow();
 		}
 	}
@@ -548,7 +549,7 @@ void PFslamWrapper::publishTF()
 	catch (const tf2::TransformException&)
 	{
 		RCLCPP_INFO(
-			node_->get_logger(),
+			this->get_logger(),
 			"Failed to subtract global_frame (%s) from odom_frame (%s)",
 			global_frame_id_.c_str(), odom_frame_id_.c_str());
 		return;
@@ -575,3 +576,9 @@ void PFslamWrapper::publishTF()
 }
 
 }  // namespace mrpt_rbpf_slam
+
+// Note: Component registration is disabled due to mrpt_msgs_bridge being a static
+// library without -fPIC support. To enable component support, rebuild dependencies
+// with -fPIC or as shared libraries, then uncomment below:
+// #include <rclcpp_components/register_node_macro.hpp>
+// RCLCPP_COMPONENTS_REGISTER_NODE(mrpt_rbpf_slam::PFslamWrapper)

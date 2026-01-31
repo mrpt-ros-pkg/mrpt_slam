@@ -75,7 +75,7 @@ ament_target_dependencies(mrpt_rbpf_slam
   mrpt_msgs_bridge
 )
 
-# Link MRPT libraries
+# Link MRPT libraries to executable
 target_link_libraries(mrpt_rbpf_slam
   mrpt::slam
   mrpt::gui

@@ -1,0 +1,4 @@
+# Exclude files from copyright checking
+# Original files from MRPT project maintainers
+include/mrpt_rbpf_slam/*.h
+src/*.cpp
