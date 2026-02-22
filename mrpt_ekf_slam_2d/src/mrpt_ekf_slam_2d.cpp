@@ -5,7 +5,6 @@
  */
 
 #include "mrpt_ekf_slam_2d/mrpt_ekf_slam_2d.h"
-#include <mrpt/ros1bridge/logging.h>
 
 EKFslam::EKFslam()
 {
@@ -43,19 +42,8 @@ void EKFslam::read_iniFile(std::string ini_filename)
 	mapping.KF_options.dumpToConsole();
 	mapping.options.dumpToConsole();
 
-	log4cxx::LoggerPtr ros_logger =
-		log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
-	mapping.setVerbosityLevel(
-		mrpt::ros1bridge::rosLoggerLvlToMRPTLoggerLvl(ros_logger->getLevel()));
+	mapping.setVerbosityLevel(mrpt::system::LVL_INFO);
 	mapping.logging_enable_console_output = false;
-
-	mapping.logRegisterCallback([](std::string_view msg,
-								   const mrpt::system::VerbosityLevel level,
-								   std::string_view loggerName,
-								   const mrpt::Clock::time_point timestamp) {
-		mrpt::ros1bridge::mrptToROSLoggerCallback(
-			std::string(msg), level, std::string(loggerName), timestamp);
-	});
 
 	// read display variables
 	SHOW_3D_LIVE =

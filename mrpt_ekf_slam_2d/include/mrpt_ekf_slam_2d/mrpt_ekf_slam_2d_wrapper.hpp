@@ -1,36 +1,36 @@
 /*
- * File: mrpt_ekf_slam_2d_wrapper.h
+ * File: mrpt_ekf_slam_2d_wrapper.hpp
  * Author: Vladislav Tananaev
  *
  */
 
 #pragma once
-#include <iostream>	 // std::cout
-#include <fstream>	// std::ifstream
+#include <iostream>
+#include <fstream>
 #include <string>
+#include <memory>
 #include "mrpt_ekf_slam_2d/mrpt_ekf_slam_2d.h"
 
-// add ros libraries
-#include <ros/ros.h>
-#include <ros/package.h>
-#include "tf2_ros/transform_listener.h"
+// ROS2 libraries
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include "tf2_ros/transform_broadcaster.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include "geometry_msgs/TransformStamped.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 
-// add ros msgs
-#include <std_msgs/String.h>
-#include <std_msgs/Int32.h>
-#include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <visualization_msgs/Marker.h>
+// ROS2 messages
+#include <std_msgs/msg/header.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
+#include <visualization_msgs/msg/marker.hpp>
 
-// mrpt bridge libs
-#include <mrpt/ros1bridge/pose.h>
-#include <mrpt_msgs_bridge/landmark.h>
-#include <mrpt/ros1bridge/logging.h>
-#include <mrpt/ros1bridge/time.h>
+// MRPT bridge libs (ROS2 versions)
+#include <mrpt/ros2bridge/pose.h>
+#include <mrpt/ros2bridge/time.h>
+#include <mrpt_msgs/msg/observation_range_bearing.hpp>
+#include <mrpt_msgs_bridge/landmark.hpp>
+
 #include <mrpt/io/CFileGZInputStream.h>
 #include <mrpt/io/CFileGZOutputStream.h>
 #include <mrpt/config/CConfigFile.h>
@@ -43,28 +43,30 @@
 #include <mrpt/opengl/CGridPlaneXY.h>
 #include <mrpt/opengl/CEllipsoid2D.h>
 #include <mrpt/opengl/stock_objects.h>
-#include <mrpt_msgs/ObservationRangeBearing.h>
 #include <mrpt/obs/CObservationOdometry.h>
 #include <mrpt/obs/CActionRobotMovement2D.h>
 #include <mrpt/obs/CActionRobotMovement3D.h>
 #include <mrpt/obs/CRawlog.h>
 
+namespace mrpt_ekf_slam_2d
+{
 /**
- * @brief The EKFslamWrapper class provides the ROS wrapper for EKF SLAM 2d from
- * MRPT libraries.
+ * @brief The EKFslamWrapper class provides the ROS 2 wrapper for EKF SLAM 2d
+ * from MRPT libraries.
  *
  */
-class EKFslamWrapper : EKFslam
+class EKFslamWrapper : public EKFslam, public rclcpp::Node
 {
    public:
 	/**
 	 * @brief constructor
 	 */
-	EKFslamWrapper();
+	explicit EKFslamWrapper(
+		const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 	/**
 	 * @brief destructor
 	 */
-	~EKFslamWrapper();
+	~EKFslamWrapper() = default;
 	/**
 	 * @brief read the parameters from launch file
 	 */
@@ -93,7 +95,7 @@ class EKFslamWrapper : EKFslam
 	/**
 	 * @brief initialize publishers subscribers and EKF 2d slam
 	 */
-	void init();
+	bool init();
 	/**
 	 * @brief play rawlog file
 	 *
@@ -124,7 +126,7 @@ class EKFslamWrapper : EKFslam
 	 */
 	void odometryForCallback(
 		mrpt::obs::CObservationOdometry::Ptr& _odometry,
-		const std_msgs::Header& _msg_header);
+		const std_msgs::msg::Header& _msg_header);
 	/**
 	 * @brief callback function for the landmarks
 	 *
@@ -133,15 +135,16 @@ class EKFslamWrapper : EKFslam
 	 * implement one SLAM update,
 	 * publish map and pose.
 	 *
-	 * @param _msg  the landmark message
+	 * @param msg  the landmark message
 	 */
-	void landmarkCallback(const mrpt_msgs::ObservationRangeBearing& _msg);
+	void landmarkCallback(
+		const mrpt_msgs::msg::ObservationRangeBearing::SharedPtr msg);
 	/**
 	 * @brief  update the pose of the sensor with respect to the robot
 	 *
 	 * @param frame_id the frame of the sensors
 	 */
-	void updateSensorPose(std::string _frame_id);
+	void updateSensorPose(const std::string& frame_id);
 	/**
 	 * @brief wait for transform between odometry frame and the robot frame
 	 *
@@ -151,15 +154,13 @@ class EKFslamWrapper : EKFslam
 	 * @param time timestamp of the observation for which we want to retrieve
 	 * the position of the robot
 	 * @param timeout timeout for odometry waiting
-	 * @param polling_sleep_duration timeout for transform wait
 	 *
 	 * @return true if there is transform from odometry to the robot
 	 */
 	bool waitForTransform(
 		mrpt::poses::CPose3D& des, const std::string& target_frame,
-		const std::string& source_frame, const ros::Time& time,
-		const ros::Duration& timeout,
-		const ros::Duration& polling_sleep_duration = ros::Duration(0.01));
+		const std::string& source_frame, const rclcpp::Time& time,
+		const rclcpp::Duration& timeout);
 
 	/**
 	 * @brief  publish tf tree
@@ -168,30 +169,39 @@ class EKFslamWrapper : EKFslam
 	void publishTF();
 
    private:
-	ros::NodeHandle n_;	 ///< Node handler
-	double rawlog_play_delay;  ///< delay of replay from rawlog file
-	double ellipse_scale_;	///< Scale of covariance ellipses
-	bool rawlog_play_;	///< true if rawlog file exists
+	double rawlog_play_delay_{0.1};  ///< delay of replay from rawlog file
+	double ellipse_scale_{1.0};  ///< Scale of covariance ellipses
+	bool rawlog_play_{false};  ///< true if rawlog file exists
+
 	// Subscribers
-	std::vector<ros::Subscriber> sensorSub_;  ///< list of sensors topics
-	std::string rawlog_filename;  ///< name of rawlog file
-	std::string ini_filename;  ///< name of ini file
-	std::string global_frame_id;  ///< /map frame
-	std::string odom_frame_id;	///< /odom frame
-	std::string base_frame_id;	///< robot frame
+	std::vector<rclcpp::SubscriptionBase::SharedPtr>
+		sensorSub_;  ///< list of sensors topics
+
+	std::string rawlog_filename_;  ///< name of rawlog file
+	std::string ini_filename_;  ///< name of ini file
+	std::string global_frame_id_{"map"};  ///< /map frame
+	std::string odom_frame_id_{"odom"};  ///< /odom frame
+	std::string base_frame_id_{"base_link"};  ///< robot frame
 
 	// Sensor source
-	std::string sensor_source;	///< 2D laser scans
+	std::string sensor_source_;  ///< landmark sensor topics
 
 	std::map<std::string, mrpt::poses::CPose3D>
 		landmark_poses_;  ///< landmark poses with respect to the map
 
-	mrpt::system::CTicTac tictac;  ///< timer for SLAM performance evaluation
-	float t_exec;  ///< the time which take one SLAM update execution
+	mrpt::system::CTicTac tictac_;  ///< timer for SLAM performance evaluation
+	float t_exec_{0.0f};  ///< the time which take one SLAM update execution
 
-	ros::Publisher data_association_viz_pub_, state_viz_pub_;  ///< publishers
+	// Publishers
+	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+		data_association_viz_pub_;
+	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+		state_viz_pub_;
 
-	tf2_ros::Buffer tf_buffer_;
-	tf2_ros::TransformListener listenerTF_{tf_buffer_};
-	tf2_ros::TransformBroadcaster tf_broadcaster_;	///< transform broadcaster
+	// TF2 infrastructure
+	std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+	std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 };
+
+}  // namespace mrpt_ekf_slam_2d
