@@ -4,16 +4,20 @@
  *
  */
 
-#include "mrpt_ekf_slam_3d/mrpt_ekf_slam_3d_wrapper.h"
+#include "mrpt_ekf_slam_3d/mrpt_ekf_slam_3d_wrapper.hpp"
 
 #include <mrpt/serialization/CArchive.h>
 
-EKFslamWrapper::EKFslamWrapper()
+namespace mrpt_ekf_slam_3d
+{
+
+EKFslamWrapper::EKFslamWrapper(const rclcpp::NodeOptions& options)
+	: Node("mrpt_ekf_slam_3d", options)
 {
 	rawlog_play_ = false;
 	timeLastUpdate_ = mrpt::Clock::now();
 }
-EKFslamWrapper::~EKFslamWrapper() {}
+
 bool EKFslamWrapper::is_file_exists(const std::string& name)
 {
 	std::ifstream f(name.c_str());
@@ -22,93 +26,131 @@ bool EKFslamWrapper::is_file_exists(const std::string& name)
 
 void EKFslamWrapper::get_param()
 {
-	ROS_INFO("READ PARAM FROM LAUNCH FILE");
-	n_.param<double>("ellipse_scale", ellipse_scale_, 1);
-	ROS_INFO("ellipse_scale: %f", ellipse_scale_);
+	RCLCPP_INFO(this->get_logger(), "READ PARAM FROM LAUNCH FILE");
 
-	n_.param<double>("rawlog_play_delay", rawlog_play_delay, 0.1);
-	ROS_INFO("rawlog_play_delay: %f", rawlog_play_delay);
+	this->declare_parameter<double>("ellipse_scale", 1.0);
+	ellipse_scale_ = this->get_parameter("ellipse_scale").as_double();
+	RCLCPP_INFO(this->get_logger(), "ellipse_scale: %f", ellipse_scale_);
 
-	n_.getParam("rawlog_filename", rawlog_filename);
-	ROS_INFO("rawlog_filename: %s", rawlog_filename.c_str());
+	this->declare_parameter<double>("rawlog_play_delay", 0.1);
+	rawlog_play_delay_ = this->get_parameter("rawlog_play_delay").as_double();
+	RCLCPP_INFO(
+		this->get_logger(), "rawlog_play_delay: %f", rawlog_play_delay_);
 
-	n_.getParam("ini_filename", ini_filename);
-	ROS_INFO("ini_filename: %s", ini_filename.c_str());
+	this->declare_parameter<std::string>("rawlog_filename", "");
+	rawlog_filename_ = this->get_parameter("rawlog_filename").as_string();
+	RCLCPP_INFO(
+		this->get_logger(), "rawlog_filename: %s", rawlog_filename_.c_str());
 
-	n_.param<std::string>("global_frame_id", global_frame_id, "map");
-	ROS_INFO("global_frame_id: %s", global_frame_id.c_str());
+	this->declare_parameter<std::string>("ini_filename", "");
+	ini_filename_ = this->get_parameter("ini_filename").as_string();
+	RCLCPP_INFO(
+		this->get_logger(), "ini_filename: %s", ini_filename_.c_str());
 
-	n_.param<std::string>("odom_frame_id", odom_frame_id, "odom");
-	ROS_INFO("odom_frame_id: %s", odom_frame_id.c_str());
+	this->declare_parameter<std::string>("global_frame_id", "map");
+	global_frame_id_ = this->get_parameter("global_frame_id").as_string();
+	RCLCPP_INFO(
+		this->get_logger(), "global_frame_id: %s", global_frame_id_.c_str());
 
-	n_.param<std::string>("base_frame_id", base_frame_id, "base_link");
-	ROS_INFO("base_frame_id: %s", base_frame_id.c_str());
+	this->declare_parameter<std::string>("odom_frame_id", "odom");
+	odom_frame_id_ = this->get_parameter("odom_frame_id").as_string();
+	RCLCPP_INFO(
+		this->get_logger(), "odom_frame_id: %s", odom_frame_id_.c_str());
 
-	n_.param<std::string>("sensor_source", sensor_source, "scan");
-	ROS_INFO("sensor_source: %s", sensor_source.c_str());
+	this->declare_parameter<std::string>("base_frame_id", "base_link");
+	base_frame_id_ = this->get_parameter("base_frame_id").as_string();
+	RCLCPP_INFO(
+		this->get_logger(), "base_frame_id: %s", base_frame_id_.c_str());
+
+	this->declare_parameter<std::string>("sensor_source", "scan");
+	sensor_source_ = this->get_parameter("sensor_source").as_string();
+	RCLCPP_INFO(
+		this->get_logger(), "sensor_source: %s", sensor_source_.c_str());
 }
-void EKFslamWrapper::init()
+
+bool EKFslamWrapper::init()
 {
 	// get parameters from ini file
-	if (!is_file_exists(ini_filename))
+	if (!is_file_exists(ini_filename_))
 	{
-		ROS_ERROR_STREAM("CAN'T READ INI FILE");
-		return;
+		RCLCPP_ERROR_STREAM(
+			this->get_logger(), "CAN'T READ INI FILE: " << ini_filename_);
+		return false;
 	}
 
-	EKFslam::read_iniFile(ini_filename);
-	// read rawlog file if it  exists
-	if (is_file_exists(rawlog_filename))
+	EKFslam::read_iniFile(ini_filename_);
+
+	// read rawlog file if it exists
+	if (is_file_exists(rawlog_filename_))
 	{
-		ROS_WARN_STREAM("PLAY FROM RAWLOG FILE: " << rawlog_filename.c_str());
+		RCLCPP_WARN_STREAM(
+			this->get_logger(),
+			"PLAY FROM RAWLOG FILE: " << rawlog_filename_);
 		rawlog_play_ = true;
 	}
 
+	/// Create TF2 components ///
+	tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+	tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+
+	/// Create publishers ///
 	state_viz_pub_ =
-		n_.advertise<visualization_msgs::MarkerArray>("/state_viz", 1);	 // map
-	data_association_viz_pub_ = n_.advertise<visualization_msgs::MarkerArray>(
-		"/data_association_viz", 1);  // data_association
+		this->create_publisher<visualization_msgs::msg::MarkerArray>(
+			"/state_viz", 1);
+	data_association_viz_pub_ =
+		this->create_publisher<visualization_msgs::msg::MarkerArray>(
+			"/data_association_viz", 1);
 
 	// read sensor topics
 	std::vector<std::string> lstSources;
-	mrpt::system::tokenize(sensor_source, " ,\t\n", lstSources);
-	ROS_ASSERT_MSG(
-		!lstSources.empty(),
-		"*Fatal*: At least one sensor source must be provided in "
-		"~sensor_sources (e.g. "
-		"\"scan\" or \"beacon\")");
+	mrpt::system::tokenize(sensor_source_, " ,\t\n", lstSources);
+	if (lstSources.empty())
+	{
+		RCLCPP_FATAL(
+			this->get_logger(),
+			"*Fatal*: At least one sensor source must be provided in "
+			"~sensor_sources (e.g. \"landmark\")");
+		return false;
+	}
 
-	/// Create subscribers///
+	/// Create subscribers ///
 	sensorSub_.resize(lstSources.size());
 	for (size_t i = 0; i < lstSources.size(); i++)
 	{
 		if (lstSources[i].find("landmark") != std::string::npos)
 		{
-			sensorSub_[i] = n_.subscribe(
-				lstSources[i], 1, &EKFslamWrapper::landmarkCallback, this);
+			sensorSub_[i] = this->create_subscription<
+				mrpt_msgs::msg::ObservationRangeBearing>(
+				lstSources[i], 1,
+				std::bind(
+					&EKFslamWrapper::landmarkCallback, this,
+					std::placeholders::_1));
 		}
 		else
 		{
-			ROS_ERROR(
+			RCLCPP_ERROR(
+				this->get_logger(),
 				"Can't find the sensor topics. The sensor topics should "
 				"contain the word \"landmark\" in the name");
 		}
 	}
 
 	init3Dwindow();
+	return true;
 }
 
 void EKFslamWrapper::odometryForCallback(
 	mrpt::obs::CObservationOdometry::Ptr& _odometry,
-	const std_msgs::Header& _msg_header)
+	const std_msgs::msg::Header& _msg_header)
 {
 	mrpt::poses::CPose3D poseOdom;
 	if (this->waitForTransform(
-			poseOdom, odom_frame_id, base_frame_id, _msg_header.stamp,
-			ros::Duration(1)))
+			poseOdom, odom_frame_id_, base_frame_id_, _msg_header.stamp,
+			rclcpp::Duration::from_seconds(1.0)))
 	{
 		_odometry = mrpt::obs::CObservationOdometry::Create();
-		_odometry->sensorLabel = odom_frame_id;
+		_odometry->sensorLabel = odom_frame_id_;
 		_odometry->hasEncodersInfo = false;
 		_odometry->hasVelocities = false;
 		_odometry->odometry.x() = poseOdom.x();
@@ -117,44 +159,47 @@ void EKFslamWrapper::odometryForCallback(
 	}
 }
 
-void EKFslamWrapper::updateSensorPose(std::string _frame_id)
+void EKFslamWrapper::updateSensorPose(const std::string& frame_id)
 {
-	geometry_msgs::TransformStamped transformStmp;
+	geometry_msgs::msg::TransformStamped transformStmp;
 	try
 	{
-		ros::Duration timeout(1.0);
-		transformStmp = tf_buffer_.lookupTransform(
-			base_frame_id, _frame_id, ros::Time(0), timeout);
+		auto tf_timeout = std::chrono::seconds(1);
+		transformStmp = tf_buffer_->lookupTransform(
+			base_frame_id_, frame_id, tf2::TimePointZero, tf_timeout);
 	}
 	catch (const tf2::TransformException& e)
 	{
-		ROS_WARN(
+		RCLCPP_WARN(
+			this->get_logger(),
 			"Failed to get transform target_frame (%s) to source_frame (%s): "
 			"%s",
-			base_frame_id.c_str(), _frame_id.c_str(), e.what());
+			base_frame_id_.c_str(), frame_id.c_str(), e.what());
 		return;
 	}
 	tf2::Transform transform;
 	tf2::fromMsg(transformStmp.transform, transform);
-	const mrpt::poses::CPose3D pose = mrpt::ros1bridge::fromROS(transform);
+	const mrpt::poses::CPose3D pose = mrpt::ros2bridge::fromROS(transform);
 
-	landmark_poses_[_frame_id] = pose;
+	landmark_poses_[frame_id] = pose;
 }
 
 bool EKFslamWrapper::waitForTransform(
 	mrpt::poses::CPose3D& des, const std::string& target_frame,
-	const std::string& source_frame, const ros::Time& time,
-	const ros::Duration& timeout, const ros::Duration& polling_sleep_duration)
+	const std::string& source_frame, const rclcpp::Time& /*time*/,
+	const rclcpp::Duration& timeout)
 {
-	geometry_msgs::TransformStamped transform;
+	geometry_msgs::msg::TransformStamped transform;
 	try
 	{
-		transform = tf_buffer_.lookupTransform(
-			target_frame, source_frame, time, timeout);
+		auto tf_timeout = std::chrono::nanoseconds(timeout.nanoseconds());
+		transform = tf_buffer_->lookupTransform(
+			target_frame, source_frame, tf2::TimePointZero, tf_timeout);
 	}
 	catch (const tf2::TransformException& e)
 	{
-		ROS_WARN(
+		RCLCPP_WARN(
+			this->get_logger(),
 			"Failed to get transform target_frame (%s) to source_frame (%s): "
 			"%s",
 			target_frame.c_str(), source_frame.c_str(), e.what());
@@ -162,42 +207,44 @@ bool EKFslamWrapper::waitForTransform(
 	}
 	tf2::Transform tx;
 	tf2::fromMsg(transform.transform, tx);
-	des = mrpt::ros1bridge::fromROS(tx);
+	des = mrpt::ros2bridge::fromROS(tx);
 	return true;
 }
 
 void EKFslamWrapper::landmarkCallback(
-	const mrpt_msgs::ObservationRangeBearing& _msg)
+	const mrpt_msgs::msg::ObservationRangeBearing::SharedPtr msg)
 {
 	using namespace mrpt::maps;
 	using namespace mrpt::obs;
 
 	CObservationBearingRange::Ptr landmark = CObservationBearingRange::Create();
 
-	if (landmark_poses_.find(_msg.header.frame_id) == landmark_poses_.end())
+	if (landmark_poses_.find(msg->header.frame_id) == landmark_poses_.end())
 	{
-		updateSensorPose(_msg.header.frame_id);
+		updateSensorPose(msg->header.frame_id);
 	}
 	else
 	{
-		mrpt::poses::CPose3D pose = landmark_poses_[_msg.header.frame_id];
 		mrpt_msgs_bridge::fromROS(
-			_msg, landmark_poses_[_msg.header.frame_id], *landmark);
+			*msg, landmark_poses_[msg->header.frame_id], *landmark);
 
-		sf = CSensoryFrame::Create();
+		sf = mrpt::obs::CSensoryFrame::Create();
 		CObservationOdometry::Ptr odometry;
-		odometryForCallback(odometry, _msg.header);
+		odometryForCallback(odometry, msg->header);
 
 		CObservation::Ptr obs = CObservation::Ptr(landmark);
 		sf->insert(obs);
 		observation(sf, odometry);
 		timeLastUpdate_ = sf->getObservationByIndex(0)->timestamp;
 
-		tictac.Tic();
+		tictac_.Tic();
 		mapping.processActionObservation(action, sf);
-		t_exec = tictac.Tac();
-		ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
-		ros::Duration(rawlog_play_delay).sleep();
+		t_exec_ = tictac_.Tac();
+		RCLCPP_INFO(
+			this->get_logger(), "Map building executed in %.03fms",
+			1000.0f * t_exec_);
+		rclcpp::sleep_for(std::chrono::nanoseconds(
+			static_cast<int64_t>(rawlog_play_delay_ * 1e9)));
 		mapping.getCurrentState(
 			robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
 		viz_state();
@@ -216,30 +263,32 @@ bool EKFslamWrapper::rawlogPlay()
 	else
 	{
 		size_t rawlogEntry = 0;
-
-		mrpt::io::CFileGZInputStream f(rawlog_filename);
-		auto rawlogFile = mrpt::serialization::archiveFrom(f);
+		mrpt::io::CFileGZInputStream rawlog_stream(rawlog_filename_);
+		auto rawlogFile = mrpt::serialization::archiveFrom(rawlog_stream);
 
 		mrpt::obs::CActionCollection::Ptr action;
 		mrpt::obs::CSensoryFrame::Ptr observations;
 
 		for (;;)
 		{
-			if (ros::ok())
+			if (rclcpp::ok())
 			{
 				if (!mrpt::obs::CRawlog::readActionObservationPair(
 						rawlogFile, action, observations, rawlogEntry))
 				{
 					break;	// file EOF
 				}
-				tictac.Tic();
+				tictac_.Tic();
 				mapping.processActionObservation(action, observations);
-				t_exec = tictac.Tac();
-				ROS_INFO("Map building executed in %.03fms", 1000.0f * t_exec);
-				ros::Duration(rawlog_play_delay).sleep();
+				t_exec_ = tictac_.Tac();
+				RCLCPP_INFO(
+					this->get_logger(),
+					"Map building executed in %.03fms", 1000.0f * t_exec_);
+				rclcpp::sleep_for(std::chrono::nanoseconds(
+					static_cast<int64_t>(rawlog_play_delay_ * 1e9)));
 				mapping.getCurrentState(
 					robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
-				// ros::spinOnce();
+
 				viz_state();
 				viz_dataAssociation();
 				run3Dwindow();
@@ -286,17 +335,13 @@ void EKFslamWrapper::computeEllipseOrientationScale(
 	tf2::Quaternion& orientation, Eigen::Vector3d& scale,
 	const mrpt::math::CMatrixDouble33& covariance)
 {
-	// initialize variables and empty matrices for eigen vectors and eigen
-	// values
 	tf2::Matrix3x3 tf3d;
 	Eigen::Vector3d eigenvalues(Eigen::Vector3d::Identity());
 	Eigen::Matrix3d eigenvectors(Eigen::Matrix3d::Zero());
 
-	// compute eigen vectors and eigen values from covariance matrix
 	Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(
 		covariance.asEigen());
 
-	// Compute eigenvectors and eigenvalues
 	if (eigensolver.info() == Eigen::Success)
 	{
 		eigenvalues = eigensolver.eigenvalues();
@@ -304,51 +349,48 @@ void EKFslamWrapper::computeEllipseOrientationScale(
 	}
 	else
 	{
-		ROS_ERROR_STREAM(
+		RCLCPP_ERROR_STREAM(
+			this->get_logger(),
 			"failed to compute eigen vectors/values for position. Is "
 			"the covariance matrix correct?");
-		eigenvalues = Eigen::Vector3d::Zero();	// Setting the scale to zero
-												// will hide it on the screen
+		eigenvalues = Eigen::Vector3d::Zero();
 		eigenvectors = Eigen::Matrix3d::Identity();
 	}
 
-	// Be sure we have a right-handed orientation system
 	makeRightHanded(eigenvectors, eigenvalues);
 
-	// Rotation matrix
 	tf3d.setValue(
 		eigenvectors(0, 0), eigenvectors(0, 1), eigenvectors(0, 2),
 		eigenvectors(1, 0), eigenvectors(1, 1), eigenvectors(1, 2),
 		eigenvectors(2, 0), eigenvectors(2, 1), eigenvectors(2, 2));
 
-	// get orientation from rotation matrix
 	tf3d.getRotation(orientation);
-	// get scale
 	scale[0] = eigenvalues[0];
 	scale[1] = eigenvalues[1];
 	scale[2] = eigenvalues[2];
 }
+
 void EKFslamWrapper::viz_dataAssociation()
 {
 	// robot pose
 	auto robotPose = mrpt::poses::CPose3D(robotPose_.mean);
-	geometry_msgs::Point pointRobotPose;
+	geometry_msgs::msg::Point pointRobotPose;
 	pointRobotPose.z = robotPose.z();
 	pointRobotPose.x = robotPose.x();
 	pointRobotPose.y = robotPose.y();
 
 	// visualization of the data association
-	visualization_msgs::MarkerArray ma;
-	visualization_msgs::Marker line_strip;
+	visualization_msgs::msg::MarkerArray ma;
+	visualization_msgs::msg::Marker line_strip;
 
 	line_strip.header.frame_id = "map";
-	line_strip.header.stamp = ros::Time::now();
+	line_strip.header.stamp = this->now();
 
 	line_strip.id = 0;
-	line_strip.type = visualization_msgs::Marker::LINE_STRIP;
-	line_strip.action = visualization_msgs::Marker::ADD;
+	line_strip.type = visualization_msgs::msg::Marker::LINE_STRIP;
+	line_strip.action = visualization_msgs::msg::Marker::ADD;
 
-	line_strip.lifetime = ros::Duration(0.1);
+	line_strip.lifetime = rclcpp::Duration::from_seconds(0.1);
 	line_strip.pose.position.x = 0;
 	line_strip.pose.position.y = 0;
 	line_strip.pose.position.z = 0;
@@ -378,7 +420,7 @@ void EKFslamWrapper::viz_dataAssociation()
 
 		line_strip.points.clear();
 		line_strip.points.push_back(pointRobotPose);
-		geometry_msgs::Point pointLm;
+		geometry_msgs::msg::Point pointLm;
 		pointLm.z = featMean[2];
 		pointLm.x = featMean[0];
 		pointLm.y = featMean[1];
@@ -387,18 +429,18 @@ void EKFslamWrapper::viz_dataAssociation()
 		line_strip.id++;
 	}
 
-	data_association_viz_pub_.publish(ma);
+	data_association_viz_pub_->publish(ma);
 }
 
 void EKFslamWrapper::viz_state()
 {
-	visualization_msgs::MarkerArray ma;
-	visualization_msgs::Marker marker;
+	visualization_msgs::msg::MarkerArray ma;
+	visualization_msgs::msg::Marker marker;
 	marker.header.frame_id = "map";
 	marker.id = 0;
-	marker.type = visualization_msgs::Marker::SPHERE;
-	marker.action = visualization_msgs::Marker::ADD;
-	marker.lifetime = ros::Duration(0);
+	marker.type = visualization_msgs::msg::Marker::SPHERE;
+	marker.action = visualization_msgs::msg::Marker::ADD;
+	marker.lifetime = rclcpp::Duration::from_seconds(0);
 
 	// get the covariance matrix 3x3 for each ellipsoid including robot pose
 	mrpt::opengl::CSetOfObjects::Ptr objs;
@@ -419,15 +461,12 @@ void EKFslamWrapper::viz_state()
 		landmark = objs->getByClass<mrpt::opengl::CEllipsoid3D>(i);
 
 		float quantiles =
-			landmark->getQuantiles();  // the scale of ellipse covariance
-									   // visualization (usually 3  sigma)
+			landmark->getQuantiles();  // scale of ellipse covariance
+									   // visualization (usually 3 sigma)
 		mrpt::math::CMatrixDouble33 covariance = landmark->getCovMatrix();
 
 		// the landmark (or robot) mean position
 		const auto pose = mrpt::poses::CPose3D(landmark->getPose());
-
-		// For visualization of the covariance ellipses we need the size of the
-		// axis and orientation
 
 		Eigen::Vector3d scale;	// size of axis of the ellipse
 		tf2::Quaternion orientation;
@@ -447,7 +486,7 @@ void EKFslamWrapper::viz_state()
 			marker.color.g = 0.0;
 			marker.color.b = 1.0;
 		}
-		marker.type = visualization_msgs::Marker::SPHERE;
+		marker.type = visualization_msgs::msg::Marker::SPHERE;
 		marker.pose.position.x = pose.x();
 		marker.pose.position.y = pose.y();
 		marker.pose.position.z = pose.z();
@@ -461,7 +500,7 @@ void EKFslamWrapper::viz_state()
 		ma.markers.push_back(marker);
 
 		marker.id++;
-		marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+		marker.type = visualization_msgs::msg::Marker::TEXT_VIEW_FACING;
 		if (i == 0)
 		{
 			marker.text = "robot";
@@ -482,38 +521,38 @@ void EKFslamWrapper::viz_state()
 		ma.markers.push_back(marker);
 	}
 
-	state_viz_pub_.publish(ma);
+	state_viz_pub_->publish(ma);
 }
 
 void EKFslamWrapper::publishTF()
 {
 	mapping.getCurrentState(robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
 
-	// Most of this code was copy and pase from ros::amcl
 	const mrpt::poses::CPose3D robotPoseTF =
 		mrpt::poses::CPose3D(robotPose_.mean);
 
-	const ros::Time stamp = mrpt::ros1bridge::toROS(timeLastUpdate_);
+	const rclcpp::Time stamp = mrpt::ros2bridge::toROS(timeLastUpdate_);
 
-	geometry_msgs::PoseStamped odom_to_map;
+	geometry_msgs::msg::PoseStamped odom_to_map;
 
 	try
 	{
 		tf2::Transform tmp_tf =
-			mrpt::ros1bridge::toROS_tfTransform(robotPoseTF);
+			mrpt::ros2bridge::toROS_tfTransform(robotPoseTF);
 
-		geometry_msgs::PoseStamped tmp_tf_stamped;
-		tmp_tf_stamped.header.frame_id = base_frame_id;
+		geometry_msgs::msg::PoseStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = base_frame_id_;
 		tmp_tf_stamped.header.stamp = stamp;
 		tf2::toMsg(tmp_tf.inverse(), tmp_tf_stamped.pose);
 
-		tf_buffer_.transform(tmp_tf_stamped, odom_to_map, odom_frame_id);
+		tf_buffer_->transform(tmp_tf_stamped, odom_to_map, odom_frame_id_);
 	}
 	catch (const tf2::TransformException&)
 	{
-		ROS_INFO(
+		RCLCPP_INFO(
+			this->get_logger(),
 			"Failed to subtract global_frame (%s) from odom_frame (%s)",
-			global_frame_id.c_str(), odom_frame_id.c_str());
+			global_frame_id_.c_str(), odom_frame_id_.c_str());
 		return;
 	}
 
@@ -523,16 +562,19 @@ void EKFslamWrapper::publishTF()
 
 		// We want to send a transform that is good up until a
 		// tolerance time so that odom can be used
-		ros::Duration transform_tolerance(0.1);
+		rclcpp::Duration transform_tolerance =
+			rclcpp::Duration::from_seconds(0.1);
 
-		ros::Time transform_expiration = stamp + transform_tolerance;
+		rclcpp::Time transform_expiration = stamp + transform_tolerance;
 
-		geometry_msgs::TransformStamped tmp_tf_stamped;
-		tmp_tf_stamped.header.frame_id = global_frame_id;
+		geometry_msgs::msg::TransformStamped tmp_tf_stamped;
+		tmp_tf_stamped.header.frame_id = global_frame_id_;
 		tmp_tf_stamped.header.stamp = transform_expiration;
-		tmp_tf_stamped.child_frame_id = odom_frame_id;
+		tmp_tf_stamped.child_frame_id = odom_frame_id_;
 		tf2::convert(latest_tf.inverse(), tmp_tf_stamped.transform);
 
-		tf_broadcaster_.sendTransform(tmp_tf_stamped);
+		tf_broadcaster_->sendTransform(tmp_tf_stamped);
 	}
 }
+
+}  // namespace mrpt_ekf_slam_3d

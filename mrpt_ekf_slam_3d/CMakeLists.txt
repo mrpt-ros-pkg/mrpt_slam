@@ -1,112 +1,126 @@
-# Catkin User Guide: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/user_guide.html
-# Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.8)
 project(mrpt_ekf_slam_3d)
-#find catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
-  roslib
-  roscpp
-  tf2
-  tf2_ros
-  tf2_geometry_msgs
-  std_msgs
-  nav_msgs
-  sensor_msgs
-  visualization_msgs
-  dynamic_reconfigure
-  roslaunch
-  mrpt_msgs_bridge
-)
 
-#find mrpt packages
-find_package(mrpt-gui REQUIRED)
-find_package(mrpt-slam REQUIRED)
-find_package(mrpt-ros1bridge REQUIRED)
-message(STATUS "MRPT_VERSION: ${mrpt-slam_VERSION}")
-
-# fix for Noetic:
-if(NOT EXISTS TBB::tbb AND TBB_LIBRARY AND TBB_INCLUDE_DIRS)
-  add_library(MY_TBB INTERFACE)
-  target_include_directories(MY_TBB INTERFACE ${TBB_INCLUDE_DIRS})
-  target_link_libraries(MY_TBB INTERFACE ${TBB_LIBRARY})
-  add_library(TBB::tbb ALIAS MY_TBB)
+# Compiler settings for ROS2
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# Find ROS2 packages
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(mrpt_msgs REQUIRED)
+find_package(mrpt_msgs_bridge REQUIRED)
 
+# Find MRPT packages
+find_package(mrpt-gui REQUIRED)
+find_package(mrpt-slam REQUIRED)
+find_package(mrpt-ros2bridge REQUIRED)
 
+# Compiler options
 if(CMAKE_COMPILER_IS_GNUCXX)
-	# High level of warnings.
-	# The -Wno-long-long is required in 64bit systems when including sytem headers.
-	# The -Wno-variadic-macros was needed for Eigen3, StdVector.h
-	add_compile_options(-Wall -Wno-long-long -Wno-variadic-macros)
-	# Workaround: Eigen <3.4 produces *tons* of warnings in GCC >=6. See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1221
-	if(NOT ${CMAKE_CXX_COMPILER_VERSION} LESS "6.0")
-		add_compile_options(-Wno-ignored-attributes -Wno-int-in-bool-context)
-	endif()
+  # High level of warnings
+  # The -Wno-long-long is required in 64bit systems when including system headers
+  # The -Wno-variadic-macros was needed for Eigen3, StdVector.h
+  add_compile_options(-Wall -Wno-long-long -Wno-variadic-macros)
+  # Workaround: Eigen <3.4 produces *tons* of warnings in GCC >=6
+  if(NOT ${CMAKE_CXX_COMPILER_VERSION} LESS "6.0")
+    add_compile_options(-Wno-ignored-attributes -Wno-int-in-bool-context)
+  endif()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   add_compile_options(-O3)
 endif()
 
-catkin_package(
-  CATKIN_DEPENDS
-    nav_msgs
-    sensor_msgs
-    std_msgs
-    visualization_msgs
-    tf2
-    tf2_ros
-    tf2_geometry_msgs
-    mrpt_msgs_bridge
-)
-
 ###########
 ## Build ##
 ###########
 
 include_directories(
-  ${catkin_INCLUDE_DIRS}
-#  ${Eigen_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS}
   include
 )
 
-
 add_executable(mrpt_ekf_slam_3d
-    src/mrpt_ekf_slam_3d.cpp
-    src/mrpt_ekf_slam_3d_wrapper.cpp
-    src/mrpt_ekf_slam_3d_app.cpp
+  src/mrpt_ekf_slam_3d.cpp
+  src/mrpt_ekf_slam_3d_wrapper.cpp
+  src/mrpt_ekf_slam_3d_app.cpp
 )
 
-TARGET_LINK_LIBRARIES(mrpt_ekf_slam_3d
-  mrpt::gui
+# Dependencies for executable
+ament_target_dependencies(mrpt_ekf_slam_3d
+  rclcpp
+  rclcpp_components
+  ament_index_cpp
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
+  std_msgs
+  nav_msgs
+  sensor_msgs
+  geometry_msgs
+  visualization_msgs
+  mrpt_msgs
+  mrpt_msgs_bridge
+)
+
+# Link MRPT libraries to executable
+target_link_libraries(mrpt_ekf_slam_3d
   mrpt::slam
-  mrpt::ros1bridge
-  ${catkin_LIBRARIES}
+  mrpt::gui
+  mrpt::ros2bridge
 )
 
 #############
 ## Install ##
 #############
 
-# Mark executables and/or libraries for installation
+# Install executable
 install(TARGETS mrpt_ekf_slam_3d
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  DESTINATION lib/${PROJECT_NAME}
 )
 
-# Mark other files for installation (e.g. launch and bag files, etc.)
+# Install directories
 install(DIRECTORY
   launch
   tutorial
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  rviz
+  DESTINATION share/${PROJECT_NAME}
 )
 
 #############
 ## Testing ##
 #############
-# Add testing for *.launch files
-roslaunch_add_file_check(launch)
 
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  find_package(ament_cmake_pytest REQUIRED)
+
+  # Linting
+  ament_lint_auto_find_test_dependencies()
+
+  # Python smoke tests
+  ament_add_pytest_test(test_launch_files test/test_launch_files.py
+    TIMEOUT 60
+  )
+
+  ament_add_pytest_test(test_node_startup test/test_node_startup.py
+    TIMEOUT 30
+  )
+
+  ament_add_pytest_test(test_parameters test/test_parameters.py
+    TIMEOUT 30
+  )
+endif()
+
+ament_package()

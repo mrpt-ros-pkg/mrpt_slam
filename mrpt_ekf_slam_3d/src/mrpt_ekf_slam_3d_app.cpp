@@ -1,22 +1,37 @@
+#include "mrpt_ekf_slam_3d/mrpt_ekf_slam_3d_wrapper.hpp"
+#include <rclcpp/rclcpp.hpp>
 
-#include "mrpt_ekf_slam_3d/mrpt_ekf_slam_3d_wrapper.h"
-
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "mrpt_ekf_slam_3d");
-  ros::NodeHandle n;
-  ros::Rate r(100);
-  EKFslamWrapper slam;
-  slam.get_param();
-  slam.init();
-  ros::Duration(3).sleep();
+	// Initialize ROS2
+	rclcpp::init(argc, argv);
 
-  if (!slam.rawlogPlay())
-  {
-    while (ros::ok())
-    {
-      ros::spinOnce();
-      r.sleep();
-    }
-  }
+	// Create SLAM node with default options
+	auto slam_node = std::make_shared<mrpt_ekf_slam_3d::EKFslamWrapper>();
+
+	// Initialize parameters and SLAM
+	slam_node->get_param();
+	if (!slam_node->init())
+	{
+		RCLCPP_ERROR(slam_node->get_logger(), "Failed to initialize SLAM");
+		rclcpp::shutdown();
+		return EXIT_FAILURE;
+	}
+
+	// If rawlog playback mode, play and exit
+	if (slam_node->rawlogPlay())
+	{
+		rclcpp::shutdown();
+		return EXIT_SUCCESS;
+	}
+
+	// Main loop with executor
+	rclcpp::executors::SingleThreadedExecutor executor;
+	executor.add_node(slam_node);
+
+	// Spin - callbacks will be invoked by subscribers
+	executor.spin();
+
+	rclcpp::shutdown();
+	return EXIT_SUCCESS;
 }
