@@ -1,8 +1,13 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd"
+            schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>mrpt_slam</name>
-  <version>0.1.19</version>
-  <description>mrpt_slam</description>
+  <version>0.1.20</version>
+  <description>
+    ROS 2 wrappers for SLAM algorithms from the MRPT library.
+    This is a metapackage grouping all mrpt_slam algorithm packages.
+  </description>
   <maintainer email="v.d.tananaev@gmail.com">Vladislav Tananaev</maintainer>
   <maintainer email="jlblanco@ual.es">Jose Luis Blanco Claraco</maintainer>
 
@@ -14,17 +19,16 @@
   <author email="v.d.tananaev@gmail.com">Vladislav Tananaev</author>
   <author email="jlblanco@ual.es">Jose Luis Blanco Claraco</author>
 
-  <!-- Dependencies which this package needs to build itself. -->
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>mrpt_ekf_slam_3d</exec_depend>
   <exec_depend>mrpt_ekf_slam_2d</exec_depend>
+  <exec_depend>mrpt_ekf_slam_3d</exec_depend>
   <exec_depend>mrpt_icp_slam_2d</exec_depend>
-  <exec_depend>mrpt_graphslam_2d</exec_depend>
   <exec_depend>mrpt_rbpf_slam</exec_depend>
+  <exec_depend>mrpt_graphslam_2d</exec_depend>
 
   <export>
-      <metapackage/>
+    <build_type>ament_cmake</build_type>
   </export>
 
 </package>

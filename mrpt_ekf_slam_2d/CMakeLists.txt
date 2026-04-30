@@ -106,6 +106,7 @@ install(DIRECTORY
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_pytest REQUIRED)
+  find_package(ament_cmake_gtest REQUIRED)
 
   # Linting
   ament_lint_auto_find_test_dependencies()
@@ -122,6 +123,11 @@ if(BUILD_TESTING)
   ament_add_pytest_test(test_parameters test/test_parameters.py
     TIMEOUT 30
   )
+
+  # C++ unit tests (pure math — no ROS spin required)
+  ament_add_gtest(test_ekf_slam_core test/test_ekf_slam_core.cpp)
+  target_include_directories(test_ekf_slam_core PRIVATE include)
+  target_link_libraries(test_ekf_slam_core mrpt::slam)
 endif()
 
 ament_package()

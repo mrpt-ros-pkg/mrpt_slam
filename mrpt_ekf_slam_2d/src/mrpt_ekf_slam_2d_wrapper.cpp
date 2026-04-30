@@ -5,6 +5,7 @@
  */
 
 #include "mrpt_ekf_slam_2d/mrpt_ekf_slam_2d_wrapper.hpp"
+#include "mrpt_ekf_slam_2d/ekf_slam_math.hpp"
 
 #include <mrpt/serialization/CArchive.h>
 
@@ -20,8 +21,7 @@ EKFslamWrapper::EKFslamWrapper(const rclcpp::NodeOptions& options)
 
 bool EKFslamWrapper::is_file_exists(const std::string& name)
 {
-	std::ifstream f(name.c_str());
-	return f.good();
+	return mrpt_ekf_slam_2d::is_file_exists(name);
 }
 
 void EKFslamWrapper::get_param()
@@ -304,34 +304,11 @@ bool EKFslamWrapper::rawlogPlay()
 	}
 }
 
-// Local function to force the axis to be right handed for 2D. Based on the one
-// from ecl_statistics
+// Delegates to the free function in ekf_slam_math.hpp for testability.
 void EKFslamWrapper::makeRightHanded(
 	Eigen::Matrix2d& eigenvectors, Eigen::Vector2d& eigenvalues)
 {
-	// Note that sorting of eigenvalues may end up with left-hand coordinate
-	// system. So here we correctly sort it so that it does end up being
-	// righ-handed and normalised.
-	Eigen::Vector3d c0;
-	c0.setZero();
-	c0.head<2>() = eigenvectors.col(0);
-	c0.normalize();
-	Eigen::Vector3d c1;
-	c1.setZero();
-	c1.head<2>() = eigenvectors.col(1);
-	c1.normalize();
-	Eigen::Vector3d cc = c0.cross(c1);
-	if (cc[2] < 0)
-	{
-		eigenvectors << c1.head<2>(), c0.head<2>();
-		double e = eigenvalues[0];
-		eigenvalues[0] = eigenvalues[1];
-		eigenvalues[1] = e;
-	}
-	else
-	{
-		eigenvectors << c0.head<2>(), c1.head<2>();
-	}
+	mrpt_ekf_slam_2d::makeRightHanded(eigenvectors, eigenvalues);
 }
 
 void EKFslamWrapper::computeEllipseOrientationScale2D(
