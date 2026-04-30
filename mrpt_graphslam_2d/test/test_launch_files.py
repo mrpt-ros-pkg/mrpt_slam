@@ -42,6 +42,7 @@ class TestLaunchFiles(unittest.TestCase):
         expected_launch_files = [
             'graphslam.launch.py',
             'sr_graphslam_demo.launch.py',
+            'mr_graphslam.launch.py',
         ]
 
         for launch_file in expected_launch_files:
@@ -85,6 +86,21 @@ class TestLaunchFiles(unittest.TestCase):
     def test_graphslam_launch(self):
         """Test graphslam.launch.py can be loaded."""
         self._test_launch_file('graphslam.launch.py')
+
+    def test_mr_graphslam_launch(self):
+        """Test mr_graphslam.launch.py can be loaded."""
+        self._test_launch_file('mr_graphslam.launch.py')
+
+    def test_mr_config_files_exist(self):
+        """Test that MR config files referenced by mr_graphslam.launch.py exist."""
+        pkg_dir = get_package_share_directory('mrpt_graphslam_2d')
+        mr_config = os.path.join(
+            pkg_dir, 'config', 'ros_odometry_2DRangeScans_LC_MR_real.ini'
+        )
+        self.assertTrue(
+            os.path.exists(mr_config),
+            f"MR config file does not exist: {mr_config}"
+        )
 
     def test_config_files_exist(self):
         """Test that required config files exist."""

@@ -1,5 +1,6 @@
 """Smoke tests for MRPT GraphSLAM 2D node startup."""
 
+import subprocess
 import unittest
 import rclpy
 from rclpy.node import Node
@@ -37,6 +38,30 @@ class TestNodeStartup(unittest.TestCase):
         test_node = Node('test_ns_node', namespace='test')
         self.assertEqual(test_node.get_namespace(), '/test')
         test_node.destroy_node()
+
+    def _assert_executable_discoverable(self, executable_name):
+        """Assert that a ros2 pkg executable is listed for this package."""
+        result = subprocess.run(
+            ['ros2', 'pkg', 'executables', 'mrpt_graphslam_2d'],
+            capture_output=True, text=True, timeout=10
+        )
+        self.assertIn(
+            executable_name, result.stdout,
+            f"Executable '{executable_name}' not found in "
+            f"'ros2 pkg executables mrpt_graphslam_2d' output:\n{result.stdout}"
+        )
+
+    def test_single_robot_node_discoverable(self):
+        """Test that mrpt_graphslam_2d_node is discoverable."""
+        self._assert_executable_discoverable('mrpt_graphslam_2d_node')
+
+    def test_multi_robot_node_discoverable(self):
+        """Test that mrpt_graphslam_2d_mr_node is discoverable."""
+        self._assert_executable_discoverable('mrpt_graphslam_2d_mr_node')
+
+    def test_map_merger_node_discoverable(self):
+        """Test that map_merger_node is discoverable."""
+        self._assert_executable_discoverable('map_merger_node')
 
 
 if __name__ == '__main__':
