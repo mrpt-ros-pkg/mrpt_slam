@@ -1,11 +1,11 @@
-// TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
-	 |                     Mobile Robot Programming Toolkit (MRPT) | |
-   http://www.mrpt.org/                             | | | | Copyright (c)
-   2005-2016, Individual contributors, see AUTHORS file        | | See:
-   http://www.mrpt.org/Authors - All rights reserved.                   | |
-   Released under BSD License. See details in http://www.mrpt.org/License    |
-	 +---------------------------------------------------------------------------+
+   |                     Mobile Robot Programming Toolkit (MRPT)               |
+   |                          http://www.mrpt.org/                             |
+   |                                                                           |
+   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
+   | See: http://www.mrpt.org/Authors - All rights reserved.                   |
+   | Released under BSD License. See details in http://www.mrpt.org/License    |
+   +---------------------------------------------------------------------------+
  */
 
 #include "mrpt_graphslam_2d/CConnectionManager.h"
@@ -14,91 +14,37 @@ using namespace mrpt::graphslam::detail;
 using namespace std;
 using namespace mrpt::system;
 using namespace mrpt::math;
-using namespace fkie_multimaster_msgs;
 
-bool operator==(
-	const fkie_multimaster_msgs::ROSMaster& master1,
-	const fkie_multimaster_msgs::ROSMaster& master2)
-{
-	return master1.uri == master2.uri;
-}
-bool operator!=(
-	const fkie_multimaster_msgs::ROSMaster& master1,
-	const fkie_multimaster_msgs::ROSMaster& master2)
-{
-	return !(master1 == master2);
-}
-
-bool operator==(
-	const mrpt_msgs::GraphSlamAgent& agent1,
-	const mrpt_msgs::GraphSlamAgent& agent2)
-{
-	return (
-		agent1.agent_id == agent2.agent_id &&
-		agent1.topic_namespace.data == agent2.topic_namespace.data);
-}
-////////////////////////////////////////////////////////////
-
-bool operator!=(
-	const mrpt_msgs::GraphSlamAgent& agent1,
-	const mrpt_msgs::GraphSlamAgent& agent2)
-{
-	return !(agent1 == agent2);
-}
-
+// ─── operator overloads ───────────────────────────────────────────────────────
+// Note: ROS2 generated messages already provide operator== and operator!=
+// as member functions. Only operator< is defined here for ordering in
+// std::map / std::set.
 bool operator<(
-	const mrpt_msgs::GraphSlamAgent& agent1,
-	const mrpt_msgs::GraphSlamAgent& agent2)
+	const mrpt_msgs::msg::GraphSlamAgent& agent1,
+	const mrpt_msgs::msg::GraphSlamAgent& agent2)
 {
 	return agent1.agent_id < agent2.agent_id;
 }
-////////////////////////////////////////////////////////////
 
-bool operator==(
-	const fkie_multimaster_msgs::ROSMaster& master,
-	const mrpt_msgs::GraphSlamAgent& agent)
-{
-	return (master.name == agent.name.data);
-}
-
-bool operator!=(
-	const fkie_multimaster_msgs::ROSMaster& master,
-	const mrpt_msgs::GraphSlamAgent& agent)
-{
-	return !(master == agent);
-}
-
-bool operator==(
-	const mrpt_msgs::GraphSlamAgent& agent,
-	const fkie_multimaster_msgs::ROSMaster& master)
-{
-	return (master == agent);
-}
-bool operator!=(
-	const mrpt_msgs::GraphSlamAgent& agent,
-	const fkie_multimaster_msgs::ROSMaster& master)
-{
-	return (master != agent);
-}
-
-////////////////////////////////////////////////////////////
+// ─── CConnectionManager ───────────────────────────────────────────────────────
 
 CConnectionManager::CConnectionManager(
-	mrpt::system::COutputLogger* logger, ros::NodeHandle* nh_in)
-	: m_logger(logger), m_nh(nh_in), has_setup_comm(false)
+	mrpt::system::COutputLogger* logger, rclcpp::Node* node)
+	: m_logger(logger), m_node(node), has_setup_comm(false)
 {
 	ASSERT_(m_logger);
-	ASSERT_(m_nh);
+	ASSERT_(m_node);
 
+	// derive own namespace from the ROS 2 node's namespace
 	{
-		std::string own_ns_tmp = m_nh->getNamespace();
-		// ignore starting "/" characters
-		own_ns = std::string(
-			own_ns_tmp.begin() + own_ns_tmp.find_first_not_of(" /"),
-			own_ns_tmp.end());
+		std::string ns_tmp = m_node->get_namespace();
+		// strip leading '/' characters
+		const auto first = ns_tmp.find_first_not_of(" /");
+		own_ns = (first == std::string::npos)
+			? "robot"
+			: std::string(ns_tmp.begin() + first, ns_tmp.end());
 	}
 
-	// keep this call below the topic names initializations
 	this->setupComm();
 }
 
@@ -107,100 +53,130 @@ CConnectionManager::~CConnectionManager() {}
 const std::string& CConnectionManager::getTrimmedNs() const { return own_ns; }
 
 void CConnectionManager::getNearbySlamAgents(
-	mrpt_msgs::GraphSlamAgents* agents_vec, bool ignore_self /*= true */)
+	mrpt_msgs::msg::GraphSlamAgents* agents_vec, bool ignore_self /*= true */)
 {
 	ASSERTMSG_(agents_vec, "Invalid pointer to vector of GraphSlam Agents.");
 	this->updateNearbySlamAgents();
+	std::lock_guard<std::mutex> lock(m_agents_mutex);
 	*agents_vec = m_nearby_slam_agents;
 
 	if (ignore_self)
 	{
-		// remove the GraphSlamAgent instance whose topic namespace coincedes
-		// with the namespace that the CConnectionManager instance is running
-		// under.
-		auto search = [this](const mrpt_msgs::GraphSlamAgent& agent) {
+		auto search = [this](const mrpt_msgs::msg::GraphSlamAgent& agent) {
 			return (agent.topic_namespace.data == this->own_ns);
 		};
 		agents_it it =
 			find_if(agents_vec->list.begin(), agents_vec->list.end(), search);
 
-		// TODO - fix the following
-		// this agent should always exist
-		// TODO - well, sometimes it doesn't, investigate this
-		// UPDATE: Even when /master_discovery node is up the agents vector
-		// might be empty.
-		// ASSERT_(it != agents_vec->list.end());
 		if (it != agents_vec->list.end())
 		{
 			agents_vec->list.erase(it);
 		}
-		else
-		{
-		}
 	}
 }
 
-const mrpt_msgs::GraphSlamAgents&
+const mrpt_msgs::msg::GraphSlamAgents&
 	CConnectionManager::getNearbySlamAgentsCached() const
 {
 	return m_nearby_slam_agents;
 }
 
-const mrpt_msgs::GraphSlamAgents& CConnectionManager::getNearbySlamAgents()
+const mrpt_msgs::msg::GraphSlamAgents& CConnectionManager::getNearbySlamAgents()
 {
 	this->updateNearbySlamAgents();
 	return this->getNearbySlamAgentsCached();
-}  // end of getNearbySlamAgents
+}
 
 void CConnectionManager::updateNearbySlamAgents()
 {
-	using ::operator==;
-	using namespace mrpt::math;
-	ASSERT_(has_setup_comm);
+	// In ROS 2 the list is updated reactively via onAgentHeartbeat() callback.
+	// This method only prunes stale entries (also done by prune timer).
+	pruneStaleAgents();
+}
 
-	DiscoverMasters srv;
+void CConnectionManager::onAgentHeartbeat(
+	const mrpt_msgs::msg::GraphSlamAgent::SharedPtr agent_msg)
+{
+	std::lock_guard<std::mutex> lock(m_agents_mutex);
 
-	// ask for the agents in the neighborhood
-	m_DiscoverMasters_client.call(srv);
-	std::vector<ROSMaster>* masters = &(srv.response.masters);
+	const std::string& ns = agent_msg->topic_namespace.data;
 
-	// convert RosMaster(s) to mrpt_msgs::GraphSlamAgent(s)
-	for (std::vector<ROSMaster>::const_iterator masters_it = masters->begin();
-		 masters_it != masters->end(); ++masters_it)
+	// Update last-seen timestamp
+	m_agent_last_seen[ns] = m_node->now();
+
+	// Check if this agent is already registered
+	auto search = [&agent_msg](const mrpt_msgs::msg::GraphSlamAgent& agent) {
+		return (agent_msg->agent_id == agent.agent_id &&
+			agent_msg->topic_namespace.data == agent.topic_namespace.data);
+	};
+	agents_it it = find_if(
+		m_nearby_slam_agents.list.begin(), m_nearby_slam_agents.list.end(),
+		search);
+
+	if (it != m_nearby_slam_agents.list.end())
 	{
-		// 3 cases:
-		// In RosMasters     AND     In mrpt_msgs::GraphSlamAgents => update
-		// relevant fields In RosMasters     AND NOT In
-		// mrpt_msgs::GraphSlamAgents => add it to mrpt_msgs::GraphSlamAgents
-		// NOT In RosMasters AND     In mrpt_msgs::GraphSlamAgents => Do
-		// nothing.
-
-		// have I already registered the current agent?
-		auto search = [masters_it](const mrpt_msgs::GraphSlamAgent& agent) {
-			return agent == *masters_it;
-		};
-		agents_it it = find_if(
-			m_nearby_slam_agents.list.begin(), m_nearby_slam_agents.list.end(),
-			search);
-
-		if (it != m_nearby_slam_agents.list.end())
-		{  // found, update relevant fields
-			// update timestamp
-			it->last_seen_time.data = ros::Time((*masters_it).last_change);
-		}
-		else
-		{  // not found, try to insert it.
-			mrpt_msgs::GraphSlamAgent new_agent;
-			bool is_agent = this->convert(*masters_it, &new_agent);
-			if (is_agent)
+		// Found — update timestamp field
+		it->last_seen_time = m_node->now();
+		it->is_online.data = true;
+	}
+	else
+	{
+		// New agent — check that it has the expected feedback topic before
+		// adding, so we know it's a valid graphSLAM agent.
+		const std::string feedback_ns =
+			"/" + ns + "/feedback";
+		auto topic_map = m_node->get_topic_names_and_types();
+		bool agent_ns_found = false;
+		for (const auto& [topic, _] : topic_map)
+		{
+			if (topic.rfind(feedback_ns, 0) == 0)
 			{
-				m_nearby_slam_agents.list.push_back(new_agent);
-			};
+				agent_ns_found = true;
+				break;
+			}
 		}
 
-	}  // for all ROSMaster(s)
+		// If the feedback topic is not yet visible, we still register the
+		// agent (it may not have published yet), but flag it.
+		mrpt_msgs::msg::GraphSlamAgent new_agent = *agent_msg;
+		new_agent.is_online.data = true;
+		new_agent.last_seen_time = m_node->now();
+		m_nearby_slam_agents.list.push_back(new_agent);
+		m_logger->logFmt(
+			LVL_INFO, "CConnectionManager: discovered new agent [%s]%s",
+			ns.c_str(),
+			agent_ns_found ? "" : " (feedback topic not yet visible)");
+	}
+}
 
-}  // end of updateNearbySlamAgents
+void CConnectionManager::pruneStaleAgents()
+{
+	std::lock_guard<std::mutex> lock(m_agents_mutex);
+	const double stale_threshold_s = 5.0;
+	rclcpp::Time now = m_node->now();
+
+	for (auto it = m_nearby_slam_agents.list.begin();
+		 it != m_nearby_slam_agents.list.end();)
+	{
+		const std::string& ns = it->topic_namespace.data;
+		auto seen_it = m_agent_last_seen.find(ns);
+		if (seen_it != m_agent_last_seen.end())
+		{
+			double age = (now - seen_it->second).seconds();
+			if (age > stale_threshold_s)
+			{
+				m_logger->logFmt(
+					LVL_WARN,
+					"CConnectionManager: pruning stale agent [%s] (age %.1f s)",
+					ns.c_str(), age);
+				m_agent_last_seen.erase(seen_it);
+				it = m_nearby_slam_agents.list.erase(it);
+				continue;
+			}
+		}
+		++it;
+	}
+}
 
 void CConnectionManager::setupComm()
 {
@@ -209,111 +185,46 @@ void CConnectionManager::setupComm()
 	this->setupSrvs();
 
 	has_setup_comm = true;
-}  // end of setupComm
-
-void CConnectionManager::setupSubs() {}
-void CConnectionManager::setupPubs() {}
-void CConnectionManager::setupSrvs()
-{
-	// call to the querier should be made after the
-	// fkie_multimaster_msgs::DiscoverMaster service is up and running
-	m_DiscoverMasters_client =
-		m_nh->serviceClient<fkie_multimaster_msgs::DiscoverMasters>(
-			"/master_discovery/list_masters");
-
-	// ASSERT_(m_DiscoverMasters_client.isValid());
 }
 
-bool CConnectionManager::convert(
-	const fkie_multimaster_msgs::ROSMaster& ros_master,
-	mrpt_msgs::GraphSlamAgent* slam_agent)
+void CConnectionManager::setupSubs()
 {
-	ASSERT_(slam_agent);
-	bool agent_namespace_found = false;
-
-	slam_agent->name.data = ros_master.name;
-	slam_agent->is_online.data = static_cast<bool>(ros_master.online);
-
-	// ip_address, hostname, port
-	std::string ip_addr =
-		CConnectionManager::extractHostnameOrIP(ros_master.monitoruri);
-	slam_agent->ip_addr.data = ip_addr;
-	std::string hostname = CConnectionManager::extractHostnameOrIP(
-		ros_master.uri, &slam_agent->port);
-	slam_agent->hostname.data = hostname;
-
-	// agent_id - last field of the IP address
-	vector<string> tokens;
-	mrpt::system::tokenize(ip_addr, ".", tokens);
-	slam_agent->agent_id = atoi(tokens.rbegin()->c_str());
-
-	// robot topic namespace
-	{
-		// stringstream ss("");
-		// ss << slam_agent->name.data  << "_" << slam_agent->agent_id;
-		// slam_agent->topic_namespace.data = ss.str().c_str();
-		slam_agent->topic_namespace.data = slam_agent->name.data;
-
-		// assert that there exists a subtopic namespace named feedback under
-		// this.
-		ros::master::V_TopicInfo topics;
-		bool got_topics = ros::master::getTopics(topics);
-		ASSERTMSG_(got_topics, "Unable to fetch topics. Exiting.");
-
-		// get the namespaces under the current topic_namespace
-		const std::string& topic_ns = "/" + slam_agent->topic_namespace.data;
-		// TODO - What if this topic changes? from the configuration file
-		const std::string& feedback_ns =
-			"/" + slam_agent->topic_namespace.data + "/" + "feedback";
-
-		auto search = [&feedback_ns](const ros::master::TopicInfo& topic) {
-			return (strStarts(topic.name, feedback_ns));
-		};
-		ros::master::V_TopicInfo::const_iterator cit =
-			find_if(topics.begin(), topics.end(), search);
-		if (cit != topics.end())
-		{
-			agent_namespace_found = true;
-		}
-	}
-
-	// timestamp
-	slam_agent->last_seen_time.data = ros::Time(ros_master.last_change);
-	return agent_namespace_found;
-
-}  // end of convert
-
-void CConnectionManager::convert(
-	const mrpt_msgs::GraphSlamAgent& slam_agent,
-	fkie_multimaster_msgs::ROSMaster* ros_master)
-{
-	ASSERT_(ros_master);
-
-	ros_master->name = slam_agent.name.data;
-	{
-		stringstream ss("");
-		ss << "http://" << slam_agent.ip_addr << ":" << slam_agent.port;
-		ros_master->uri = ss.str();
-	}
-	ros_master->online = slam_agent.is_online.data;
-	ros_master->discoverer_name = "/master_discovery";
-
-	// TODO - timestamp
+	m_agent_sub =
+		m_node->create_subscription<mrpt_msgs::msg::GraphSlamAgent>(
+			"/mrpt_graphslam/agent_heartbeat",
+			rclcpp::QoS(10).reliable().transient_local(),
+			[this](const mrpt_msgs::msg::GraphSlamAgent::SharedPtr msg) {
+				this->onAgentHeartbeat(msg);
+			});
 }
 
-std::string CConnectionManager::extractHostnameOrIP(
-	const std::string& str, unsigned short* agent_port /*=NULL*/)
+void CConnectionManager::setupPubs()
 {
-	// example for monitoruri: http://nickkouk-ubuntu:11311/
-	std::string s = std::string(str.begin() + 7, str.end());
+	m_agent_pub =
+		m_node->create_publisher<mrpt_msgs::msg::GraphSlamAgent>(
+			"/mrpt_graphslam/agent_heartbeat",
+			rclcpp::QoS(10).reliable().transient_local());
 
-	vector<string> tokens;
-	mrpt::system::tokenize(s, ":", tokens);
+	// Publish own agent info on a 1 Hz timer
+	m_heartbeat_timer = m_node->create_wall_timer(
+		std::chrono::seconds(1),
+		[this]() {
+			mrpt_msgs::msg::GraphSlamAgent self;
+			self.name.data = own_ns;
+			self.hostname.data = own_ns;
+			self.topic_namespace.data = own_ns;
+			self.is_online.data = true;
+			self.agent_id =
+				static_cast<int32_t>(std::hash<std::string>{}(own_ns) & 0x7FFFFFFF);
+			self.last_seen_time = m_node->now();
+			m_agent_pub->publish(self);
+		});
 
-	if (agent_port)
-	{
-		*agent_port = static_cast<unsigned short>(atoi(tokens[1].c_str()));
-	}
-
-	return tokens[0];
+	// Prune timer — runs every 2 s
+	m_prune_timer = m_node->create_wall_timer(
+		std::chrono::seconds(2),
+		[this]() { this->pruneStaleAgents(); });
 }
+
+void CConnectionManager::setupSrvs() {}
+

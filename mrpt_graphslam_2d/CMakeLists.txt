@@ -49,16 +49,17 @@ endif()
 # Include directories
 include_directories(include)
 
-# Single-robot node only (MR targets deferred to TICKET-004)
+# Shared MR sources (used by both MR node and map_merger node)
+set(MR_SOURCES
+    src/CConnectionManager.cpp
+    src/CMapMerger.cpp
+    src/TNeighborAgentMapProps.cpp
+)
+
+# Single-robot node
 add_executable(mrpt_graphslam_2d_node
     src/mrpt_graphslam_2d_node.cpp
     src/common.cpp
-    # TODO TICKET-004: multi-robot sources not yet ported to ROS 2
-    # src/mrpt_graphslam_2d_mr_node.cpp
-    # src/CConnectionManager.cpp
-    # src/CMapMerger.cpp
-    # src/TNeighborAgentMapProps.cpp
-    # src/map_merger_node.cpp
 )
 
 ament_target_dependencies(mrpt_graphslam_2d_node
@@ -82,8 +83,57 @@ target_link_libraries(mrpt_graphslam_2d_node
     mrpt::ros2bridge
 )
 
+# Multi-robot node (TICKET-004)
+add_executable(mrpt_graphslam_2d_mr_node
+    src/mrpt_graphslam_2d_mr_node.cpp
+    src/common.cpp
+    src/CConnectionManager.cpp
+)
+
+ament_target_dependencies(mrpt_graphslam_2d_mr_node
+    rclcpp
+    ament_index_cpp
+    tf2
+    tf2_ros
+    tf2_geometry_msgs
+    std_msgs
+    nav_msgs
+    sensor_msgs
+    geometry_msgs
+    visualization_msgs
+    mrpt_msgs
+    mrpt_msgs_bridge
+)
+
+target_link_libraries(mrpt_graphslam_2d_mr_node
+    mrpt::graphslam
+    mrpt::gui
+    mrpt::ros2bridge
+)
+
+# Map merger node — standalone map-merging utility (TICKET-004)
+add_executable(map_merger_node
+    src/map_merger_node.cpp
+    src/common.cpp
+    src/CConnectionManager.cpp
+    src/CMapMerger.cpp
+    src/TNeighborAgentMapProps.cpp
+)
+
+ament_target_dependencies(map_merger_node
+    rclcpp
+    nav_msgs
+    mrpt_msgs
+)
+
+target_link_libraries(map_merger_node
+    mrpt::graphslam
+    mrpt::gui
+    mrpt::ros2bridge
+)
+
 # Install
-install(TARGETS mrpt_graphslam_2d_node
+install(TARGETS mrpt_graphslam_2d_node mrpt_graphslam_2d_mr_node map_merger_node
     DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -1,4 +1,3 @@
-// TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -12,9 +11,9 @@
 #pragma once
 
 #include "mrpt_graphslam_2d/interfaces/CEdgeRegistrationDecider_MR.h"
-#include <mrpt/ros1bridge/laser_scan.h>
+#include <mrpt/ros2bridge/laser_scan.h>
 #include <mrpt/graphslam/ERD/CLoopCloserERD.h>
-#include <mrpt_msgs/NodeIDWithLaserScan.h>
+#include <mrpt_msgs/msg/node_id_with_laser_scan.hpp>
 
 namespace mrpt
 {

@@ -1,4 +1,3 @@
-// TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -9,21 +8,12 @@
    +---------------------------------------------------------------------------+
  */
 
-#include <nav_msgs/OccupancyGrid.h>
-#include <nav_msgs/Path.h>
-#include <mrpt_msgs/GraphSlamAgents.h>
+#include <rclcpp/rclcpp.hpp>
 #include <mrpt/system/COutputLogger.h>
-#include <mrpt/maps/COccupancyGridMap2D.h>
-#include <mrpt/ros1bridge/map.h>
 #include "mrpt_graphslam_2d/CMapMerger.h"
-#include "mrpt_graphslam_2d/TNeighborAgentMapProps.h"
 
+using namespace mrpt::system;
 using namespace mrpt::graphslam;
-using namespace mrpt::graphslam::detail;
-using namespace mrpt_msgs;
-using namespace mrpt::maps;
-using namespace ros;
-using namespace nav_msgs;
 using namespace std;
 
 /**\brief Node that fetches the local maps produced by the graphSLAM agents and
@@ -35,27 +25,29 @@ using namespace std;
  */
 int main(int argc, char** argv)
 {
-	// init ROS Node
-	std::string node_name = "map_merger";
-	ros::init(argc, argv, node_name);
-	ros::NodeHandle nh;
-	ros::Rate loop_rate(10);
+	rclcpp::init(argc, argv);
 
-	// initialize logger.
+	auto node = rclcpp::Node::make_shared("map_merger");
+
 	COutputLogger logger;
-	logger.setLoggerName(node_name);
+	logger.setLoggerName("map_merger");
 	logger.setMinLoggingLevel(LVL_DEBUG);
-	logger.logFmt(LVL_WARN, "Initialized %s node...\n", node_name.c_str());
+	logger.logFmt(LVL_WARN, "Initialized map_merger node...\n");
 
-	CMapMerger map_merger(&logger, &nh);
+	CMapMerger map_merger(&logger, node.get());
 
-	bool continue_exec = true;
-	while (ros::ok() && continue_exec)
+	rclcpp::Rate loop_rate(10);
+	while (rclcpp::ok())
 	{
-		continue_exec = map_merger.updateState();
-		ros::spinOnce();
+		bool continue_exec = map_merger.updateState();
+		if (!continue_exec)
+		{
+			break;
+		}
+		rclcpp::spin_some(node);
 		loop_rate.sleep();
 	}
 
+	rclcpp::shutdown();
 	return 0;
 }

@@ -1,20 +1,20 @@
-// TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
-				 |                     Mobile Robot Programming Toolkit (MRPT) |
-   | http://www.mrpt.org/                             | | | | Copyright (c)
-   2005-2016, Individual contributors, see AUTHORS file        | | See:
-   http://www.mrpt.org/Authors - All rights reserved.                   | |
-   Released under BSD License. See details in http://www.mrpt.org/License    |
-				 +---------------------------------------------------------------------------+
+   |                     Mobile Robot Programming Toolkit (MRPT)               |
+   |                          http://www.mrpt.org/                             |
+   |                                                                           |
+   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
+   | See: http://www.mrpt.org/Authors - All rights reserved.                   |
+   | Released under BSD License. See details in http://www.mrpt.org/License    |
+   +---------------------------------------------------------------------------+
  */
 
 #pragma once
 
 #include <chrono>
 #include <thread>
-#include <mrpt_msgs/GetCMGraph.h>
-#include <mrpt_msgs_bridge/network_of_poses.h>
-#include <mrpt/ros1bridge/pose.h>
+#include <mrpt_msgs/srv/get_cm_graph.hpp>
+#include <mrpt_msgs_bridge/network_of_poses.hpp>
+#include <mrpt/ros2bridge/pose.h>
 
 #include <mrpt/math/CMatrixFixed.h>
 namespace mrpt::math
@@ -30,7 +30,7 @@ namespace graphslam
 {
 template <class GRAPH_T>
 CGraphSlamEngine_MR<GRAPH_T>::CGraphSlamEngine_MR(
-	ros::NodeHandle* nh, const std::string& config_file,
+	rclcpp::Node* node, const std::string& config_file,
 	const std::string& rawlog_fname /* ="" */,
 	const std::string& fname_GT /* ="" */,
 	mrpt::graphslam::CWindowManager* win_manager /* = NULL */,
@@ -41,13 +41,11 @@ CGraphSlamEngine_MR<GRAPH_T>::CGraphSlamEngine_MR(
 	mrpt::graphslam::optimizers::CGraphSlamOptimizer<GRAPH_T>*
 		optimizer /* = NULL */)
 	: parent_t::CGraphSlamEngine_ROS(
-		  nh, config_file, rawlog_fname, fname_GT, win_manager, node_reg,
+		  node, config_file, rawlog_fname, fname_GT, win_manager, node_reg,
 		  edge_reg, optimizer),
-	  m_conn_manager(dynamic_cast<mrpt::system::COutputLogger*>(this), nh),
-	  m_nh(nh),
+	  m_conn_manager(dynamic_cast<mrpt::system::COutputLogger*>(this), node),
 	  m_graph_nodes_last_size(0),
 	  m_registered_multiple_nodes(false),
-	  cm_graph_async_spinner(/* threads_num: */ 1, &this->custom_service_queue),
 	  m_sec_alignment_params("AlignmentParameters"),
 	  m_sec_mr_slam_params("MultiRobotParameters"),
 	  m_opts(*this)
@@ -60,7 +58,6 @@ CGraphSlamEngine_MR<GRAPH_T>::~CGraphSlamEngine_MR()
 {
 	MRPT_LOG_DEBUG_STREAM(
 		"In Destructor: Deleting CGraphSlamEngine_MR instance...");
-	cm_graph_async_spinner.stop();
 
 	for (typename neighbors_t::iterator neighbors_it = m_neighbors.begin();
 		 neighbors_it != m_neighbors.end(); ++neighbors_it)
@@ -114,26 +111,27 @@ bool CGraphSlamEngine_MR<GRAPH_T>::addNodeBatchFromNeighbor(
 	//
 	// get the condensed measurements graph of the new nodeIDs
 	//
-	mrpt_msgs::GetCMGraph cm_graph_srv;
-	// mrpt_msgs::GetCMGraphRequest::_nodeIDs_type& cm_graph_nodes =
-	// cm_graph_srv.request.node_ids;
+	auto cm_graph_req = std::make_shared<mrpt_msgs::srv::GetCMGraph::Request>();
 	for (const auto n : nodeIDs)
 	{
-		cm_graph_srv.request.node_ids.push_back(n);
+		cm_graph_req->node_ids.push_back(n);
 	}
 
 	MRPT_LOG_DEBUG_STREAM("Asking for the graph.");
-	bool res = neighbor->cm_graph_srvclient.call(cm_graph_srv);	 // blocking
-	if (!res)
+	auto future = neighbor->cm_graph_srvclient->async_send_request(cm_graph_req);
+	// Spin the node's executor until the future is ready (blocking within this thread)
+	if (rclcpp::spin_until_future_complete(
+			neighbor->nh->get_node_base_interface(), future) !=
+		rclcpp::FutureReturnCode::SUCCESS)
 	{
 		MRPT_LOG_ERROR_STREAM("Service call for CM_Graph failed.");
-		return false;  // skip this if failed to fetch other's graph
+		return false;
 	}
+	auto cm_graph_res = future.get();
 	MRPT_LOG_DEBUG_STREAM("Fetched graph successfully.");
-	MRPT_LOG_DEBUG_STREAM(cm_graph_srv.response.cm_graph);
 
 	GRAPH_T other_graph;
-	mrpt_msgs_bridge::fromROS(cm_graph_srv.response.cm_graph, other_graph);
+	mrpt_msgs_bridge::fromROS(cm_graph_res->cm_graph, other_graph);
 
 	//
 	// merge batch of nodes in own graph
@@ -141,7 +139,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::addNodeBatchFromNeighbor(
 	MRPT_LOG_WARN_STREAM(
 		"Merging new batch from \""
 		<< neighbor->getAgentNs() << "\"..." << endl
-		<< "Batch: " << getSTLContainerAsString(cm_graph_srv.request.node_ids));
+		<< "Batch: " << getSTLContainerAsString(cm_graph_req->node_ids));
 	hypots_t graph_conns;
 	// build a hypothesis connecting the new batch with the last integrated
 	// pose of the neighbor
@@ -346,34 +344,30 @@ bool CGraphSlamEngine_MR<GRAPH_T>::findTFWithNeighbor(
 	// Map-merging operation is successful. Integrate graph into own.
 	//////////////////////////////////////////////////////////////////
 
-	//
 	// ask for condensed measurements graph
 	//
-	mrpt_msgs::GetCMGraph cm_graph_srv;
-	typedef mrpt_msgs::GetCMGraphRequest::_node_ids_type node_id_type;
-	node_id_type& matched_nodeIDs = cm_graph_srv.request.node_ids;
-
-	// which nodes to ask the condensed graph for
-	// I assume that no nodes of the other graph have been integrated yet.
+	auto cm_graph_req2 = std::make_shared<mrpt_msgs::srv::GetCMGraph::Request>();
 	for (typename std::vector<TNodeID>::const_iterator n_cit =
 			 neighbor_nodes.begin();
 		 n_cit != neighbor_nodes.end(); ++n_cit)
 	{
-		matched_nodeIDs.push_back(*n_cit);	// all used nodes
+		cm_graph_req2->node_ids.push_back(*n_cit);	// all used nodes
 	}
 
 	MRPT_LOG_DEBUG_STREAM("Asking for the graph.");
-	bool res = neighbor->cm_graph_srvclient.call(cm_graph_srv);	 // blocking
-	if (!res)
+	auto future2 = neighbor->cm_graph_srvclient->async_send_request(cm_graph_req2);
+	if (rclcpp::spin_until_future_complete(
+			neighbor->nh->get_node_base_interface(), future2) !=
+		rclcpp::FutureReturnCode::SUCCESS)
 	{
 		MRPT_LOG_ERROR_STREAM("Service call for CM_Graph failed.");
-		return false;  // skip this if failed to fetch other's graph
+		return false;
 	}
+	auto cm_graph_res2 = future2.get();
 	MRPT_LOG_DEBUG_STREAM("Fetched graph successfully.");
-	MRPT_LOG_DEBUG_STREAM(cm_graph_srv.response.cm_graph);
 
 	GRAPH_T other_graph;
-	mrpt_msgs_bridge::fromROS(cm_graph_srv.response.cm_graph, other_graph);
+	mrpt_msgs_bridge::fromROS(cm_graph_res2->cm_graph, other_graph);
 
 	//
 	// merge graphs
@@ -521,18 +515,6 @@ void CGraphSlamEngine_MR<GRAPH_T>::initClass()
 	this->setLoggerName(this->m_class_name);
 	this->setupComm();
 
-	// Make sure that master_discovery and master_sync are up before trying to
-	// connect to other agents
-	std::vector<string> nodes_up;
-	ros::master::getNodes(nodes_up);
-	// If both master_dicovery and master_sync are running, then the
-	// /master_sync/get_sync_info service should be available
-	MRPT_LOG_INFO_STREAM(
-		"Waiting for master_discovery, master_sync nodes to come up....");
-	ros::service::waitForService(
-		"/master_sync/get_sync_info");	// block until it is
-	MRPT_LOG_INFO_STREAM("master_discovery, master_sync are available.");
-
 	this->m_node_reg->setClassName(
 		this->m_node_reg->getClassName() + "_" + m_conn_manager.getTrimmedNs());
 	this->m_edge_reg->setClassName(
@@ -623,9 +605,6 @@ void CGraphSlamEngine_MR<GRAPH_T>::initClass()
 	this->readParams();
 
 	this->m_optimized_map_color = m_neighbor_colors_manager.getNextTColor();
-
-	// start the spinner for asynchronously servicing cm_graph requests
-	cm_graph_async_spinner.start();
 }  // end of initClass
 
 template <class GRAPH_T>
@@ -688,35 +667,34 @@ template <class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::usePublishersBroadcasters()
 {
 	MRPT_START;
-	using namespace mrpt_msgs;
 	using namespace std;
 	using namespace mrpt::math;
-	using ::operator==;
 
 	// call the parent class
 	parent_t::usePublishersBroadcasters();
 
 	// update list of neighbors that the current agent can communicate with.
-	mrpt_msgs::GraphSlamAgents nearby_slam_agents;
+	mrpt_msgs::msg::GraphSlamAgents nearby_slam_agents;
 	m_conn_manager.getNearbySlamAgents(
 		&nearby_slam_agents,
 		/*ignore_self = */ true);
-	m_list_neighbors_pub.publish(nearby_slam_agents);
+	m_list_neighbors_pub->publish(nearby_slam_agents);
 
 	// Initialize TNeighborAgentProps
 	// for each *new* GraphSlamAgent we should add a TNeighborAgentProps
 	// instance, and initialize its subscribers so that we fetch every new
 	// LaserScan and list of modified nodes it publishes
 	{
-		for (GraphSlamAgents::_list_type::const_iterator it =
-				 nearby_slam_agents.list.begin();
+		for (auto it = nearby_slam_agents.list.begin();
 			 it != nearby_slam_agents.list.end(); ++it)
 		{
-			const GraphSlamAgent& gsa = *it;
+			const mrpt_msgs::msg::GraphSlamAgent& gsa = *it;
 
 			// Is the current GraphSlamAgent already registered?
-			const auto search = [gsa](const TNeighborAgentProps* neighbor) {
-				return (neighbor->agent == gsa);
+			const auto search = [&gsa](const TNeighborAgentProps* neighbor) {
+				return (neighbor->agent.agent_id == gsa.agent_id &&
+					neighbor->agent.topic_namespace.data ==
+						gsa.topic_namespace.data);
 			};
 			typename neighbors_t::const_iterator neighbor_it =
 				find_if(m_neighbors.begin(), m_neighbors.end(), search);
@@ -762,7 +740,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubUpdatedNodesList()
 	typename GRAPH_T::global_poses_t poses_to_send;
 	int poses_counter = 0;
 	// fill the NodeIDWithPoseVec msg
-	NodeIDWithPoseVec ros_nodes;
+	mrpt_msgs::msg::NodeIDWithPoseVec ros_nodes;
 
 	// send up to num_last_regd_nodes Nodes - start from end.
 	for (typename GRAPH_T::global_poses_t::const_reverse_iterator cit =
@@ -777,10 +755,10 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubUpdatedNodesList()
 			continue;  // skip this.
 		}
 
-		NodeIDWithPose curr_node_w_pose;
+		mrpt_msgs::msg::NodeIDWithPose curr_node_w_pose;
 		// send basics - NodeID, Pose
 		curr_node_w_pose.node_id = cit->first;
-		curr_node_w_pose.pose = mrpt::ros1bridge::toROS_Pose(cit->second);
+		curr_node_w_pose.pose = mrpt::ros2bridge::toROS_Pose(cit->second);
 
 		// send mr-fields
 		curr_node_w_pose.str_id.data = cit->second.agent_ID_str;
@@ -791,7 +769,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubUpdatedNodesList()
 		poses_counter++;
 	}
 
-	m_last_regd_nodes_pub.publish(ros_nodes);
+	m_last_regd_nodes_pub->publish(ros_nodes);
 
 	// update the last known size
 	m_graph_nodes_last_size = this->m_graph.nodeCount();
@@ -838,12 +816,12 @@ bool CGraphSlamEngine_MR<GRAPH_T>::pubLastRegdIDScan()
 		ASSERT_(mrpt_last_regd_id_scan.second);
 
 		// convert to ROS msg
-		mrpt_msgs::NodeIDWithLaserScan ros_last_regd_id_scan;
-		mrpt::ros1bridge::toROS(
+		mrpt_msgs::msg::NodeIDWithLaserScan ros_last_regd_id_scan;
+		mrpt::ros2bridge::toROS(
 			*(mrpt_last_regd_id_scan.second), ros_last_regd_id_scan.scan);
 		ros_last_regd_id_scan.node_id = mrpt_last_regd_id_scan.first;
 
-		m_last_regd_id_scan_pub.publish(ros_last_regd_id_scan);
+		m_last_regd_id_scan_pub->publish(ros_last_regd_id_scan);
 
 		// update the last known size.
 		m_nodes_to_laser_scans2D_last_size =
@@ -940,47 +918,51 @@ void CGraphSlamEngine_MR<GRAPH_T>::setupSubs()
 template <class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::setupPubs()
 {
-	using namespace mrpt_msgs;
-	using namespace sensor_msgs;
+	m_list_neighbors_pub =
+		this->m_node->template create_publisher<mrpt_msgs::msg::GraphSlamAgents>(
+			m_list_neighbors_topic,
+			rclcpp::QoS(this->m_queue_size).transient_local());
 
-	m_list_neighbors_pub = m_nh->advertise<GraphSlamAgents>(
-		m_list_neighbors_topic, this->m_queue_size,
-		/*latch = */ true);
-
-	// last registered laser scan - by default this corresponds to the last
-	// nodeID of the vector of last registered nodes.
-	m_last_regd_id_scan_pub = m_nh->advertise<NodeIDWithLaserScan>(
-		m_last_regd_id_scan_topic, this->m_queue_size,
-		/*latch = */ true);
+	// last registered laser scan
+	m_last_regd_id_scan_pub =
+		this->m_node->template create_publisher<mrpt_msgs::msg::NodeIDWithLaserScan>(
+			m_last_regd_id_scan_topic,
+			rclcpp::QoS(this->m_queue_size).transient_local());
 
 	// last X nodeIDs + positions
-	m_last_regd_nodes_pub = m_nh->advertise<NodeIDWithPoseVec>(
-		m_last_regd_nodes_topic, this->m_queue_size,
-		/*latch = */ true);
+	m_last_regd_nodes_pub =
+		this->m_node->template create_publisher<mrpt_msgs::msg::NodeIDWithPoseVec>(
+			m_last_regd_nodes_topic,
+			rclcpp::QoS(this->m_queue_size).transient_local());
 }
 
 template <class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::setupSrvs()
 {
-	// cm_graph service requests are handled by the custom custom_service_queue
-	// CallbackQueue
-	ros::CallbackQueueInterface* global_queue = m_nh->getCallbackQueue();
-	m_nh->setCallbackQueue(&this->custom_service_queue);
-
-	m_cm_graph_srvserver = m_nh->advertiseService(
-		m_cm_graph_service, &CGraphSlamEngine_MR<GRAPH_T>::getCMGraph, this);
-
-	m_nh->setCallbackQueue(global_queue);
+	// Use a reentrant callback group so that cm_graph service can be serviced
+	// concurrently with the main executor thread.
+	auto cb_group = this->m_node->create_callback_group(
+		rclcpp::CallbackGroupType::Reentrant);
+	m_cm_graph_srvserver =
+		this->m_node->template create_service<mrpt_msgs::srv::GetCMGraph>(
+			m_cm_graph_service,
+			[this](
+				const mrpt_msgs::srv::GetCMGraph::Request::SharedPtr req,
+				mrpt_msgs::srv::GetCMGraph::Response::SharedPtr res) {
+				this->getCMGraph(req, res);
+			},
+			rclcpp::ServicesQoS(), cb_group);
 }
 
 template <class GRAPH_T>
 bool CGraphSlamEngine_MR<GRAPH_T>::getCMGraph(
-	mrpt_msgs::GetCMGraph::Request& req, mrpt_msgs::GetCMGraph::Response& res)
+	const mrpt_msgs::srv::GetCMGraph::Request::SharedPtr req,
+	mrpt_msgs::srv::GetCMGraph::Response::SharedPtr res)
 {
 	using namespace std;
 	using namespace mrpt::math;
 
-	set<TNodeID> nodes_set(req.node_ids.begin(), req.node_ids.end());
+	set<TNodeID> nodes_set(req->node_ids.begin(), req->node_ids.end());
 	MRPT_LOG_INFO_STREAM(
 		"Called the GetCMGraph service for nodeIDs: "
 		<< getSTLContainerAsString(nodes_set));
@@ -996,7 +978,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::getCMGraph(
 		nodes_set, &mrpt_subgraph,
 		/*root_node = */ INVALID_NODEID,
 		/*auto_expand_set=*/false);
-	mrpt_msgs_bridge::toROS(mrpt_subgraph, res.cm_graph);
+	mrpt_msgs_bridge::toROS(mrpt_subgraph, res->cm_graph);
 	return true;
 }  // end of getCMGraph
 
@@ -1094,10 +1076,10 @@ void CGraphSlamEngine_MR<GRAPH_T>::getNodeIDsOfEstimatedTrajectory(
 template <class GRAPH_T>
 CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::TNeighborAgentProps(
 	CGraphSlamEngine_MR<GRAPH_T>& engine_in,
-	const mrpt_msgs::GraphSlamAgent& agent_in)
+	const mrpt_msgs::msg::GraphSlamAgent& agent_in)
 	: engine(engine_in), agent(agent_in), has_setup_comm(false)
 {
-	nh = engine.m_nh;
+	nh = engine.m_node;
 	m_queue_size = engine.m_queue_size;
 	this->resetFlags();
 
@@ -1147,35 +1129,43 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::setupComm()
 template <class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::setupSrvs()
 {
+	cm_graph_cb_group = nh->create_callback_group(
+		rclcpp::CallbackGroupType::MutuallyExclusive);
 	cm_graph_srvclient =
-		nh->serviceClient<mrpt_msgs::GetCMGraph>(cm_graph_service);
+		nh->template create_client<mrpt_msgs::srv::GetCMGraph>(
+			cm_graph_service,
+			rclcpp::ServicesQoS().get_rmw_qos_profile(),
+			cm_graph_cb_group);
 }
 
 template <class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::setupSubs()
 {
-	using namespace mrpt_msgs;
-
-	last_regd_nodes_sub = nh->subscribe<NodeIDWithPoseVec>(
-		last_regd_nodes_topic, m_queue_size,
-		&TNeighborAgentProps::fetchUpdatedNodesList, this);
-	last_regd_id_scan_sub = nh->subscribe<NodeIDWithLaserScan>(
-		last_regd_id_scan_topic, m_queue_size,
-		&TNeighborAgentProps::fetchLastRegdIDScan, this);
+	last_regd_nodes_sub =
+		nh->template create_subscription<mrpt_msgs::msg::NodeIDWithPoseVec>(
+			last_regd_nodes_topic, m_queue_size,
+			[this](const mrpt_msgs::msg::NodeIDWithPoseVec::SharedPtr msg) {
+				this->fetchUpdatedNodesList(msg);
+			});
+	last_regd_id_scan_sub =
+		nh->template create_subscription<mrpt_msgs::msg::NodeIDWithLaserScan>(
+			last_regd_id_scan_topic, m_queue_size,
+			[this](const mrpt_msgs::msg::NodeIDWithLaserScan::SharedPtr msg) {
+				this->fetchLastRegdIDScan(msg);
+			});
 }
 
 template <class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::fetchUpdatedNodesList(
-	const mrpt_msgs::NodeIDWithPoseVec::ConstPtr& nodes)
+	const mrpt_msgs::msg::NodeIDWithPoseVec::SharedPtr nodes)
 {
 	MRPT_START;
-	using namespace mrpt_msgs;
 	using namespace std;
 
 	typedef typename GRAPH_T::constraint_t::type_value pose_t;
 	engine.logFmt(LVL_DEBUG, "In fetchUpdatedNodesList method.");
 
-	for (NodeIDWithPoseVec::_vec_type::const_iterator n_it = nodes->vec.begin();
+	for (auto n_it = nodes->vec.begin();
 		 n_it != nodes->vec.end(); ++n_it)
 	{
 		// insert in the set if not already there.
@@ -1193,7 +1183,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::fetchUpdatedNodesList(
 
 		// update the poses
 		pose_t curr_pose;
-		curr_pose = pose_t(mrpt::ros1bridge::fromROS(n_it->pose));
+		curr_pose = pose_t(mrpt::ros2bridge::fromROS(n_it->pose));
 
 		// note: use "operator[]" instead of "insert" so that if the key already
 		// exists, the corresponding value is changed rather than ignored.
@@ -1201,40 +1191,12 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::fetchUpdatedNodesList(
 	}
 	has_new_nodes = true;
 
-	//// Mon Mar 6 17:11:23 EET 2017, Nikos Koukis
-	// TODO When using 3 graphSLAM agents GDB Shows that it crashes on
-	// engine.logFmt lines. Fix this.
-	//
-	// engine.logFmt(LVL_DEBUG, // THIS CRASHES - GDB WHERE
-	//"NodeIDs for topic namespace: %s -> [%s]",
-	// agent.topic_namespace.data.c_str(),
-	// mrpt::math::getSTLContainerAsString(vector<TNodeID>(
-	// nodeIDs_set.begin(), nodeIDs_set.end())).c_str());
-	// print poses just for verification
-	// engine.logFmt(LVL_DEBUG, "Poses for topic namespace: %s",
-	// agent.topic_namespace.data.c_str());
-	// for (typename GRAPH_T::global_poses_t::const_iterator
-	// p_it = poses.begin();
-	// p_it != poses.end();
-	//++p_it) {
-	// std::string p_str; p_it->second.asString(p_str);
-	// engine.logFmt(LVL_DEBUG, "nodeID: %lu | pose: %s",
-	// static_cast<unsigned long>(p_it->first),
-	// p_str.c_str());
-	//}
-	// TODO - These also seem to crash sometimes
-	// cout << "Agent information: " << agent << endl;
-	// cout << "Nodes: " <<
-	// mrpt::math::getSTLContainerAsString(vector<TNodeID>(nodeIDs_set.begin(),
-	// nodeIDs_set.end()));
-	// print nodeIDs just for verification
-
 	MRPT_END;
 }  // end of fetchUpdatedNodesList
 
 template <class GRAPH_T>
 void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::fetchLastRegdIDScan(
-	const mrpt_msgs::NodeIDWithLaserScan::ConstPtr& last_regd_id_scan)
+	const mrpt_msgs::msg::NodeIDWithLaserScan::SharedPtr last_regd_id_scan)
 {
 	MRPT_START;
 	using namespace std;
@@ -1287,7 +1249,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
 			params.second.pose = *p;
 			CObservation2DRangeScan::Ptr mrpt_scan =
 				CObservation2DRangeScan::Create();
-			const sensor_msgs::LaserScan* ros_laser_scan =
+			const sensor_msgs::msg::LaserScan* ros_laser_scan =
 				this->getLaserScanByNodeID(*n_it);
 
 			// if LaserScan not found, skip nodeID altogether.
@@ -1300,7 +1262,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::getCachedNodes(
 				continue;
 			}
 
-			mrpt::ros1bridge::fromROS(*ros_laser_scan, CPose3D(*p), *mrpt_scan);
+			mrpt::ros2bridge::fromROS(*ros_laser_scan, CPose3D(*p), *mrpt_scan);
 			params.second.scan = mrpt_scan;
 
 			// insert the pair
@@ -1356,7 +1318,7 @@ bool CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::hasNewNodesBatch(
 }
 
 template <class GRAPH_T>
-const sensor_msgs::LaserScan*
+const sensor_msgs::msg::LaserScan*
 	CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::getLaserScanByNodeID(
 		const TNodeID nodeID) const
 {
@@ -1365,7 +1327,7 @@ const sensor_msgs::LaserScan*
 	// assert that the current nodeID exists in the nodeIDs_set
 	ASSERT_(nodeIDs_set.find(nodeID) != nodeIDs_set.end());
 
-	for (std::vector<mrpt_msgs::NodeIDWithLaserScan>::const_iterator it =
+	for (std::vector<mrpt_msgs::msg::NodeIDWithLaserScan>::const_iterator it =
 			 ros_scans.begin();
 		 it != ros_scans.end(); ++it)
 	{

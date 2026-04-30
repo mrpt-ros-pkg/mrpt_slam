@@ -1,19 +1,19 @@
-// TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
-	 |                     Mobile Robot Programming Toolkit (MRPT) | |
-   http://www.mrpt.org/                             | | | | Copyright (c)
-   2005-2016, Individual contributors, see AUTHORS file        | | See:
-   http://www.mrpt.org/Authors - All rights reserved.                   | |
-   Released under BSD License. See details in http://www.mrpt.org/License    |
-	 +---------------------------------------------------------------------------+
+   |                     Mobile Robot Programming Toolkit (MRPT)               |
+   |                          http://www.mrpt.org/                             |
+   |                                                                           |
+   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |
+   | See: http://www.mrpt.org/Authors - All rights reserved.                   |
+   | Released under BSD License. See details in http://www.mrpt.org/License    |
+   +---------------------------------------------------------------------------+
  */
 
 #pragma once
 
-#include <ros/ros.h>
-#include <fkie_multimaster_msgs/DiscoverMasters.h>
-#include <mrpt_msgs/GraphSlamAgent.h>
-#include <mrpt_msgs/GraphSlamAgents.h>
+// ROS 2
+#include <rclcpp/rclcpp.hpp>
+#include <mrpt_msgs/msg/graph_slam_agent.hpp>
+#include <mrpt_msgs/msg/graph_slam_agents.hpp>
 
 #include <mrpt/system/COutputLogger.h>
 #include <mrpt/system/datetime.h>
@@ -26,6 +26,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <mutex>
 
 #include <cstdlib>
 
@@ -37,19 +38,20 @@ namespace detail
 {
 /**\brief Class responsible of handling the network communication between SLAM
  * agents in the Multi-Robot graphSLAM algorithm.
+ *
+ * ROS 2 port: fkie_multimaster discovery replaced by heartbeat topic
+ * "/mrpt_graphslam/agent_heartbeat" (see docs/architecture/multirobot-ros2-design.md).
  */
 class CConnectionManager
 {
    public:
-	// typedef std::vector<mrpt_msgs::GraphSlamAgent>::iterator agents_it;
-	// typedef std::vector<mrpt_msgs::GraphSlamAgent>::const_iterator
-	// agents_cit;
-	typedef mrpt_msgs::GraphSlamAgents::_list_type::iterator agents_it;
-	typedef mrpt_msgs::GraphSlamAgents::_list_type::const_iterator agents_cit;
+	typedef mrpt_msgs::msg::GraphSlamAgents::_list_type::iterator agents_it;
+	typedef mrpt_msgs::msg::GraphSlamAgents::_list_type::const_iterator
+		agents_cit;
 
 	/**\brief Constructor */
 	CConnectionManager(
-		mrpt::system::COutputLogger* logger, ros::NodeHandle* nh_in);
+		mrpt::system::COutputLogger* logger, rclcpp::Node* node);
 	/**\brief Destructor */
 	~CConnectionManager();
 	/**\brief Fill the given vector with the SLAM Agents that the current
@@ -62,15 +64,15 @@ class CConnectionManager
 	 * \sa updateNearbySlamAgents
 	 */
 	void getNearbySlamAgents(
-		mrpt_msgs::GraphSlamAgents* agents_vec, bool ignore_self = true);
+		mrpt_msgs::msg::GraphSlamAgents* agents_vec, bool ignore_self = true);
 	/**\brief Read-only method for accessing list of nearby agents
 	 */
-	const mrpt_msgs::GraphSlamAgents& getNearbySlamAgents();
+	const mrpt_msgs::msg::GraphSlamAgents& getNearbySlamAgents();
 	/**\brief Read-only method for accessing list of nearby agents.
 	 * This <b>doesn't update</b> the internal list of GraphSlamAgents but just
 	 * the returns its latest cached version
 	 */
-	const mrpt_msgs::GraphSlamAgents& getNearbySlamAgentsCached() const;
+	const mrpt_msgs::msg::GraphSlamAgents& getNearbySlamAgentsCached() const;
 
 	/**\brief Wrapper method around the private setup* class methods.
 	 *
@@ -87,11 +89,16 @@ class CConnectionManager
 	 * agent_ID_str with which the nodes are going to be registered in the graph
 	 */
 	std::string own_ns;
-	/**\brief Update the internal list of nearby SLAM agents
+	/**\brief Update the internal list of nearby SLAM agents from cached data.
 	 *
 	 * \sa getNearbySlamAgents
 	 */
 	void updateNearbySlamAgents();
+	/**\brief Heartbeat callback: called when another agent publishes its info */
+	void onAgentHeartbeat(
+		const mrpt_msgs::msg::GraphSlamAgent::SharedPtr agent_msg);
+	/**\brief Prune agents that have not sent heartbeats recently */
+	void pruneStaleAgents();
 	/**\name setup* ROS-related methods
 	 *\brief Methods for setting up topic subscribers, publishers, and
 	 * corresponding services
@@ -104,44 +111,31 @@ class CConnectionManager
 	void setupSrvs();
 	/**\}*/
 
-	/**\brief ROSMaster ==> mrpt_msgs::GraphSlamAgent
-	 *
-	 * Assumption is that each ROSMaster instance holds exactly one
-	 * mrpt_graphslam_2d node which publshes at a specific toic namespace ->
-	 * /<hostname>_<last_IP_field>/...
-	 *
-	 * \return False if the ros_master specified doesn't correspond to a valid
-	 * GraphSlamAgent node. Should at least have a \b feedback topic
-	 * namespace under its main topic namespace
-	 */
-	static bool convert(
-		const fkie_multimaster_msgs::ROSMaster& ros_master,
-		mrpt_msgs::GraphSlamAgent* slam_agent);
-	/**\brief GraphSlamAgent ==> ROSMaster. */
-	static void convert(
-		const mrpt_msgs::GraphSlamAgent& slam_agent,
-		fkie_multimaster_msgs::ROSMaster* ros_master);
-	/**\brief Remove http:// prefix and port suffix from the string and return
-	 * result
-	 *
-	 * \param[out] agent_port Port that the agent is running on. Extracted from
-	 * the overall string
-	 */
-	static std::string extractHostnameOrIP(
-		const std::string& str, unsigned short* agent_port = NULL);
-
 	/**\brief Pointer to the logging instance */
 	mrpt::system::COutputLogger* m_logger;
-	/**\brief Pointer to the Ros NodeHanle instance */
-	ros::NodeHandle* m_nh;
+	/**\brief Pointer to the ROS 2 node */
+	rclcpp::Node* m_node;
 
-	ros::ServiceClient m_DiscoverMasters_client;
+	/**\brief Heartbeat publisher — publishes own agent info */
+	rclcpp::Publisher<mrpt_msgs::msg::GraphSlamAgent>::SharedPtr m_agent_pub;
+	/**\brief Heartbeat subscriber — receives other agents' info */
+	rclcpp::Subscription<mrpt_msgs::msg::GraphSlamAgent>::SharedPtr m_agent_sub;
+	/**\brief Timer for periodic heartbeat publishing */
+	rclcpp::TimerBase::SharedPtr m_heartbeat_timer;
+	/**\brief Timer for pruning stale agents */
+	rclcpp::TimerBase::SharedPtr m_prune_timer;
+
+	/**\brief Track last-seen time for each agent (by topic_namespace) */
+	std::map<std::string, rclcpp::Time> m_agent_last_seen;
+	/**\brief Mutex protecting m_nearby_slam_agents and m_agent_last_seen */
+	mutable std::mutex m_agents_mutex;
+
 	/**\brief List of slam agents in the current agent's neighborhood
 	 *
 	 * \note vector includes the GraphSlamAgent that is at the same namespace as
 	 * the current CConnectionManager instance
 	 */
-	mrpt_msgs::GraphSlamAgents m_nearby_slam_agents;
+	mrpt_msgs::msg::GraphSlamAgents m_nearby_slam_agents;
 
 	bool has_setup_comm;
 };
@@ -150,48 +144,9 @@ class CConnectionManager
 }  // namespace graphslam
 }  // namespace mrpt
 
-/**\brief ROSMaster instances are considered the same if the "uri" field is the
- * same
+/**\brief GraphSlamAgent ordering (for use in std::map/std::set).
+ * ROS2 messages already provide operator== and operator!= as members.
  */
-/**\{*/
-bool operator==(
-	const fkie_multimaster_msgs::ROSMaster& master1,
-	const fkie_multimaster_msgs::ROSMaster& master2);
-bool operator!=(
-	const fkie_multimaster_msgs::ROSMaster& master1,
-	const fkie_multimaster_msgs::ROSMaster& master2);
-/**\{*/
-
-/**\brief GraphSlamAgent instances are considered the same if the "agent_id"
- * field is the same and the topic_namespace is the same
- */
-/**\{*/
-bool operator==(
-	const mrpt_msgs::GraphSlamAgent& agent1,
-	const mrpt_msgs::GraphSlamAgent& agent2);
-bool operator!=(
-	const mrpt_msgs::GraphSlamAgent& agent1,
-	const mrpt_msgs::GraphSlamAgent& agent2);
 bool operator<(
-	const mrpt_msgs::GraphSlamAgent& agent1,
-	const mrpt_msgs::GraphSlamAgent& agent2);
-/**\}*/
-
-/**\brief GraphSlamAgent and ROSMaster instances are considered the same if the
- * corresponding "name" fields coincede
- */
-/**\{*/
-bool operator==(
-	const fkie_multimaster_msgs::ROSMaster& master,
-	const mrpt_msgs::GraphSlamAgent& agent);
-bool operator==(
-	const mrpt_msgs::GraphSlamAgent& agent,
-	const fkie_multimaster_msgs::ROSMaster& master);
-bool operator!=(
-	const fkie_multimaster_msgs::ROSMaster& master,
-	const mrpt_msgs::GraphSlamAgent& agent);
-bool operator!=(
-	const mrpt_msgs::GraphSlamAgent& agent,
-	const fkie_multimaster_msgs::ROSMaster& master);
-
-/**\}*/
+	const mrpt_msgs::msg::GraphSlamAgent& agent1,
+	const mrpt_msgs::msg::GraphSlamAgent& agent2);

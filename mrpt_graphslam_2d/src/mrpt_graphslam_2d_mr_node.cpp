@@ -1,4 +1,3 @@
-// TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -17,7 +16,7 @@
 #include <cstdlib>
 #include <cstring>
 
-// ROS headers
+// ROS 2 headers
 #include "mrpt_graphslam_2d/CGraphSlamHandler_ROS.h"
 
 using namespace mrpt;
@@ -34,61 +33,65 @@ using namespace mrpt::graphslam::apps;
 
 using namespace std;
 
-/** Main function of the mrpt_graphslam condensed-measurements _application */
+/** Main function of the mrpt_graphslam condensed-measurements multi-robot application */
 int main(int argc, char** argv)
 {
+	rclcpp::init(argc, argv);
+
 	COutputLogger logger;
+	logger.setLoggerName("mrpt_graphslam_2d_mr");
+	logger.logFmt(LVL_WARN, "Initializing mrpt_graphslam_2d_mr node...\n");
 
 	try
 	{
-		std::string node_name = "mrpt_graphslam_2d_mr";
-
-		ros::init(argc, argv, node_name);
-		ros::NodeHandle nh;
-
-		node_name = node_name + nh.getNamespace();
-		logger.setLoggerName(node_name);
-		logger.logFmt(LVL_WARN, "Initialized %s node...\n", node_name.c_str());
-
-		ros::Rate loop_rate(10);
-
 		// Initialization
 		TUserOptionsChecker_ROS<CNetworkOfPoses2DInf_NA> options_checker;
-		CGraphSlamHandler_ROS<CNetworkOfPoses2DInf_NA> graphslam_handler(
-			&logger, &options_checker, &nh);
-		graphslam_handler.readParams();
-		graphslam_handler.initEngine_MR();
-		graphslam_handler.setupComm();
+		auto graphslam_node =
+			std::make_shared<CGraphSlamHandler_ROS<CNetworkOfPoses2DInf_NA>>(
+				&logger, &options_checker);
 
-		std::string ns = nh.getNamespace();
-		// overwite default results directory due to the multi-robot nature
-		graphslam_handler.setResultsDirName(
-			std::string(ns.begin() + 2, ns.end()));
+		graphslam_node->readParams();
+		graphslam_node->initEngine_MR();
+		graphslam_node->setupComm();
+
+		// overwrite default results directory with the node's namespace
+		{
+			std::string ns = graphslam_node->get_namespace();
+			// strip leading '/'
+			const auto first = ns.find_first_not_of(" /");
+			if (first != std::string::npos)
+			{
+				graphslam_node->setResultsDirName(
+					std::string(ns.begin() + first, ns.end()));
+			}
+		}
 
 		// print the parameters just for verification
-		graphslam_handler.printParams();
+		graphslam_node->printParams();
 
-		bool cont_exec = true;
-		while (ros::ok() && cont_exec)
-		{
-			cont_exec = graphslam_handler.usePublishersBroadcasters();
-
-			ros::spinOnce();
-			loop_rate.sleep();
-		}
+		// Multi-robot: MultiThreadedExecutor allows the reentrant callback
+		// group used by getCMGraph service to run concurrently with the main
+		// sensor-processing callbacks.
+		rclcpp::executors::MultiThreadedExecutor executor;
+		executor.add_node(graphslam_node);
+		executor.spin();
 	}
 	catch (exception& e)
 	{
-		cout << "Known error!" << endl;
-		logger.logFmt(LVL_ERROR, "Caught exception: %s", e.what());
-		mrpt::system::pause();
-		return -1;
+		RCLCPP_ERROR(
+			rclcpp::get_logger("mrpt_graphslam_2d_mr"),
+			"Finished with a (known) exception!\n%s", e.what());
+		return EXIT_FAILURE;
 	}
 	catch (...)
 	{
-		cout << "Unknown error!" << endl;
-		logger.logFmt(LVL_ERROR, "Finished with unknown exception. Exiting\n.");
-		mrpt::system::pause();
-		return -1;
+		RCLCPP_ERROR(
+			rclcpp::get_logger("mrpt_graphslam_2d_mr"),
+			"Finished with an unknown exception!");
+		return EXIT_FAILURE;
 	}
+
+	rclcpp::shutdown();
+	return EXIT_SUCCESS;
 }
+

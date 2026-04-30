@@ -1,4 +1,3 @@
-// TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -15,14 +14,14 @@
 #include "mrpt_graphslam_2d/TNeighborAgentMapProps.h"
 #include "mrpt_graphslam_2d/misc/common.h"
 
-#include <ros/ros.h>
-#include <nav_msgs/OccupancyGrid.h>
-#include <nav_msgs/Path.h>
-#include <mrpt_msgs/GraphSlamAgents.h>
+#include <rclcpp/rclcpp.hpp>
+#include <nav_msgs/msg/occupancy_grid.hpp>
+#include <nav_msgs/msg/path.hpp>
+#include <mrpt_msgs/msg/graph_slam_agents.hpp>
 #include <mrpt/maps/COccupancyGridMap2D.h>
 #include <mrpt/maps/CSimplePointsMap.h>
 #include <mrpt/slam/CGridMapAligner.h>
-#include <mrpt/ros1bridge/map.h>
+#include <mrpt/ros2bridge/map.h>
 #include <mrpt/system/filesystem.h>
 #include <mrpt/system/os.h>
 #include <mrpt/math/utils.h>
@@ -65,7 +64,7 @@ class CMapMerger
 	typedef std::map<TNeighborAgentMapProps*, mrpt::opengl::CSetOfLines::Ptr>
 		trajectories_t;
 	typedef std::vector<TNeighborAgentMapProps*> neighbors_t;
-	CMapMerger(mrpt::system::COutputLogger* logger_in, ros::NodeHandle* nh_in);
+	CMapMerger(mrpt::system::COutputLogger* logger_in, rclcpp::Node* node_in);
 	~CMapMerger();
 	void mergeMaps();
 	/**\brief Query and fetch the list of new graphSLAM agents.
@@ -88,7 +87,7 @@ class CMapMerger
 	neighbors_t m_neighbors;
 	std::map<TNeighborAgentMapProps*, CWindowManager*> m_neighbors_to_windows;
 	mrpt::system::COutputLogger* m_logger;
-	ros::NodeHandle* m_nh;
+	rclcpp::Node* m_nh;
 	mrpt::graphslam::detail::CConnectionManager m_conn_manager;
 
 	/**\brief Topic namespace under which current node is going to be

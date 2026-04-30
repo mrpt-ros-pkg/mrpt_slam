@@ -1,4 +1,3 @@
-// TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -13,15 +12,12 @@
 
 using namespace mrpt::graphslam;
 using namespace mrpt::graphslam::detail;
-using namespace mrpt_msgs;
 using namespace mrpt::maps;
 using namespace mrpt::slam;
 using namespace mrpt::math;
 using namespace mrpt::system;
 using namespace mrpt::poses;
 using namespace mrpt::opengl;
-using namespace ros;
-using namespace nav_msgs;
 using namespace std;
 
 // helper methods
@@ -135,10 +131,10 @@ void addSupWidgets(mrpt::gui::CDisplayWindow3D* win)
 ////////////////////////////////////////////////////////////
 
 CMapMerger::CMapMerger(
-	mrpt::system::COutputLogger* logger_in, ros::NodeHandle* nh_in)
+	mrpt::system::COutputLogger* logger_in, rclcpp::Node* node_in)
 	: m_logger(logger_in),
-	  m_nh(nh_in),
-	  m_conn_manager(logger_in, nh_in),
+	  m_nh(node_in),
+	  m_conn_manager(logger_in, node_in),
 	  m_queue_size(1),
 	  quit_keypress1("q"),
 	  quit_keypress2("Ctrl+c"),
@@ -202,20 +198,18 @@ bool CMapMerger::updateState()
 	MRPT_START;
 
 	// get the new GraphSlamAgents
-	const GraphSlamAgents& nearby_slam_agents =
+	const mrpt_msgs::msg::GraphSlamAgents& nearby_slam_agents =
 		m_conn_manager.getNearbySlamAgents();
 	// m_logger->logFmt(LVL_DEBUG, "nearby_slam_agents size: %lu\n",
 	// static_cast<unsigned long>(nearby_slam_agents.list.size()));
 
-	for (GraphSlamAgents::_list_type::const_iterator it =
-			 nearby_slam_agents.list.begin();
-		 it != nearby_slam_agents.list.end(); ++it)
+	for (const auto& gsa : nearby_slam_agents.list)
 	{
-		const GraphSlamAgent& gsa = *it;
-
 		// Is the current GraphSlamAgent already registered?
-		auto search = [gsa](const TNeighborAgentMapProps* neighbor) {
-			return (neighbor->agent == gsa);
+		auto search = [&gsa](const TNeighborAgentMapProps* neighbor) {
+			return (neighbor->agent.agent_id == gsa.agent_id &&
+				neighbor->agent.topic_namespace.data ==
+					gsa.topic_namespace.data);
 		};
 		typename neighbors_t::iterator n_it =
 			find_if(m_neighbors.begin(), m_neighbors.end(), search);
@@ -321,7 +315,7 @@ void CMapMerger::mergeMaps()
 			m_logger->logFmt(
 				LVL_INFO, "Adding map of agent \"%s\" to the stack",
 				neighbor.agent.topic_namespace.data.c_str());
-			mrpt::ros1bridge::fromROS(*neighbor.nav_map, *map);
+			mrpt::ros2bridge::fromROS(*neighbor.nav_map, *map);
 
 			// visualize map in corresponding window
 			addToWindow(neighbor_win_manager->win, *map);
@@ -340,12 +334,10 @@ void CMapMerger::mergeMaps()
 				/* 1st */ 0, 0, 0,
 				/* 2nd */ 0, 0, 0);
 
-			for (nav_msgs::Path::_poses_type::const_iterator pth_it =
-					 neighbor.nav_robot_trajectory->poses.begin();
-				 pth_it != neighbor.nav_robot_trajectory->poses.end(); ++pth_it)
+			for (const auto& pose_stamp : neighbor.nav_robot_trajectory->poses)
 			{
 				curr_traj->appendLineStrip(
-					pth_it->pose.position.x, pth_it->pose.position.y, 0);
+					pose_stamp.pose.position.x, pose_stamp.pose.position.y, 0);
 			}
 			// visualize trajectory
 			{

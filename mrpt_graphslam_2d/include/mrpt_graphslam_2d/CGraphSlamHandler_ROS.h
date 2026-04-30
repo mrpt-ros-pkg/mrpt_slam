@@ -42,8 +42,7 @@
 #include <mrpt/graphslam/apps_related/CGraphSlamHandler.h>
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS.h"
-// TODO TICKET-004: MR engine not yet ported to ROS 2
-// #include "mrpt_graphslam_2d/CGraphSlamEngine_MR.h"
+#include "mrpt_graphslam_2d/CGraphSlamEngine_MR.h"
 #include "mrpt_graphslam_2d/TUserOptionsChecker_ROS.h"
 
 // cpp headers
@@ -149,8 +148,7 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>,
 	 */
 	/**\{*/
 	void initEngine_ROS();
-	// TODO TICKET-004: not yet ported to ROS 2
-	// void initEngine_MR();
+	void initEngine_MR();
 	/**\}*/
 
 	static const std::string sep_header;

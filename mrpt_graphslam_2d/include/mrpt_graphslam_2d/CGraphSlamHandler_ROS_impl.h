@@ -170,6 +170,21 @@ void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_ROS()
 }
 
 template <class GRAPH_T>
+void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_MR()
+{
+	this->m_logger->logFmt(
+		mrpt::system::LVL_WARN, "Initializing CGraphSlamEngine_MR instance...");
+	this->m_engine = new CGraphSlamEngine_MR<GRAPH_T>(
+		this, this->m_ini_fname,
+		/*rawlog_fname=*/"", this->m_gt_fname, this->m_win_manager,
+		this->m_options_checker->node_regs_map[m_node_reg](),
+		this->m_options_checker->edge_regs_map[m_edge_reg](),
+		this->m_options_checker->optimizers_map[m_optimizer]());
+	this->m_logger->logFmt(
+		mrpt::system::LVL_WARN, "Successfully initialized CGraphSlamEngine_MR instance.");
+}
+
+template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::getROSParameters(std::string* str_out)
 {
 	using namespace std;
