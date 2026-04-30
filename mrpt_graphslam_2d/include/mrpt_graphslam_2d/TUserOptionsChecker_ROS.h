@@ -9,13 +9,15 @@
 
 #pragma once
 
-#include <ros/console.h>
+#include <rclcpp/rclcpp.hpp>
 
 #include <mrpt/graphslam/apps_related/TUserOptionsChecker.h>
 #include <mrpt/graphs/CNetworkOfPoses.h>
-#include "mrpt_graphslam_2d/NRD/CFixedIntervalsNRD_MR.h"
-#include "mrpt_graphslam_2d/NRD/CICPCriteriaNRD_MR.h"
-#include "mrpt_graphslam_2d/ERD/CLoopCloserERD_MR.h"
+
+// TODO TICKET-004: MR deciders not yet ported to ROS 2
+// #include "mrpt_graphslam_2d/NRD/CFixedIntervalsNRD_MR.h"
+// #include "mrpt_graphslam_2d/NRD/CICPCriteriaNRD_MR.h"
+// #include "mrpt_graphslam_2d/ERD/CLoopCloserERD_MR.h"
 
 namespace mrpt { namespace graphslam { namespace apps {
 
@@ -56,4 +58,3 @@ struct TUserOptionsChecker_ROS:
 
 } } } // end of namespaces
 #include "mrpt_graphslam_2d/TUserOptionsChecker_ROS_impl.h"
-

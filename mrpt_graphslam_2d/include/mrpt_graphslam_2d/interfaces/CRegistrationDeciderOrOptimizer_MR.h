@@ -1,3 +1,4 @@
+// TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 #pragma once
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_MR.h"

@@ -12,15 +12,14 @@
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_ROS.h"
 
 #include <mrpt/graphslam/CGraphSlamEngine.h>
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 namespace mrpt { namespace graphslam {
 
 /**\brief Class template that provides a wrapper around the MRPT
  * CGraphSlamEngine class template and implements methods for interacting with
- * ROS.
- *
-  */
+ * ROS 2.
+ */
 template<class GRAPH_t=typename mrpt::graphs::CNetworkOfPoses2DInf>
 class CGraphSlamEngine_ROS : public CGraphSlamEngine<GRAPH_t>
 {
@@ -28,7 +27,7 @@ public:
 	typedef CGraphSlamEngine<GRAPH_t> parent;
 
 	CGraphSlamEngine_ROS(
-			ros::NodeHandle* nh,
+			rclcpp::Node* node,
 			const std::string& config_file,
 			const std::string& rawlog_fname="",
 			const std::string& fname_GT="",
@@ -42,13 +41,12 @@ public:
 	 *
 	 * Handy for setting up publishers, subscribers, services
 	 * all at once.
-	 *
 	 */
 	void setupComm();
 
 	/**\brief Initialize object instance. */
 	void initClass();
-	ros::NodeHandle* m_nh;
+	rclcpp::Node* m_node;
 protected:
 	/**\brief Read the problem configuration parameters
 	 *
@@ -61,7 +59,7 @@ protected:
 	 * broadcaster instances
 	 */
 	virtual void usePublishersBroadcasters();
-	/**\brief Read configuration parameters from the ROS parameter server.
+	/**\brief Read configuration parameters from the ROS 2 parameter server.
 	 *
 	 * \note Method is automatically called on object construction.
 	 * \sa readParams, initClass
@@ -84,18 +82,6 @@ protected:
 	virtual void setupPubs();
 	virtual void setupSrvs();
 	/**\}*/
-	/**\brief Custom Callback queue for processing requests for the
-	 * services outside the standard CallbackQueue.
-	 *
-	 * \note Logical thing would be to define it in CGraphSlamEngine_MR, but that
-	 * results in an segfault with the following error message:
-	 * ```
-	 * pure virtual method called
-	 * terminate called without an active exception
-	 * ```
-	 */
-	ros::CallbackQueue custom_service_queue;
-
 
 	int m_queue_size;
 };
@@ -103,4 +89,3 @@ protected:
 } } // end of namespaces
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS_impl.h"
-

@@ -16,7 +16,7 @@
 #include <cstdlib>
 #include <cstring>
 
-// ROS headers
+// ROS 2 headers
 #include "mrpt_graphslam_2d/CGraphSlamHandler_ROS.h"
 
 using namespace mrpt;
@@ -33,54 +33,49 @@ using namespace mrpt::graphslam::apps;
 
 using namespace std;
 
-/** Main function of the mrpt_graphslam application */
+/** Main function of the mrpt_graphslam_2d ROS 2 application */
 int main(int argc, char** argv)
 {
-	std::string node_name = "mrpt_graphslam_2d";
+	rclcpp::init(argc, argv);
 
 	COutputLogger logger;
-	logger.setLoggerName(node_name);
-	logger.logFmt(LVL_WARN, "Initializing %s node...\n", node_name.c_str());
-
-	ros::init(argc, argv, node_name);
-	ros::NodeHandle nh;
-
-	ros::Rate loop_rate(10);
+	logger.setLoggerName("mrpt_graphslam_2d");
+	logger.logFmt(LVL_WARN, "Initializing mrpt_graphslam_2d node...\n");
 
 	try
 	{
 		// Initialization
 		TUserOptionsChecker_ROS<CNetworkOfPoses2DInf> options_checker;
-		CGraphSlamHandler_ROS<CNetworkOfPoses2DInf> graphslam_handler(
-			&logger, &options_checker, &nh);
-		graphslam_handler.readParams();
-		graphslam_handler.initEngine_ROS();
-		graphslam_handler.setupComm();
+		auto graphslam_node =
+			std::make_shared<CGraphSlamHandler_ROS<CNetworkOfPoses2DInf>>(
+				&logger, &options_checker);
+
+		graphslam_node->readParams();
+		graphslam_node->initEngine_ROS();
+		graphslam_node->setupComm();
 
 		// print the parameters just for verification
-		graphslam_handler.printParams();
+		graphslam_node->printParams();
 
-		bool cont_exec = true;
-		while (ros::ok() && cont_exec)
-		{
-			cont_exec = graphslam_handler.usePublishersBroadcasters();
-
-			ros::spinOnce();
-			loop_rate.sleep();
-		}
+		rclcpp::executors::SingleThreadedExecutor executor;
+		executor.add_node(graphslam_node);
+		executor.spin();
 	}
 	catch (exception& e)
 	{
-		ROS_ERROR_STREAM(
-			"Finished with a (known) exception!" << std::endl
-												 << e.what() << std::endl);
-		mrpt::system::pause();
-		return -1;
+		RCLCPP_ERROR(
+			rclcpp::get_logger("mrpt_graphslam_2d"),
+			"Finished with a (known) exception!\n%s", e.what());
+		return EXIT_FAILURE;
 	}
 	catch (...)
 	{
-		ROS_ERROR_STREAM("Finished with a (unknown) exception!" << std::endl);
-		mrpt::system::pause();
-		return -1;
+		RCLCPP_ERROR(
+			rclcpp::get_logger("mrpt_graphslam_2d"),
+			"Finished with an unknown exception!");
+		return EXIT_FAILURE;
 	}
+
+	rclcpp::shutdown();
+	return EXIT_SUCCESS;
 }

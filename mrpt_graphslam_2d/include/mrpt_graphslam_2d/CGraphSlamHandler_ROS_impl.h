@@ -9,10 +9,10 @@
  */
 #pragma once
 
-#include <mrpt/ros1bridge/time.h>
-#include <mrpt/ros1bridge/laser_scan.h>
-#include <mrpt/ros1bridge/pose.h>
-#include <mrpt/ros1bridge/map.h>
+#include <mrpt/ros2bridge/time.h>
+#include <mrpt/ros2bridge/laser_scan.h>
+#include <mrpt/ros2bridge/pose.h>
+#include <mrpt/ros2bridge/map.h>
 
 namespace mrpt
 {
@@ -40,15 +40,13 @@ const std::string CGraphSlamHandler_ROS<GRAPH_T>::sep_subheader(20, '-');
 template <class GRAPH_T>
 CGraphSlamHandler_ROS<GRAPH_T>::CGraphSlamHandler_ROS(
 	mrpt::system::COutputLogger* logger,
-	TUserOptionsChecker<GRAPH_T>* options_checker, ros::NodeHandle* nh_in)
-	: parent_t(logger, options_checker, /*enable_visuals=*/false), m_nh(nh_in)
+	TUserOptionsChecker<GRAPH_T>* options_checker,
+	const rclcpp::NodeOptions& options)
+	: parent_t(logger, options_checker, /*enable_visuals=*/false),
+	  rclcpp::Node("mrpt_graphslam_2d", options)
 {
 	using namespace mrpt::obs;
 
-	ASSERT_(m_nh);
-
-	// TODO - does this affect?
-	// Previous value = 0;
 	m_queue_size = 1;
 
 	// variables initialization/assignment
@@ -63,10 +61,12 @@ CGraphSlamHandler_ROS<GRAPH_T>::CGraphSlamHandler_ROS(
 	m_first_time_in_sniff_odom = true;
 
 	m_measurement_cnt = 0;
+	m_graph_nodes_last_size = 0;
 
-	// Thu Nov 3 23:36:49 EET 2016, Nikos Koukis
-	// WARNING: ROS Server Parameters have not been read yet. Make sure you know
-	// what to initialize at this stage!
+	// TF2 infrastructure
+	m_buffer = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+	m_listener = std::make_shared<tf2_ros::TransformListener>(*m_buffer);
+	m_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 }
 
 template <class GRAPH_T>
@@ -88,54 +88,49 @@ void CGraphSlamHandler_ROS<GRAPH_T>::readROSParameters()
 {
 	// misc
 	{
-		std::string ns = "misc/";
-
 		// enable/disable visuals
-		bool m_disable_MRPT_visuals;
-		m_nh->param<bool>(
-			ns + "disable_MRPT_visuals", m_disable_MRPT_visuals, false);
+		this->declare_parameter<bool>("disable_MRPT_visuals", false);
+		bool m_disable_MRPT_visuals = this->get_parameter("disable_MRPT_visuals").as_bool();
 		this->m_enable_visuals = !m_disable_MRPT_visuals;
 
 		// verbosity level
-		int lvl;
-		m_nh->param<int>(ns + "verbosity", lvl, static_cast<int>(LVL_INFO));
-		m_min_logging_level = static_cast<VerbosityLevel>(lvl);
+		this->declare_parameter<int>("verbosity", static_cast<int>(mrpt::system::LVL_INFO));
+		int verbosity_lvl = this->get_parameter("verbosity").as_int();
+		m_min_logging_level = static_cast<mrpt::system::VerbosityLevel>(verbosity_lvl);
 		this->m_logger->setMinLoggingLevel(m_min_logging_level);
 	}
 	// deciders, optimizer
 	{
-		std::string ns = "deciders_optimizers/";
-		m_nh->param<std::string>(ns + "NRD", m_node_reg, "CFixedIntervalsNRD");
-		m_nh->param<std::string>(ns + "ERD", m_edge_reg, "CICPCriteriaERD");
-		m_nh->param<std::string>(ns + "GSO", m_optimizer, "CLevMarqGSO");
+		this->declare_parameter<std::string>("NRD", "CFixedIntervalsNRD");
+		this->declare_parameter<std::string>("ERD", "CICPCriteriaERD");
+		this->declare_parameter<std::string>("GSO", "CLevMarqGSO");
+		m_node_reg = this->get_parameter("NRD").as_string();
+		m_edge_reg = this->get_parameter("ERD").as_string();
+		m_optimizer = this->get_parameter("GSO").as_string();
 	}
 	// filenames
 	{
-		std::string ns = "files/";
-
 		// configuration file - mandatory
-		std::string config_param_path = ns + "config";
-		bool found_config = m_nh->getParam(ns + "config", this->m_ini_fname);
+		this->declare_parameter<std::string>("config_file", "");
+		this->m_ini_fname = this->get_parameter("config_file").as_string();
 		ASSERTMSG_(
-			found_config, mrpt::format(
-							  "Configuration file was not set. Set %s and try "
-							  "again.\nExiting...",
-							  config_param_path.c_str()));
+			!this->m_ini_fname.empty(),
+			"Configuration file was not set. Set 'config_file' parameter and try "
+			"again.\nExiting...");
 
 		// ground-truth file
-		m_nh->getParam(ns + "ground_truth", this->m_gt_fname);
+		this->declare_parameter<std::string>("ground_truth_file", "");
+		this->m_gt_fname = this->get_parameter("ground_truth_file").as_string();
 	}
 
 	// TF Frame IDs
-	// names of the frames of the corresponding robot parts
 	{
-		std::string ns = "frame_IDs/";
-
-		m_nh->param<std::string>(ns + "anchor_frame", m_anchor_frame_id, "map");
-		m_nh->param<std::string>(
-			ns + "base_link_frame", m_base_link_frame_id, "base_link");
-		m_nh->param<std::string>(
-			ns + "odometry_frame", m_odom_frame_id, "odom");
+		this->declare_parameter<std::string>("anchor_frame_id", "map");
+		this->declare_parameter<std::string>("base_link_frame_id", "base_link");
+		this->declare_parameter<std::string>("odom_frame_id", "odom");
+		m_anchor_frame_id = this->get_parameter("anchor_frame_id").as_string();
+		m_base_link_frame_id = this->get_parameter("base_link_frame_id").as_string();
+		m_odom_frame_id = this->get_parameter("odom_frame_id").as_string();
 	}
 
 	// ASSERT that the given user options are valid
@@ -145,7 +140,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::readROSParameters()
 	this->verifyUserInput();
 
 	this->m_logger->logFmt(
-		LVL_DEBUG, "Successfully read parameters from ROS Parameter Server");
+		mrpt::system::LVL_DEBUG, "Successfully read parameters from ROS 2 Parameter Server");
 
 	// Visuals initialization
 	if (this->m_enable_visuals)
@@ -163,34 +158,15 @@ template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_ROS()
 {
 	this->m_logger->logFmt(
-		LVL_WARN, "Initializing CGraphSlamEngine_ROS instance...");
+		mrpt::system::LVL_WARN, "Initializing CGraphSlamEngine_ROS instance...");
 	this->m_engine = new CGraphSlamEngine_ROS<GRAPH_T>(
-		m_nh, this->m_ini_fname,
+		this, this->m_ini_fname,
 		/*rawlog_fname=*/"", this->m_gt_fname, this->m_win_manager,
 		this->m_options_checker->node_regs_map[m_node_reg](),
 		this->m_options_checker->edge_regs_map[m_edge_reg](),
 		this->m_options_checker->optimizers_map[m_optimizer]());
 	this->m_logger->logFmt(
-		LVL_WARN, "Successfully initialized CGraphSlamEngine_ROS instance.");
-}
-
-template <class GRAPH_T>
-void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_MR()
-{
-	this->m_options_checker->node_regs_map[m_node_reg]();
-	this->m_options_checker->edge_regs_map[m_edge_reg]();
-	this->m_options_checker->optimizers_map[m_optimizer]();
-
-	this->m_logger->logFmt(
-		LVL_WARN, "Initializing CGraphSlamEngine_MR instance...");
-	this->m_engine = new CGraphSlamEngine_MR<GRAPH_T>(
-		m_nh, this->m_ini_fname,
-		/*rawlog_fname=*/"", this->m_gt_fname, this->m_win_manager,
-		this->m_options_checker->node_regs_map[m_node_reg](),
-		this->m_options_checker->edge_regs_map[m_edge_reg](),
-		this->m_options_checker->optimizers_map[m_optimizer]());
-	this->m_logger->logFmt(
-		LVL_WARN, "Successfully initialized CGraphSlamEngine_MR instance.");
+		mrpt::system::LVL_WARN, "Successfully initialized CGraphSlamEngine_ROS instance.");
 }
 
 template <class GRAPH_T>
@@ -225,7 +201,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::getROSParameters(std::string* str_out)
 	ss << "Enable MRPT visuals?      = "
 	   << (this->m_enable_visuals ? "TRUE" : "FALSE") << endl;
 	ss << "Logging verbosity Level   = "
-	   << COutputLogger::logging_levels_to_names()[m_min_logging_level] << endl;
+	   << mrpt::system::COutputLogger::logging_levels_to_names()[m_min_logging_level] << endl;
 
 	ss << endl;
 
@@ -269,7 +245,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::printParams()
 template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::verifyUserInput()
 {
-	this->m_logger->logFmt(LVL_DEBUG, "Verifying user input...");
+	this->m_logger->logFmt(mrpt::system::LVL_DEBUG, "Verifying user input...");
 
 	// verify the NRD, ERD, GSO parameters
 	bool node_success, edge_success, optimizer_success;
@@ -285,7 +261,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::verifyUserInput()
 	if (!node_success)
 	{
 		this->m_logger->logFmt(
-			LVL_ERROR, "\nNode Registration Decider \"%s\" is not available",
+			mrpt::system::LVL_ERROR, "\nNode Registration Decider \"%s\" is not available",
 			m_node_reg.c_str());
 		this->m_options_checker->dumpRegistrarsToConsole("node");
 		failed = true;
@@ -293,7 +269,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::verifyUserInput()
 	if (!edge_success)
 	{
 		this->m_logger->logFmt(
-			LVL_ERROR, "\nEdge Registration Decider \"%s\" is not available.",
+			mrpt::system::LVL_ERROR, "\nEdge Registration Decider \"%s\" is not available.",
 			m_edge_reg.c_str());
 		this->m_options_checker->dumpRegistrarsToConsole("edge");
 		failed = true;
@@ -301,7 +277,7 @@ void CGraphSlamHandler_ROS<GRAPH_T>::verifyUserInput()
 	if (!optimizer_success)
 	{
 		this->m_logger->logFmt(
-			LVL_ERROR, "\ngraphSLAM Optimizser \"%s\" is not available.",
+			mrpt::system::LVL_ERROR, "\ngraphSLAM Optimizser \"%s\" is not available.",
 			m_optimizer.c_str());
 		this->m_options_checker->dumpOptimizersToConsole();
 		failed = true;
@@ -335,23 +311,20 @@ template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::setupComm()
 {
 	this->m_logger->logFmt(
-		LVL_INFO,
-		"Setting up ROS-related subscribers, publishers, services...");
+		mrpt::system::LVL_INFO,
+		"Setting up ROS 2 subscribers, publishers, services...");
 
 	// setup subscribers, publishers, services...
 	this->setupSubs();
 	this->setupPubs();
 	this->setupSrvs();
 
-	// fetch the static geometrical transformations
-	// this->readStaticTFs();
-
 }  // end of setupComm
 
 template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::setupSubs()
 {
-	this->m_logger->logFmt(LVL_INFO, "Setting up the subscribers...");
+	this->m_logger->logFmt(mrpt::system::LVL_INFO, "Setting up the subscribers...");
 
 	// setup the names
 	std::string ns = "input/";
@@ -360,25 +333,21 @@ void CGraphSlamHandler_ROS<GRAPH_T>::setupSubs()
 	m_laser_scan_topic = ns + "laser_scan";
 
 	// odometry
-	m_odom_sub = m_nh->subscribe<nav_msgs::Odometry>(
-		m_odom_topic, m_queue_size, &self_t::sniffOdom, this);
+	m_odom_sub = this->template create_subscription<nav_msgs::msg::Odometry>(
+		m_odom_topic, m_queue_size,
+		std::bind(&self_t::sniffOdom, this, std::placeholders::_1));
 
 	// laser_scans
-	m_laser_scan_sub = m_nh->subscribe<sensor_msgs::LaserScan>(
-		m_laser_scan_topic, m_queue_size, &self_t::sniffLaserScan, this);
-
-	// camera
-	// TODO
-
-	// 3D point clouds
-	// TODO
+	m_laser_scan_sub = this->template create_subscription<sensor_msgs::msg::LaserScan>(
+		m_laser_scan_topic, m_queue_size,
+		std::bind(&self_t::sniffLaserScan, this, std::placeholders::_1));
 
 }  // end of setupSubs
 
 template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::setupPubs()
 {
-	this->m_logger->logFmt(LVL_INFO, "Setting up the publishers...");
+	this->m_logger->logFmt(mrpt::system::LVL_INFO, "Setting up the publishers...");
 
 	// setup the names
 	std::string ns = "feedback/";
@@ -392,37 +361,34 @@ void CGraphSlamHandler_ROS<GRAPH_T>::setupPubs()
 
 	// setup the publishers
 
-	// agent estimated position
-	m_curr_robot_pos_pub = m_nh->advertise<geometry_msgs::PoseStamped>(
-		m_curr_robot_pos_topic, m_queue_size, true);
-	m_robot_trajectory_pub = m_nh->advertise<nav_msgs::Path>(
-		m_robot_trajectory_topic, m_queue_size, true);
-	m_robot_tr_poses_pub = m_nh->advertise<geometry_msgs::PoseArray>(
-		m_robot_tr_poses_topic, m_queue_size, true);
+	// agent estimated position (latched via transient_local)
+	m_curr_robot_pos_pub = this->template create_publisher<geometry_msgs::msg::PoseStamped>(
+		m_curr_robot_pos_topic, rclcpp::QoS(m_queue_size).transient_local());
+	m_robot_trajectory_pub = this->template create_publisher<nav_msgs::msg::Path>(
+		m_robot_trajectory_topic, rclcpp::QoS(m_queue_size).transient_local());
+	m_robot_tr_poses_pub = this->template create_publisher<geometry_msgs::msg::PoseArray>(
+		m_robot_tr_poses_topic, rclcpp::QoS(m_queue_size).transient_local());
 
-	// odometry nav_msgs::Path
-	m_odom_path.header.seq = 0;
-	m_odom_path.header.stamp = ros::Time::now();
+	// odometry nav_msgs::msg::Path
+	m_odom_path.header.stamp = this->now();
 	m_odom_path.header.frame_id = m_anchor_frame_id;
 
-	m_odom_trajectory_pub =
-		m_nh->advertise<nav_msgs::Path>(m_odom_trajectory_topic, m_queue_size);
+	m_odom_trajectory_pub = this->template create_publisher<nav_msgs::msg::Path>(
+		m_odom_trajectory_topic, m_queue_size);
 
-	// generated gridmap
-	m_gridmap_pub = m_nh->advertise<nav_msgs::OccupancyGrid>(
-		m_gridmap_topic, m_queue_size,
-		/*latch=*/true);
+	// generated gridmap (latched)
+	m_gridmap_pub = this->template create_publisher<nav_msgs::msg::OccupancyGrid>(
+		m_gridmap_topic, rclcpp::QoS(m_queue_size).transient_local());
 
-	m_stats_pub = m_nh->advertise<mrpt_msgs::GraphSlamStats>(
-		m_stats_topic, m_queue_size,
-		/*latch=*/true);
+	m_stats_pub = this->template create_publisher<mrpt_msgs::msg::GraphSlamStats>(
+		m_stats_topic, rclcpp::QoS(m_queue_size).transient_local());
 
 }  // end of setupPubs
 
 template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::setupSrvs()
 {
-	this->m_logger->logFmt(LVL_INFO, "Setting up the services...");
+	this->m_logger->logFmt(mrpt::system::LVL_INFO, "Setting up the services...");
 
 	// TODO Error statistics
 
@@ -436,17 +402,17 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 	MRPT_START;
 	bool ret_val = true;
 
-	ros::Time timestamp = ros::Time::now();
+	rclcpp::Time timestamp = this->now();
 
 	// current MRPT robot pose
 	pose_t mrpt_pose = this->m_engine->getCurrentRobotPosEstimation();
 
 	//
-	// convert pose_t to corresponding geometry_msg::TransformStamped
+	// convert pose_t to corresponding geometry_msgs::msg::TransformStamped
 	// anchor frame <=> base_link
 	//
-	geometry_msgs::TransformStamped anchor_base_link_transform;
-	anchor_base_link_transform.header.stamp = ros::Time::now();
+	geometry_msgs::msg::TransformStamped anchor_base_link_transform;
+	anchor_base_link_transform.header.stamp = this->now();
 	anchor_base_link_transform.header.frame_id = m_anchor_frame_id;
 	anchor_base_link_transform.child_frame_id = m_base_link_frame_id;
 
@@ -459,8 +425,7 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 	anchor_base_link_transform.transform.rotation =
 		createQuaternionMsgFromYaw(mrpt_pose.phi());
 
-	// TODO - potential error in the rotation, investigate this
-	m_broadcaster.sendTransform(anchor_base_link_transform);
+	m_broadcaster->sendTransform(anchor_base_link_transform);
 
 	// anchor frame <=> odom frame
 	//
@@ -469,60 +434,56 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 	// the corresponding field would be initialized
 	if (!m_anchor_odom_transform.child_frame_id.empty())
 	{
-		m_broadcaster.sendTransform(m_anchor_odom_transform);
+		m_broadcaster->sendTransform(m_anchor_odom_transform);
 	}
 
 	// set an arrow indicating the current orientation of the robot
 	{
-		geometry_msgs::PoseStamped geom_pose;
+		geometry_msgs::msg::PoseStamped geom_pose;
 		geom_pose.header.stamp = timestamp;
-		geom_pose.header.seq = m_pub_seq;
-		geom_pose.header.frame_id =
-			m_anchor_frame_id;	// with regards to base_link...
+		geom_pose.header.frame_id = m_anchor_frame_id;
 
 		// position
-		geom_pose.pose = mrpt::ros1bridge::toROS_Pose(mrpt_pose);
-		m_curr_robot_pos_pub.publish(geom_pose);
+		geom_pose.pose = mrpt::ros2bridge::toROS_Pose(mrpt_pose);
+		m_curr_robot_pos_pub->publish(geom_pose);
 	}
 
 	// robot trajectory
 	// publish the trajectory of the robot
 	{
 		this->m_logger->logFmt(
-			LVL_DEBUG, "Publishing the current robot trajectory");
+			mrpt::system::LVL_DEBUG, "Publishing the current robot trajectory");
 		typename GRAPH_T::global_poses_t graph_poses;
 		graph_poses = this->m_engine->getRobotEstimatedTrajectory();
 
-		nav_msgs::Path path;
+		nav_msgs::msg::Path path;
 
 		// set the header
 		path.header.stamp = timestamp;
-		path.header.seq = m_pub_seq;
 		path.header.frame_id = m_anchor_frame_id;
 
 		//
-		// fill in the pose as well as the nav_msgs::Path at the same time.
+		// fill in the pose as well as the nav_msgs::msg::Path at the same time.
 		//
 
-		geometry_msgs::PoseArray geom_poses;
+		geometry_msgs::msg::PoseArray geom_poses;
 		geom_poses.header.stamp = timestamp;
 		geom_poses.header.frame_id = m_anchor_frame_id;
 
 		for (auto n_cit = graph_poses.begin(); n_cit != graph_poses.end();
 			 ++n_cit)
 		{
-			geometry_msgs::PoseStamped geom_pose_stamped;
-			geometry_msgs::Pose geom_pose;
+			geometry_msgs::msg::PoseStamped geom_pose_stamped;
+			geometry_msgs::msg::Pose geom_pose;
 
-			// grab the pose - convert to geometry_msgs::Pose format
+			// grab the pose - convert to geometry_msgs::msg::Pose format
 			const pose_t& mrpt_pose = n_cit->second;
-			geom_pose = mrpt::ros1bridge::toROS_Pose(mrpt_pose);
+			geom_pose = mrpt::ros2bridge::toROS_Pose(mrpt_pose);
 			geom_poses.poses.push_back(geom_pose);
 			geom_pose_stamped.pose = geom_pose;
 
 			// edit the header
 			geom_pose_stamped.header.stamp = timestamp;
-			geom_pose_stamped.header.seq = m_pub_seq;
 			geom_pose_stamped.header.frame_id = m_anchor_frame_id;
 
 			path.poses.push_back(geom_pose_stamped);
@@ -531,38 +492,37 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 		// publish only on new node addition
 		if (this->m_engine->getGraph().nodeCount() > m_graph_nodes_last_size)
 		{
-			m_robot_tr_poses_pub.publish(geom_poses);
-			m_robot_trajectory_pub.publish(path);
+			m_robot_tr_poses_pub->publish(geom_poses);
+			m_robot_trajectory_pub->publish(path);
 		}
 	}
 
-	// Odometry trajectory - nav_msgs::Path
-	m_odom_trajectory_pub.publish(m_odom_path);
+	// Odometry trajectory - nav_msgs::msg::Path
+	m_odom_trajectory_pub->publish(m_odom_path);
 
 	// generated gridmap
 	// publish only on new node addition
 	if (this->m_engine->getGraph().nodeCount() > m_graph_nodes_last_size)
 	{
-		std_msgs::Header h;
+		std_msgs::msg::Header h;
 		mrpt::system::TTimeStamp mrpt_time;
 		auto mrpt_gridmap = mrpt::maps::COccupancyGridMap2D::Create();
 		this->m_engine->getMap(mrpt_gridmap, &mrpt_time);
 
 		// timestamp
-		h.stamp = mrpt::ros1bridge::toROS(mrpt_time);
-		h.seq = m_pub_seq;
+		h.stamp = mrpt::ros2bridge::toROS(mrpt_time);
 		h.frame_id = m_anchor_frame_id;
 
 		// nav gridmap
-		nav_msgs::OccupancyGrid nav_gridmap;
-		mrpt::ros1bridge::toROS(*mrpt_gridmap, nav_gridmap, h);
-		m_gridmap_pub.publish(nav_gridmap);
+		nav_msgs::msg::OccupancyGrid nav_gridmap;
+		mrpt::ros2bridge::toROS(*mrpt_gridmap, nav_gridmap, h);
+		m_gridmap_pub->publish(nav_gridmap);
 	}
 
 	// GraphSlamStats publishing
 	{
-		mrpt_msgs::GraphSlamStats stats;
-		stats.header.seq = m_stats_pub_seq++;
+		mrpt_msgs::msg::GraphSlamStats stats;
+		stats.header.stamp = this->now();
 
 		map<string, int> node_stats;
 		map<string, int> edge_stats;
@@ -592,9 +552,9 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 		this->m_engine->getDeformationEnergyVector(
 			&stats.slam_evaluation_metric);
 
-		stats.header.stamp = mrpt::ros1bridge::toROS(mrpt_time);
+		stats.header.stamp = mrpt::ros2bridge::toROS(mrpt_time);
 
-		m_stats_pub.publish(stats);
+		m_stats_pub->publish(stats);
 	}
 
 	// update the last known size
@@ -612,20 +572,20 @@ bool CGraphSlamHandler_ROS<GRAPH_T>::usePublishersBroadcasters()
 
 template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::sniffLaserScan(
-	const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan)
+	const sensor_msgs::msg::LaserScan::SharedPtr ros_laser_scan)
 {
 	using namespace std;
 	using namespace mrpt::obs;
 
 	this->m_logger->logFmt(
-		LVL_DEBUG,
+		mrpt::system::LVL_DEBUG,
 		"sniffLaserScan: Received a LaserScan msg. Converting it to MRPT "
 		"format...");
 
 	// build the CObservation2DRangeScan
 	m_mrpt_laser_scan = CObservation2DRangeScan::Create();
 	mrpt::poses::CPose3D rel_pose;	// pose is 0.
-	mrpt::ros1bridge::fromROS(*ros_laser_scan, rel_pose, *m_mrpt_laser_scan);
+	mrpt::ros2bridge::fromROS(*ros_laser_scan, rel_pose, *m_mrpt_laser_scan);
 
 	m_received_laser_scan = true;
 	CObservation::Ptr tmp =
@@ -635,14 +595,15 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffLaserScan(
 
 template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
-	const nav_msgs::Odometry::ConstPtr& ros_odom)
+	const nav_msgs::msg::Odometry::SharedPtr ros_odom)
 {
 	using namespace std;
 	using namespace mrpt::obs;
 	using namespace mrpt::poses;
+	using namespace mrpt::system;
 
 	this->m_logger->logFmt(
-		LVL_DEBUG,
+		mrpt::system::LVL_DEBUG,
 		"sniffOdom: Received an odometry msg. Converting it to MRPT format...");
 
 	// update the odometry frame with regards to the anchor
@@ -650,13 +611,8 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
 		// header
 		m_anchor_odom_transform.header.frame_id = m_anchor_frame_id;
 		m_anchor_odom_transform.header.stamp = ros_odom->header.stamp;
-		m_anchor_odom_transform.header.seq = ros_odom->header.seq;
 
 		m_anchor_odom_transform.child_frame_id = m_odom_frame_id;
-
-		//
-		// copy ros_odom ==> m_anchor_odom
-		//
 
 		// translation
 		m_anchor_odom_transform.transform.translation.x =
@@ -673,9 +629,9 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
 
 	// build and fill an MRPT CObservationOdometry instance for manipulation
 	// from the main algorithm
-	m_mrpt_odom->timestamp = mrpt::ros1bridge::fromROS(ros_odom->header.stamp);
+	m_mrpt_odom->timestamp = mrpt::ros2bridge::fromROS(ros_odom->header.stamp);
 	m_mrpt_odom->odometry =
-		mrpt::poses::CPose2D(mrpt::ros1bridge::fromROS(ros_odom->pose.pose));
+		mrpt::poses::CPose2D(mrpt::ros2bridge::fromROS(ros_odom->pose.pose));
 
 	// if this is the first call odometry should be 0. Decrement by the
 	// corresponding offset
@@ -689,18 +645,18 @@ void CGraphSlamHandler_ROS<GRAPH_T>::sniffOdom(
 
 	// add to the overall odometry path
 	{
-		geometry_msgs::PoseStamped pose_stamped;
+		geometry_msgs::msg::PoseStamped pose_stamped;
 		pose_stamped.header = ros_odom->header;
 
 		// just for convenience - convert the MRPT pose back to PoseStamped
-		pose_stamped.pose = mrpt::ros1bridge::toROS_Pose(m_mrpt_odom->odometry);
+		pose_stamped.pose = mrpt::ros2bridge::toROS_Pose(m_mrpt_odom->odometry);
 		m_odom_path.poses.push_back(pose_stamped);
 	}
 
 	// print the odometry -  for debugging reasons...
 	stringstream ss;
 	ss << "Odometry - MRPT format:\t" << m_mrpt_odom->odometry << endl;
-	this->m_logger->logFmt(LVL_DEBUG, "%s", ss.str().c_str());
+	this->m_logger->logFmt(mrpt::system::LVL_DEBUG, "%s", ss.str().c_str());
 
 	m_received_odom = true;
 	CObservation::Ptr tmp =
@@ -732,9 +688,6 @@ template <class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::_process(
 	mrpt::obs::CObservation::Ptr& observ)
 {
-	// this->m_logger->logFmt(LVL_DEBUG, "Calling execGraphSlamStep...");
-
-	// TODO - use the exit code of execGraphSlamStep to exit??
 	if (!this->m_engine->isPaused())
 	{
 		this->m_engine->execGraphSlamStep(observ, m_measurement_cnt);

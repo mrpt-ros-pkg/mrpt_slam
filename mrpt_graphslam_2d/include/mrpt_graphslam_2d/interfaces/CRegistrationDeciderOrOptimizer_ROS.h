@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 #include <mrpt/system/COutputLogger.h>
 #include <mrpt/graphslam/interfaces/CRegistrationDeciderOrOptimizer.h>
@@ -20,18 +20,13 @@ public:
 	CRegistrationDeciderOrOptimizer_ROS();
 	virtual ~CRegistrationDeciderOrOptimizer_ROS();
 
-	virtual void setNodeHandle(ros::NodeHandle* nh);
+	virtual void setNodeHandle(rclcpp::Node* node);
 
 protected:
-	/**\brief NodeHandle instance
-	 */
-	ros::NodeHandle* m_nh;
-
-
+	/**\brief Pointer to the rclcpp::Node instance */
+	rclcpp::Node* m_node;
 };
-
 
 } } // end of namespaces
 
 #include "mrpt_graphslam_2d/interfaces/CRegistrationDeciderOrOptimizer_ROS_impl.h"
-

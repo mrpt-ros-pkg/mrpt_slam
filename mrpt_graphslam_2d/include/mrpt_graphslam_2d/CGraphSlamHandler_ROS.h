@@ -10,23 +10,21 @@
 
 #pragma once
 
-// ROS
-#include <ros/ros.h>
-#include <mrpt_msgs/GraphSlamStats.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <sensor_msgs/LaserScan.h>
-#include <nav_msgs/Path.h>
-#include <nav_msgs/Odometry.h>
-#include <nav_msgs/OccupancyGrid.h>
-#include <std_msgs/Header.h>
+// ROS 2
+#include <rclcpp/rclcpp.hpp>
+#include <mrpt_msgs/msg/graph_slam_stats.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <nav_msgs/msg/path.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <nav_msgs/msg/occupancy_grid.hpp>
+#include <std_msgs/msg/header.hpp>
 
 #include <tf2_ros/transform_broadcaster.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <geometry_msgs/TransformStamped.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Vector3.h>
@@ -44,7 +42,8 @@
 #include <mrpt/graphslam/apps_related/CGraphSlamHandler.h>
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS.h"
-#include "mrpt_graphslam_2d/CGraphSlamEngine_MR.h"
+// TODO TICKET-004: MR engine not yet ported to ROS 2
+// #include "mrpt_graphslam_2d/CGraphSlamEngine_MR.h"
 #include "mrpt_graphslam_2d/TUserOptionsChecker_ROS.h"
 
 // cpp headers
@@ -59,10 +58,11 @@ namespace graphslam
 namespace apps
 {
 /**\brief Manage variables, ROS parameters and everything else related to the
- * graphslam-engine ROS wrapper.
+ * graphslam-engine ROS 2 wrapper.
  */
 template <class GRAPH_T = mrpt::graphs::CNetworkOfPoses2DInf>
-class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
+class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>,
+                               public rclcpp::Node
 {
    public:
 	/**\brief type of graph constraints */
@@ -77,7 +77,8 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 
 	CGraphSlamHandler_ROS(
 		mrpt::system::COutputLogger* logger,
-		TUserOptionsChecker<GRAPH_T>* options_checker, ros::NodeHandle* nh_in);
+		TUserOptionsChecker<GRAPH_T>* options_checker,
+		const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 	~CGraphSlamHandler_ROS();
 
 	void getParamsAsString(std::string* str_out);
@@ -101,11 +102,11 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 	/**\brief Callback method for handling incoming odometry measurements in a
 	 * ROS topic.
 	 */
-	void sniffOdom(const nav_msgs::Odometry::ConstPtr& ros_odom);
+	void sniffOdom(const nav_msgs::msg::Odometry::SharedPtr ros_odom);
 	/**\brief Callback method for handling incoming LaserScans objects in a ROS
 	 * topic.
 	 */
-	void sniffLaserScan(const sensor_msgs::LaserScan::ConstPtr& ros_laser_scan);
+	void sniffLaserScan(const sensor_msgs::msg::LaserScan::SharedPtr ros_laser_scan);
 	void sniffCameraImage();
 	/** TODO - Implement this */
 	void sniff3DPointCloud();
@@ -119,7 +120,7 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 	 * execution.
 	 */
 	void generateReport();
-	/**\brief Provide feedback about the SLAM operation using ROS publilshers,
+	/**\brief Provide feedback about the SLAM operation using ROS publishers,
 	 * update the registered frames using the tf2_ros::TransformBroadcaster
 	 *
 	 * Method makes the necessary calls to all the publishers of the class and
@@ -142,13 +143,14 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 
 	/**\brief Initialize the CGraphslamEngine_* object
 	 *
-	 * The CGraphSlamEngine instance is to be instaniated depending on the user
+	 * The CGraphSlamEngine instance is to be instantiated depending on the user
 	 * application at hand. User should call this method just after reading the
 	 * problem parameters.
 	 */
 	/**\{*/
 	void initEngine_ROS();
-	void initEngine_MR();
+	// TODO TICKET-004: not yet ported to ROS 2
+	// void initEngine_MR();
 	/**\}*/
 
 	static const std::string sep_header;
@@ -171,14 +173,14 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 	 * \sa processObservation();
 	 */
 	void _process(mrpt::obs::CObservation::Ptr& observ);
-	/**\brief read configuration parameters from the ROS parameter server.
+	/**\brief read configuration parameters from the ROS 2 parameter server.
 	 *
 	 * \sa readParams
 	 */
 	void readROSParameters();
 	void readStaticTFs();
 	/**\brief Fill in the given string with the parameters that have been read
-	 * from the ROS parameter server
+	 * from the ROS 2 parameter server
 	 *
 	 * \sa getParamsAsString, readROSParameters
 	 */
@@ -203,8 +205,6 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 	void setupPubs();
 	void setupSrvs();
 	/**\}*/
-	/**\brief Pointer to the Ros NodeHanle instance */
-	ros::NodeHandle* m_nh;
 
 	// ROS server parameters
 	/**\name node, edge, optimizer modules in string representation */
@@ -221,7 +221,7 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 	 * \note Value is fetched from the ROS Parameter Server (not from the
 	 * external .ini file.
 	 */
-	VerbosityLevel m_min_logging_level;
+	mrpt::system::VerbosityLevel m_min_logging_level;
 
 	/**\name Received measurements - boolean flags
 	 *
@@ -248,22 +248,18 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 
 	/**\name Subscribers - Publishers
 	 *
-	 * ROS Topic Subscriber/Publisher instances
+	 * ROS 2 Topic Subscriber/Publisher instances
 	 * */
 	/**\{*/
-	ros::Subscriber m_odom_sub;
-	ros::Subscriber m_laser_scan_sub;
-	ros::Subscriber m_camera_scan_sub;
-	ros::Subscriber m_point_cloud_scan_sub;
+	rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr m_odom_sub;
+	rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr m_laser_scan_sub;
 
-	ros::Publisher m_curr_robot_pos_pub;
-	ros::Publisher m_robot_trajectory_pub;
-	ros::Publisher m_robot_tr_poses_pub;
-	ros::Publisher m_gt_trajectory_pub;	 // TODO
-	ros::Publisher m_SLAM_eval_metric_pub;	// TODO
-	ros::Publisher m_odom_trajectory_pub;
-	ros::Publisher m_gridmap_pub;
-	ros::Publisher m_stats_pub;
+	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_curr_robot_pos_pub;
+	rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr m_robot_trajectory_pub;
+	rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr m_robot_tr_poses_pub;
+	rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr m_odom_trajectory_pub;
+	rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr m_gridmap_pub;
+	rclcpp::Publisher<mrpt_msgs::msg::GraphSlamStats>::SharedPtr m_stats_pub;
 	/**\}*/
 
 	/**\name Topic Names
@@ -273,8 +269,6 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 	/**\{*/
 	std::string m_odom_topic;
 	std::string m_laser_scan_topic;
-	std::string m_camera_topic;
-	std::string m_point_cloud_topic;
 
 	std::string m_curr_robot_pos_topic;
 	std::string m_robot_trajectory_topic;
@@ -287,8 +281,9 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 	/**\name TransformBroadcasters - TransformListeners
 	 */
 	/**\{*/
-	tf2_ros::Buffer m_buffer;
-	tf2_ros::TransformBroadcaster m_broadcaster;
+	std::shared_ptr<tf2_ros::Buffer> m_buffer;
+	std::shared_ptr<tf2_ros::TransformListener> m_listener;
+	std::shared_ptr<tf2_ros::TransformBroadcaster> m_broadcaster;
 	/**\}*/
 
 	/**\name TF Frame IDs
@@ -308,15 +303,15 @@ class CGraphSlamHandler_ROS : public CGraphSlamHandler<GRAPH_T>
 	 * the different robot parts etc.
 	 */
 	/**\{*/
-	geometry_msgs::TransformStamped m_anchor_odom_transform;
+	geometry_msgs::msg::TransformStamped m_anchor_odom_transform;
 	/**\}*/
 
 	/**\brief Odometry path of the robot.
 	 * Handy mostly for visualization reasons.
 	 */
-	nav_msgs::Path m_odom_path;
+	nav_msgs::msg::Path m_odom_path;
 
-	/**\brief Times a messge has been published => usePublishersBroadcasters
+	/**\brief Times a message has been published => usePublishersBroadcasters
 	 * method is called
 	 */
 	int m_pub_seq;

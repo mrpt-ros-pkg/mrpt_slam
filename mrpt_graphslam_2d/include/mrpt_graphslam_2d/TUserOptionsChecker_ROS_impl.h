@@ -27,17 +27,13 @@ createDeciderOptimizerMappings() {
 	using namespace mrpt::graphslam::deciders;
 	parent::createDeciderOptimizerMappings();
 
-	// node registration deciders
-	this->node_regs_map["CICPCriteriaNRD_MR"] =
-		parent::template createNodeRegistrationDecider<CICPCriteriaNRD_MR<GRAPH_T>>;
-	this->node_regs_map["CFixedIntervalsNRD_MR"] =
-		parent::template createNodeRegistrationDecider<CFixedIntervalsNRD_MR<GRAPH_T>>;
-
-	// edge registration deciders
-	this->edge_regs_map["CLoopCloserERD_MR"] =
-		parent::template createEdgeRegistrationDecider<CLoopCloserERD_MR<GRAPH_T>>;
-
-	// optimizers
+	// TODO TICKET-004: MR node/edge registration deciders not yet ported to ROS 2
+	// this->node_regs_map["CICPCriteriaNRD_MR"] =
+	//     parent::template createNodeRegistrationDecider<CICPCriteriaNRD_MR<GRAPH_T>>;
+	// this->node_regs_map["CFixedIntervalsNRD_MR"] =
+	//     parent::template createNodeRegistrationDecider<CFixedIntervalsNRD_MR<GRAPH_T>>;
+	// this->edge_regs_map["CLoopCloserERD_MR"] =
+	//     parent::template createEdgeRegistrationDecider<CLoopCloserERD_MR<GRAPH_T>>;
 
 } // end of createDeciderOptimizerMappings
 
@@ -47,45 +43,9 @@ void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties() {
 	using namespace std;
 
 	parent::populateDeciderOptimizerProperties();
-	{ // CICPCriteriaNRD_MR
-		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
-		dec->name = "CICPCriteriaNRD_MR";
-		dec->description =
-			"Multi-robot SLAM implementation of the CICPCriteriaNRD class based on \"Condensed Measurements\"";
-		dec->type = "Node";
-		dec->rawlog_format = "Both";
-		dec->observations_used.push_back("CObservation2DRangeScan - Format #1, #2");
-		dec->is_mr_slam_class = "true";
 
-		this->regs_descriptions.push_back(dec);
-	}
-	{ // CFixedIntervalsNRD_MR
-		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
-		dec->name = "CFixedIntervalsNRD_MR";
-		dec->description =
-			"Multi-robot SLAM implementation of the CFixedIntervalsNRD class based on \"Condensed Measurements\"";
-		dec->type = "Node";
-		dec->rawlog_format = "Both";
-		dec->observations_used.push_back("CObservation2DRangeScan - Format #1, #2");
-		dec->is_mr_slam_class = "true";
-
-		this->regs_descriptions.push_back(dec);
-	}
-
-	{ // CLoopCloserERD_MR
-		TRegistrationDeciderProps* dec = new TRegistrationDeciderProps;
-		dec->name = "CLoopCloserERD_MR";
-		dec->description =
-			"Multi-robot SLAM implementation of the CLoopCloserERD class based on \"Condensed Measurements\"";
-		dec->type = "Edge";
-		dec->rawlog_format = "Both";
-		dec->observations_used.push_back("CObservation2DRangeScan - Format #1, #2");
-		dec->is_mr_slam_class = "true";
-
-		this->regs_descriptions.push_back(dec);
-	}
-
+	// TODO TICKET-004: MR decider/optimizer properties not yet ported to ROS 2
+	// CICPCriteriaNRD_MR, CFixedIntervalsNRD_MR, CLoopCloserERD_MR descriptions
 }
 
 } } } //end namespaces
-

@@ -12,7 +12,7 @@ namespace mrpt { namespace graphslam {
 
 template<class GRAPH_t>
 CGraphSlamEngine_ROS<GRAPH_t>::CGraphSlamEngine_ROS(
-		ros::NodeHandle* nh,
+		rclcpp::Node* node,
 		const std::string& config_file,
 		const std::string& rawlog_fname/* ="" */,
 		const std::string& fname_GT /* ="" */,
@@ -28,7 +28,7 @@ CGraphSlamEngine_ROS<GRAPH_t>::CGraphSlamEngine_ROS(
 			node_reg,
 			edge_reg,
 			optimizer),
-	m_nh(nh)
+	m_node(node)
 {
 	this->initClass();
 }
@@ -36,7 +36,6 @@ CGraphSlamEngine_ROS<GRAPH_t>::CGraphSlamEngine_ROS(
 template<class GRAPH_t>
 CGraphSlamEngine_ROS<GRAPH_t>::~CGraphSlamEngine_ROS() {
 	MRPT_LOG_DEBUG_STREAM("In Destructor: Deleting CGraphSlamEngine_ROS instance...");
-	ros::shutdown();
 }
 
 template<class GRAPH_t>
@@ -45,33 +44,32 @@ void CGraphSlamEngine_ROS<GRAPH_t>::initClass() {
 	this->m_class_name = "CGraphSlamEngine_ROS";
 	this->setLoggerName(this->m_class_name);
 
-	// http://wiki.ros.org/rospy/Overview/Publishers%20and%20Subscribers#queue_size:_publish.28.29_behavior_and_queuing
 	m_queue_size = 10;
 
 	this->setupComm();
 
 	// in case of ROS specific deciders/optimizers (they inherit from the CDeciderOrOptimizer_ROS interface)
-	// set the NodeHandle
+	// set the Node handle
 	{
 	 	CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>* dec_opt_ros =
 	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_node_reg);
 
 	 	if (dec_opt_ros) {
-	 	 	dec_opt_ros->setNodeHandle(m_nh);
+	 	 	dec_opt_ros->setNodeHandle(m_node);
 	 	}
 	}
 	{
 		CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>* dec_opt_ros =
 	 	 	dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_edge_reg);
 		if (dec_opt_ros) {
-	 		dec_opt_ros->setNodeHandle(m_nh);
+	 		dec_opt_ros->setNodeHandle(m_node);
 		}
 	}
 	{
 		CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>* dec_opt_ros =
 			dynamic_cast<CRegistrationDeciderOrOptimizer_ROS<GRAPH_t>*>(this->m_optimizer);
 		if (dec_opt_ros) {
-	 		dec_opt_ros->setNodeHandle(m_nh);
+	 		dec_opt_ros->setNodeHandle(m_node);
 		}
 	}
 
@@ -136,4 +134,3 @@ void CGraphSlamEngine_ROS<GRAPH_t>::setupSrvs() {
 
 
 } } // end of namespaces
-
