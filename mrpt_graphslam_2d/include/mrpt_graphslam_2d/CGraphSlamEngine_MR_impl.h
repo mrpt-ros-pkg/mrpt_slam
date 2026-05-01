@@ -951,7 +951,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::setupSrvs()
 				mrpt_msgs::srv::GetCMGraph::Response::SharedPtr res) {
 				this->getCMGraph(req, res);
 			},
-			rclcpp::ServicesQoS(), cb_group);
+			rclcpp::ServicesQoS().get_rmw_qos_profile(), cb_group);
 }
 
 template <class GRAPH_T>
