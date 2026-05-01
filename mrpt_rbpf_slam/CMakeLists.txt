@@ -25,7 +25,7 @@ find_package(mrpt_msgs_bridge REQUIRED)
 # Find MRPT packages
 find_package(mrpt-gui REQUIRED)
 find_package(mrpt-slam REQUIRED)
-find_package(mrpt-ros2bridge REQUIRED)
+find_package(mrpt_libros_bridge REQUIRED)
 
 # Compiler options
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -79,7 +79,7 @@ ament_target_dependencies(mrpt_rbpf_slam
 target_link_libraries(mrpt_rbpf_slam
   mrpt::slam
   mrpt::gui
-  mrpt::ros2bridge
+  mrpt_libros_bridge::mrpt_libros_bridge
 )
 
 #############

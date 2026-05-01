@@ -23,7 +23,7 @@ find_package(visualization_msgs REQUIRED)
 # Find MRPT packages
 find_package(mrpt-gui REQUIRED)
 find_package(mrpt-slam REQUIRED)
-find_package(mrpt-ros2bridge REQUIRED)
+find_package(mrpt_libros_bridge REQUIRED)
 
 # Compiler options (keep existing warnings from ROS1 version)
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -71,7 +71,7 @@ ament_target_dependencies(mrpt_icp_slam_2d
 target_link_libraries(mrpt_icp_slam_2d
   mrpt::slam
   mrpt::gui
-  mrpt::ros2bridge
+  mrpt_libros_bridge::mrpt_libros_bridge
 )
 
 #############

@@ -28,7 +28,7 @@ find_package(mrpt_msgs_bridge REQUIRED)
 list(PREPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
 find_package(mrpt-gui REQUIRED)
 find_package(mrpt-graphslam REQUIRED)
-find_package(mrpt-ros2bridge REQUIRED)
+find_package(mrpt_libros_bridge REQUIRED)
 
 # TODO TICKET-004: fkie_multimaster_msgs removed — no ROS 2 equivalent
 # find_package(fkie_multimaster_msgs REQUIRED)
@@ -80,7 +80,7 @@ ament_target_dependencies(mrpt_graphslam_2d_node
 target_link_libraries(mrpt_graphslam_2d_node
     mrpt::graphslam
     mrpt::gui
-    mrpt::ros2bridge
+    mrpt_libros_bridge::mrpt_libros_bridge
 )
 
 # Multi-robot node (TICKET-004)
@@ -108,7 +108,7 @@ ament_target_dependencies(mrpt_graphslam_2d_mr_node
 target_link_libraries(mrpt_graphslam_2d_mr_node
     mrpt::graphslam
     mrpt::gui
-    mrpt::ros2bridge
+    mrpt_libros_bridge::mrpt_libros_bridge
 )
 
 # Map merger node — standalone map-merging utility (TICKET-004)
@@ -129,7 +129,7 @@ ament_target_dependencies(map_merger_node
 target_link_libraries(map_merger_node
     mrpt::graphslam
     mrpt::gui
-    mrpt::ros2bridge
+    mrpt_libros_bridge::mrpt_libros_bridge
 )
 
 # Install
