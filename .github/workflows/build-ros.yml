@@ -49,7 +49,11 @@ jobs:
         run: |
           apt-get install -y \
             ros-${{ matrix.ros_distribution }}-mrpt-msgs \
-            ros-${{ matrix.ros_distribution }}-mrpt-msgs-bridge || true
+            ros-${{ matrix.ros_distribution }}-mrpt-msgs-bridge \
+            ros-${{ matrix.ros_distribution }}-mrpt-libgui \
+            ros-${{ matrix.ros_distribution }}-mrpt-libslam \
+            ros-${{ matrix.ros_distribution }}-mrpt-libros-bridge \
+            ros-${{ matrix.ros_distribution }}-mrpt-libapps || true
 
       - name: Build with colcon
         run: |
