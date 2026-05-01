@@ -1,17 +1,18 @@
-"""Launch file for EKF SLAM 3D with wheeled robot (2D motion, 3D landmarks).
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
 
-Copyright (C) 2024-2026 Maintainers
-Licensed under BSD-3-Clause
-"""
+"""Launch file for EKF SLAM 3D with wheeled robot (2D motion, 3D landmarks)."""
 
 from launch import LaunchDescription
 from launch.actions import (
     IncludeLaunchDescription,
     SetEnvironmentVariable,
 )
-from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import PathJoinSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare

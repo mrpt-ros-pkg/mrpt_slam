@@ -9,15 +9,18 @@
     Reads measurements directly from ROS topics (single-robot mode).
   </description>
 
-  <url type="website">http://www.mrpt.org/</url>
-  <url type="documentation">https://wiki.ros.org/mrpt_slam</url>
   <maintainer email="nickkouk@gmail.com">Nikos Koukis</maintainer>
   <maintainer email="joseluisblancoc@gmail.com">Jose Luis Blanco-Claraco</maintainer>
   <maintainer email="shravansomashekara.rai@gmail.com">Shravan S Rai</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://www.mrpt.org/</url>
+  <url type="website">https://wiki.ros.org/mrpt_slam</url>
+
   <author email="nickkouk@gmail.com">Nikos Koukis</author>
   <author email="joseluisblancoc@gmail.com">Jose Luis Blanco-Claraco</author>
   <author email="shravansomashekara.rai@gmail.com">Shravan S Rai</author>
-  <license>BSD</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

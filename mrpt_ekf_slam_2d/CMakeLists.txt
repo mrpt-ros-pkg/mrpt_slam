@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.8)
 project(mrpt_ekf_slam_2d)
 
-# Compiler settings for ROS2
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Find ROS2 packages
+# Pure ROS 2 / ament packages — safe to load before ament_target_dependencies.
+# MRPT bridge packages (mrpt_msgs_bridge, mrpt_libros_bridge, mrpt-gui, mrpt-slam)
+# are loaded AFTER ament_target_dependencies because their cmake configs
+# transitively pull in system MRPT cmake files that corrupt ament cmake macros.
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -20,20 +22,9 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(mrpt_msgs REQUIRED)
-find_package(mrpt_msgs_bridge REQUIRED)
 
-# Find MRPT packages
-find_package(mrpt-gui REQUIRED)
-find_package(mrpt-slam REQUIRED)
-find_package(mrpt_libros_bridge REQUIRED)
-
-# Compiler options
 if(CMAKE_COMPILER_IS_GNUCXX)
-  # High level of warnings
-  # The -Wno-long-long is required in 64bit systems when including system headers
-  # The -Wno-variadic-macros was needed for Eigen3, StdVector.h
   add_compile_options(-Wall -Wno-long-long -Wno-variadic-macros)
-  # Workaround: Eigen <3.4 produces *tons* of warnings in GCC >=6
   if(NOT ${CMAKE_CXX_COMPILER_VERSION} LESS "6.0")
     add_compile_options(-Wno-ignored-attributes -Wno-int-in-bool-context)
   endif()
@@ -43,13 +34,7 @@ if(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   add_compile_options(-O3)
 endif()
 
-###########
-## Build ##
-###########
-
-include_directories(
-  include
-)
+include_directories(include)
 
 add_executable(mrpt_ekf_slam_2d
   src/mrpt_ekf_slam_2d.cpp
@@ -57,7 +42,7 @@ add_executable(mrpt_ekf_slam_2d
   src/mrpt_ekf_slam_2d_app.cpp
 )
 
-# Dependencies for executable
+# ament_target_dependencies must be called before any MRPT bridge find_package.
 ament_target_dependencies(mrpt_ekf_slam_2d
   rclcpp
   rclcpp_components
@@ -71,26 +56,26 @@ ament_target_dependencies(mrpt_ekf_slam_2d
   geometry_msgs
   visualization_msgs
   mrpt_msgs
-  mrpt_msgs_bridge
 )
 
-# Link MRPT libraries to executable
+# Load MRPT packages after ament_target_dependencies — their cmake configs
+# corrupt ament cmake macros via transitive system MRPT cmake dependencies.
+find_package(mrpt_libros_bridge REQUIRED)
+find_package(mrpt_msgs_bridge REQUIRED)
+find_package(mrpt-gui REQUIRED)
+find_package(mrpt-slam REQUIRED)
+
 target_link_libraries(mrpt_ekf_slam_2d
+  mrpt_msgs_bridge::mrpt_msgs_bridge
   mrpt::slam
   mrpt::gui
   mrpt_libros_bridge::mrpt_libros_bridge
 )
 
-#############
-## Install ##
-#############
-
-# Install executable
 install(TARGETS mrpt_ekf_slam_2d
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# Install directories
 install(DIRECTORY
   config
   launch
@@ -99,19 +84,13 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
-#############
-## Testing ##
-#############
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_pytest REQUIRED)
   find_package(ament_cmake_gtest REQUIRED)
 
-  # Linting
   ament_lint_auto_find_test_dependencies()
 
-  # Python smoke tests
   ament_add_pytest_test(test_launch_files test/test_launch_files.py
     TIMEOUT 60
   )
@@ -124,16 +103,11 @@ if(BUILD_TESTING)
     TIMEOUT 30
   )
 
-  # C++ unit tests (pure math — no ROS spin required)
   ament_add_gtest(test_ekf_slam_core test/test_ekf_slam_core.cpp)
   target_include_directories(test_ekf_slam_core PRIVATE include)
   target_link_libraries(test_ekf_slam_core mrpt::slam)
 endif()
 
-# Integration tests — gated behind an opt-in flag (slow, require a running
-# ROS 2 environment).  Enable with:
-#   colcon build --packages-select mrpt_ekf_slam_2d \
-#       --cmake-args -DENABLE_INTEGRATION_TESTS=ON
 option(ENABLE_INTEGRATION_TESTS "Build and register integration tests (slow, ~90 s)" OFF)
 
 if(BUILD_TESTING AND ENABLE_INTEGRATION_TESTS)

@@ -1,3 +1,9 @@
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
+
 """Launch file for RBPF SLAM with rawlog playback."""
 
 from launch import LaunchDescription
@@ -16,7 +22,7 @@ def generate_launch_description():
     example_arg = DeclareLaunchArgument(
         'example',
         default_value='',
-        description='Optional suffix for rawlog file (e.g., "_2" for grid_slam_demo_2.rawlog)'
+        description="Optional suffix for rawlog file (e.g., '_2' for grid_slam_demo_2.rawlog)"
     )
 
     # Set ROS console configuration

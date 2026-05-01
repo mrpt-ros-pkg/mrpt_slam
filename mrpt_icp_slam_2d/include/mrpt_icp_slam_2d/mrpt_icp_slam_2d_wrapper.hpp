@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /*
  * File: mrpt_icp_slam_2d_wrapper.hpp
  * Author: Vladislav Tananaev
@@ -88,148 +94,148 @@ namespace mrpt_icp_slam_2d
  */
 class ICPslamWrapper : public rclcpp::Node
 {
-   public:
-	/**
-	 * @brief constructor
-	 */
-	ICPslamWrapper(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+public:
+        /**
+         * @brief constructor
+         */
+  ICPslamWrapper(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
-	/**
-	 * @brief destructor
-	 */
-	~ICPslamWrapper();
+        /**
+         * @brief destructor
+         */
+  ~ICPslamWrapper();
 
-	/**
-	 * @brief read ini file
-	 *
-	 * @param ini_filename the name of the ini file to read
-	 */
-	void read_iniFile(std::string ini_filename);
-	/**
-	 * @brief init 3D window from mrpt lib
-	 */
-	void init3Dwindow();
-	/**
-	 * @brief run 3D window update from mrpt lib
-	 */
-	void run3Dwindow();
+        /**
+         * @brief read ini file
+         *
+         * @param ini_filename the name of the ini file to read
+         */
+  void read_iniFile(std::string ini_filename);
+        /**
+         * @brief init 3D window from mrpt lib
+         */
+  void init3Dwindow();
+        /**
+         * @brief run 3D window update from mrpt lib
+         */
+  void run3Dwindow();
 
-	/**
-	 * @brief read the parameters from launch file
-	 */
-	void get_param();
-	/**
-	 * @brief initialize publishers subscribers and icp slam
-	 */
-	void init();
-	/**
-	 * @brief play rawlog file
-	 *
-	 * @return true if rawlog file exists and played
-	 */
-	bool rawlogPlay();
-	/**
-	 * @brief check the existance of the file
-	 *
-	 * @return true if file exists
-	 */
-	bool is_file_exists(const std::string& name);
-	/**
-	 * @brief callback function for the laser scans
-	 *
-	 * Given the laser scans,
-	 * implement one SLAM update,
-	 * publish map and pose.
-	 *
-	 * @param msg  the laser scan message
-	 */
-	void laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
-	/**
-	 * @brief  publish tf tree
-	 *
-	 */
-	void publishTF();
-	/**
-	 * @brief publish point and/or grid map and robot pose
-	 *
-	 */
-	void publishMapPose();
-	/**
-	 * @brief  update the pose of the sensor with respect to the robot
-	 *
-	 *@param frame_id the frame of the sensors
-	 */
-	void updateSensorPose(std::string _frame_id);
-	/**
-	 * @brief  the callback for update trajectory
-	 *
-	 */
-	void updateTrajectoryTimerCallback();
-	/**
-	 * @brief  the callback for publish trajectory
-	 *
-	 */
-	void publishTrajectoryTimerCallback();
+        /**
+         * @brief read the parameters from launch file
+         */
+  void get_param();
+        /**
+         * @brief initialize publishers subscribers and icp slam
+         */
+  void init();
+        /**
+         * @brief play rawlog file
+         *
+         * @return true if rawlog file exists and played
+         */
+  bool rawlogPlay();
+        /**
+         * @brief check the existance of the file
+         *
+         * @return true if file exists
+         */
+  bool is_file_exists(const std::string & name);
+        /**
+         * @brief callback function for the laser scans
+         *
+         * Given the laser scans,
+         * implement one SLAM update,
+         * publish map and pose.
+         *
+         * @param msg  the laser scan message
+         */
+  void laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
+        /**
+         * @brief  publish tf tree
+         *
+         */
+  void publishTF();
+        /**
+         * @brief publish point and/or grid map and robot pose
+         *
+         */
+  void publishMapPose();
+        /**
+         * @brief  update the pose of the sensor with respect to the robot
+         *
+         *@param frame_id the frame of the sensors
+         */
+  void updateSensorPose(std::string _frame_id);
+        /**
+         * @brief  the callback for update trajectory
+         *
+         */
+  void updateTrajectoryTimerCallback();
+        /**
+         * @brief  the callback for publish trajectory
+         *
+         */
+  void publishTrajectoryTimerCallback();
 
-   protected:
-	CMetricMapBuilderICP mapBuilder;  ///< icp slam class
+protected:
+  CMetricMapBuilderICP mapBuilder;        ///< icp slam class
 
-	double rawlog_play_delay_;  ///< delay of replay from rawlog file
-	bool rawlog_play_{false};  ///< true if rawlog file exists
+  double rawlog_play_delay_;        ///< delay of replay from rawlog file
+  bool rawlog_play_{false};        ///< true if rawlog file exists
 
-	std::string rawlog_filename_;  ///< name of rawlog file
-	std::string ini_filename_;  ///< name of ini file
-	std::string global_frame_id_;  ///< /map frame
-	std::string odom_frame_id_;  ///< /odom frame
-	std::string base_frame_id_;  ///< robot frame
-	geometry_msgs::msg::PoseStamped pose;  ///< the robot pose
+  std::string rawlog_filename_;        ///< name of rawlog file
+  std::string ini_filename_;        ///< name of ini file
+  std::string global_frame_id_;        ///< /map frame
+  std::string odom_frame_id_;        ///< /odom frame
+  std::string base_frame_id_;        ///< robot frame
+  geometry_msgs::msg::PoseStamped pose;        ///< the robot pose
 
-	rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr trajectory_pub_;  ///< trajectory publisher
-	nav_msgs::msg::Path path;  ///< trajectory path
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr trajectory_pub_;        ///< trajectory publisher
+  nav_msgs::msg::Path path;        ///< trajectory path
 
-	rclcpp::TimerBase::SharedPtr update_trajectory_timer_;  ///< timer for update trajectory
-	rclcpp::TimerBase::SharedPtr publish_trajectory_timer_;  ///< timer for publish trajectory
+  rclcpp::TimerBase::SharedPtr update_trajectory_timer_;        ///< timer for update trajectory
+  rclcpp::TimerBase::SharedPtr publish_trajectory_timer_;        ///< timer for publish trajectory
 
-	double trajectory_update_rate_;  ///< trajectory update rate(Hz)
-	double trajectory_publish_rate_;  ///< trajectory publish rate(Hz)
+  double trajectory_update_rate_;        ///< trajectory update rate(Hz)
+  double trajectory_publish_rate_;        ///< trajectory publish rate(Hz)
 
-	// Sensor source
-	std::string sensor_source_;  ///< 2D laser scans
-	std::map<std::string, mrpt::poses::CPose3D>
-		laser_poses_;  ///< laser scan poses with respect to the map
+        // Sensor source
+  std::string sensor_source_;        ///< 2D laser scans
+  std::map<std::string, mrpt::poses::CPose3D>
+  laser_poses_;                ///< laser scan poses with respect to the map
 
-	// Subscribers
-	std::vector<rclcpp::SubscriptionBase::SharedPtr> sensorSub_;  ///< list of sensors topics
+        // Subscribers
+  std::vector<rclcpp::SubscriptionBase::SharedPtr> sensorSub_;        ///< list of sensors topics
 
-	// receive map after iteration of SLAM to metric map
-	CMultiMetricMap metric_map_;
+        // receive map after iteration of SLAM to metric map
+  CMultiMetricMap metric_map_;
 
-	// Publishers
-	rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_map_;
-	rclcpp::Publisher<nav_msgs::msg::MapMetaData>::SharedPtr pub_metadata_;
-	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_pose_;
-	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_point_cloud_;
+        // Publishers
+  rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_map_;
+  rclcpp::Publisher<nav_msgs::msg::MapMetaData>::SharedPtr pub_metadata_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_pose_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_point_cloud_;
 
-	// TF2 infrastructure
-	std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-	std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+        // TF2 infrastructure
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
-	CTicTac tictac;  ///< timer for SLAM performance evaluation
-	float t_exec;  ///< the time which take one SLAM update execution
-	CSensoryFrame::Ptr observations;
-	CObservation::Ptr observation;
-	mrpt::system::TTimeStamp
-		timeLastUpdate_;  ///< last update of the pose and map
+  CTicTac tictac;        ///< timer for SLAM performance evaluation
+  float t_exec;        ///< the time which take one SLAM update execution
+  CSensoryFrame::Ptr observations;
+  CObservation::Ptr observation;
+  mrpt::system::TTimeStamp
+    timeLastUpdate_;              ///< last update of the pose and map
 
-	mrpt::gui::CDisplayWindow3D::Ptr win3D_;  ///< MRPT window
+  mrpt::gui::CDisplayWindow3D::Ptr win3D_;        ///< MRPT window
 
-	std::vector<CObservation2DRangeScan::Ptr> lst_current_laser_scans;
-	bool isObsBasedRawlog;
-	bool SHOW_PROGRESS_3D_REAL_TIME;
-	int SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS;
-	bool SHOW_LASER_SCANS_3D;
-	bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
+  std::vector<CObservation2DRangeScan::Ptr> lst_current_laser_scans;
+  bool isObsBasedRawlog;
+  bool SHOW_PROGRESS_3D_REAL_TIME;
+  int SHOW_PROGRESS_3D_REAL_TIME_DELAY_MS;
+  bool SHOW_LASER_SCANS_3D;
+  bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
 };
 
 }  // namespace mrpt_icp_slam_2d

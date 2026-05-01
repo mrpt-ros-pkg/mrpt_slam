@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -54,63 +60,63 @@ namespace graphslam
  */
 class CMapMerger
 {
-   public:
-	typedef std::map<TNeighborAgentMapProps*, COccupancyGridMap2D::Ptr> maps_t;
-	typedef std::map<TNeighborAgentMapProps*, bool> neighbor_to_is_used_t;
-	typedef std::map<TNeighborAgentMapProps*, mrpt::poses::CPose2D>
-		neighbor_to_rel_pose_t;
+public:
+  typedef std::map<TNeighborAgentMapProps *, COccupancyGridMap2D::Ptr> maps_t;
+  typedef std::map<TNeighborAgentMapProps *, bool> neighbor_to_is_used_t;
+  typedef std::map<TNeighborAgentMapProps *, mrpt::poses::CPose2D>
+    neighbor_to_rel_pose_t;
 
-	/**\brief Robot trajectory visual object type */
-	typedef std::map<TNeighborAgentMapProps*, mrpt::opengl::CSetOfLines::Ptr>
-		trajectories_t;
-	typedef std::vector<TNeighborAgentMapProps*> neighbors_t;
-	CMapMerger(mrpt::system::COutputLogger* logger_in, rclcpp::Node* node_in);
-	~CMapMerger();
-	void mergeMaps();
-	/**\brief Query and fetch the list of new graphSLAM agents.
-	 *
-	 * \return True if execution is to continue normally.
-	 */
-	bool updateState();
+        /**\brief Robot trajectory visual object type */
+  typedef std::map<TNeighborAgentMapProps *, mrpt::opengl::CSetOfLines::Ptr>
+    trajectories_t;
+  typedef std::vector<TNeighborAgentMapProps *> neighbors_t;
+  CMapMerger(mrpt::system::COutputLogger * logger_in, rclcpp::Node * node_in);
+  ~CMapMerger();
+  void mergeMaps();
+        /**\brief Query and fetch the list of new graphSLAM agents.
+         *
+         * \return True if execution is to continue normally.
+         */
+  bool updateState();
 
-   private:
-	/**\brief Compact method for monitoring the given keystrokes for the given
-	 * observer.
-	 */
-	void monitorKeystrokes(mrpt::graphslam::CWindowObserver* win_observer);
-	void initWindowVisuals(mrpt::graphslam::CWindowManager* win_manager);
-	mrpt::graphslam::CWindowManager* initWindowVisuals();
+private:
+        /**\brief Compact method for monitoring the given keystrokes for the given
+         * observer.
+         */
+  void monitorKeystrokes(mrpt::graphslam::CWindowObserver * win_observer);
+  void initWindowVisuals(mrpt::graphslam::CWindowManager * win_manager);
+  mrpt::graphslam::CWindowManager * initWindowVisuals();
 
-	/**\brief CConnectionManager instance for fetching the running graphSLAM
-	 * agents
-	 */
-	neighbors_t m_neighbors;
-	std::map<TNeighborAgentMapProps*, CWindowManager*> m_neighbors_to_windows;
-	mrpt::system::COutputLogger* m_logger;
-	rclcpp::Node* m_nh;
-	mrpt::graphslam::detail::CConnectionManager m_conn_manager;
+        /**\brief CConnectionManager instance for fetching the running graphSLAM
+         * agents
+         */
+  neighbors_t m_neighbors;
+  std::map<TNeighborAgentMapProps *, CWindowManager *> m_neighbors_to_windows;
+  mrpt::system::COutputLogger * m_logger;
+  rclcpp::Node * m_nh;
+  mrpt::graphslam::detail::CConnectionManager m_conn_manager;
 
-	/**\brief Topic namespace under which current node is going to be
-	 * publishing.
-	 */
-	std::string m_global_ns;
-	/**\brief Topic namespace under which, options that are used during the map
-	 * alignment procedure are fetched from
-	 */
-	std::string m_options_ns;
-	std::string m_feedback_ns;
-	size_t m_queue_size;
-	mrpt::slam::CGridMapAligner::TConfigParams m_alignment_options;
+        /**\brief Topic namespace under which current node is going to be
+         * publishing.
+         */
+  std::string m_global_ns;
+        /**\brief Topic namespace under which, options that are used during the map
+         * alignment procedure are fetched from
+         */
+  std::string m_options_ns;
+  std::string m_feedback_ns;
+  size_t m_queue_size;
+  mrpt::slam::CGridMapAligner::TConfigParams m_alignment_options;
 
-	std::string quit_keypress1;
-	std::string quit_keypress2;
-	std::string map_merge_keypress;
+  std::string quit_keypress1;
+  std::string quit_keypress2;
+  std::string map_merge_keypress;
 
-	bool save_map_merging_results;
+  bool save_map_merging_results;
 
-	mrpt::graphslam::CWindowManager* m_fused_map_win_manager;
+  mrpt::graphslam::CWindowManager * m_fused_map_win_manager;
 
-};	// end of CMapMerger
+};      // end of CMapMerger
 
 }  // namespace graphslam
 }  // namespace mrpt

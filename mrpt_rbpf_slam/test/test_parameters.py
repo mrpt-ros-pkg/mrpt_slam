@@ -1,7 +1,14 @@
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
+
 """Smoke tests for parameter loading and validation."""
 
 import os
 import unittest
+
 from ament_index_python.packages import get_package_share_directory
 import yaml
 
@@ -15,7 +22,7 @@ class TestParameters(unittest.TestCase):
         yaml_path = os.path.join(pkg_dir, 'config', 'default.yaml')
         self.assertTrue(
             os.path.exists(yaml_path),
-            f"Parameter file not found: {yaml_path}"
+            f'Parameter file not found: {yaml_path}'
         )
 
     def test_default_yaml_valid(self):
@@ -28,9 +35,9 @@ class TestParameters(unittest.TestCase):
                 params = yaml.safe_load(f)
             self.assertIsNotNone(params)
         except yaml.YAMLError as e:
-            self.fail(f"Invalid YAML in default.yaml: {str(e)}")
-        except Exception as e:
-            self.fail(f"Failed to load default.yaml: {str(e)}")
+            self.fail(f'Invalid YAML in default.yaml: {str(e)}')
+        except Exception as e:  # noqa: B902
+            self.fail(f'Failed to load default.yaml: {str(e)}')
 
     def test_ini_files_exist(self):
         """Test that required .ini configuration files exist."""
@@ -44,7 +51,7 @@ class TestParameters(unittest.TestCase):
             ini_path = os.path.join(pkg_dir, 'tutorial', ini_file)
             self.assertTrue(
                 os.path.exists(ini_path),
-                f"INI file not found: {ini_path}"
+                f'INI file not found: {ini_path}'
             )
 
     def test_rviz_config_exists(self):
@@ -53,7 +60,7 @@ class TestParameters(unittest.TestCase):
         rviz_path = os.path.join(pkg_dir, 'rviz', 'rviz_conf.rviz')
         self.assertTrue(
             os.path.exists(rviz_path),
-            f"RViz config not found: {rviz_path}"
+            f'RViz config not found: {rviz_path}'
         )
 
 

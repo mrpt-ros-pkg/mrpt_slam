@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /* +---------------------------------------------------------------------------+
 	 |                     Mobile Robot Programming Toolkit (MRPT) | |
    http://www.mrpt.org/                             | | | | Copyright (c)
@@ -26,10 +32,10 @@ namespace graphslam
 namespace detail
 {
 std::string getGridMapAlignmentResultsAsString(
-	const mrpt::poses::CPosePDF& pdf,
-	const mrpt::slam::CGridMapAligner::TReturnInfo& ret_info);
+  const mrpt::poses::CPosePDF & pdf,
+  const mrpt::slam::CGridMapAligner::TReturnInfo & ret_info);
 
-bool isEssentiallyZero(const mrpt::poses::CPose2D& p);
+bool isEssentiallyZero(const mrpt::poses::CPose2D & p);
 
 }  // namespace detail
 }  // namespace graphslam

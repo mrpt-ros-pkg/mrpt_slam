@@ -1,8 +1,10 @@
-"""Demo launch file for single-robot graphSLAM with default config.
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
 
-Copyright (C) 2024-2026 Maintainers
-Licensed under BSD-3-Clause
-"""
+"""Demo launch file for single-robot graphSLAM with default config."""
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription

@@ -1,15 +1,10 @@
-"""Launch file for mrpt_graphslam_2d multi-robot mode.
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
 
-Launches mrpt_graphslam_2d_mr_node with heartbeat-based agent discovery
-(Option A — same ROS_DOMAIN_ID, no external dependencies).
-
-For a two-robot setup run this file twice in different namespaces:
-  ros2 launch mrpt_graphslam_2d mr_graphslam.launch.py namespace:=robot1
-  ros2 launch mrpt_graphslam_2d mr_graphslam.launch.py namespace:=robot2
-
-Copyright (C) 2024-2026 Maintainers
-Licensed under BSD-3-Clause
-"""
+"""Launch file for mrpt_graphslam_2d multi-robot mode."""
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument

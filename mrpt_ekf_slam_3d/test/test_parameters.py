@@ -1,9 +1,15 @@
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
+
 """Smoke tests for parameter loading and validation."""
 
 import os
 import unittest
+
 from ament_index_python.packages import get_package_share_directory
-import yaml
 
 
 class TestParameters(unittest.TestCase):
@@ -20,7 +26,7 @@ class TestParameters(unittest.TestCase):
             ini_path = os.path.join(pkg_dir, 'tutorial', ini_file)
             self.assertTrue(
                 os.path.exists(ini_path),
-                f"INI file not found: {ini_path}"
+                f'INI file not found: {ini_path}'
             )
 
     def test_rviz_config_exists(self):
@@ -29,7 +35,7 @@ class TestParameters(unittest.TestCase):
         rviz_path = os.path.join(pkg_dir, 'rviz', 'rviz_conf_ekf_3d.rviz')
         self.assertTrue(
             os.path.exists(rviz_path),
-            f"RViz config not found: {rviz_path}"
+            f'RViz config not found: {rviz_path}'
         )
 
     def test_rawlog_file_exists(self):
@@ -40,7 +46,7 @@ class TestParameters(unittest.TestCase):
         )
         self.assertTrue(
             os.path.exists(rawlog_path),
-            f"Rawlog file not found: {rawlog_path}"
+            f'Rawlog file not found: {rawlog_path}'
         )
 
 

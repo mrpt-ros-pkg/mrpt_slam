@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /*
  *  File:mrpt_ekf_slam_3d.h
  *  Author: Vladislav Tananaev
@@ -35,70 +41,70 @@ using mrpt::slam::CRangeBearingKFSLAM2D;
  */
 class EKFslam
 {
-   public:
-	/**
-	 * @brief constructor
-	 */
-	EKFslam();
-	/**
-	 * @brief destructor
-	 */
-	virtual ~EKFslam();
-	/**
-	 * @brief init 3D window from mrpt lib
-	 */
-	void init3Dwindow();
-	/**
-	 * @brief run 3D window update from mrpt lib
-	 */
-	void run3Dwindow();
-	/**
-	 * @brief convert landmark to 3d point
-	 */
-	void landmark_to_3d(
-		const CRangeBearingKFSLAM2D::KFArray_FEAT& lm, mrpt::math::TPoint3D& p);
-	/**
-	 * @brief read ini file
-	 *
-	 * @param ini_filename the name of the ini file to read
-	 */
-	void read_iniFile(std::string ini_filename);
-	/**
-	 * @brief calculate the actions from odometry model for current observation
-	 *
-	 * @param _sf  current observation
-	 * @param _odometry raw odometry
-	 */
-	void observation(
-		mrpt::obs::CSensoryFrame::Ptr _sf,
-		mrpt::obs::CObservationOdometry::Ptr _odometry);
+public:
+        /**
+         * @brief constructor
+         */
+  EKFslam();
+        /**
+         * @brief destructor
+         */
+  virtual ~EKFslam();
+        /**
+         * @brief init 3D window from mrpt lib
+         */
+  void init3Dwindow();
+        /**
+         * @brief run 3D window update from mrpt lib
+         */
+  void run3Dwindow();
+        /**
+         * @brief convert landmark to 3d point
+         */
+  void landmark_to_3d(
+    const CRangeBearingKFSLAM2D::KFArray_FEAT & lm, mrpt::math::TPoint3D & p);
+        /**
+         * @brief read ini file
+         *
+         * @param ini_filename the name of the ini file to read
+         */
+  void read_iniFile(std::string ini_filename);
+        /**
+         * @brief calculate the actions from odometry model for current observation
+         *
+         * @param _sf  current observation
+         * @param _odometry raw odometry
+         */
+  void observation(
+    mrpt::obs::CSensoryFrame::Ptr _sf,
+    mrpt::obs::CObservationOdometry::Ptr _odometry);
 
-   protected:
-	CRangeBearingKFSLAM2D mapping;	///< EKF slam 2d class
+protected:
+  CRangeBearingKFSLAM2D mapping;        ///< EKF slam 2d class
 
-	mrpt::system::TTimeStamp
-		timeLastUpdate_;  ///< last update of the pose and map
+  mrpt::system::TTimeStamp
+    timeLastUpdate_;              ///< last update of the pose and map
 
-	mrpt::obs::CActionCollection::Ptr action;  ///< actions
-	mrpt::obs::CSensoryFrame::Ptr sf;  ///< observations
+  mrpt::obs::CActionCollection::Ptr action;        ///< actions
+  mrpt::obs::CSensoryFrame::Ptr sf;        ///< observations
 
-	mrpt::poses::CPose2D
-		odomLastObservation_;  ///< last observation of odometry
-	bool use_motion_model_default_options_;	 ///< used default odom_params
-	mrpt::obs::CActionRobotMovement2D::TMotionModelOptions
-		motion_model_default_options_;	///< used if there are is not odom
-	mrpt::obs::CActionRobotMovement2D::TMotionModelOptions
-		motion_model_options_;	///< used with odom value motion noise
+  mrpt::poses::CPose2D
+    odomLastObservation_;              ///< last observation of odometry
+  bool use_motion_model_default_options_;        ///< used default odom_params
+  mrpt::obs::CActionRobotMovement2D::TMotionModelOptions
+    motion_model_default_options_;              ///< used if there are is not odom
+  mrpt::obs::CActionRobotMovement2D::TMotionModelOptions
+    motion_model_options_;              ///< used with odom value motion noise
 
-	mrpt::poses::CPosePDFGaussian robotPose_;  ///< current robot pose
-	std::vector<mrpt::math::TPoint2D> LMs_;	 ///< vector of the landmarks
-	/// vector of the landmarks ID
-	std::map<unsigned int, mrpt::maps::CLandmark::TLandmarkID> LM_IDs_;
-	mrpt::math::CMatrixDouble fullCov_;	 ///< full covariance matrix
-	mrpt::math::CVectorDouble fullState_;  ///< full state vector
+  mrpt::poses::CPosePDFGaussian robotPose_;        ///< current robot pose
+  std::vector<mrpt::math::TPoint2D> LMs_;        ///< vector of the landmarks
+        /// vector of the landmarks ID
+  std::map<unsigned int, mrpt::maps::CLandmark::TLandmarkID> LM_IDs_;
+  mrpt::math::CMatrixDouble fullCov_;            ///< full covariance matrix
+  mrpt::math::CVectorDouble fullState_;        ///< full state vector
 
-	mrpt::gui::CDisplayWindow3D::Ptr win3d;	 ///< MRPT window
-	bool SHOW_3D_LIVE;
-	bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
-	std::vector<mrpt::math::TPose3D> meanPath;
+  mrpt::gui::CDisplayWindow3D::Ptr win3d;        ///< MRPT window
+  bool SHOW_3D_LIVE;
+  bool CAMERA_3DSCENE_FOLLOWS_ROBOT;
+  std::vector<mrpt::math::TPose3D> meanPath;
 };

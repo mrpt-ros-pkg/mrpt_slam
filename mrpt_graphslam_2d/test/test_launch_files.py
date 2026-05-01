@@ -1,10 +1,15 @@
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
+
 """Launch file integration tests for MRPT GraphSLAM 2D."""
 
 import os
 import unittest
 
 from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -18,21 +23,21 @@ class TestLaunchFiles(unittest.TestCase):
         pkg_dir = get_package_share_directory('mrpt_graphslam_2d')
         launch_file_path = os.path.join(pkg_dir, 'launch', launch_file_name)
 
-        # Check if file exists
         self.assertTrue(
             os.path.exists(launch_file_path),
-            f"Launch file not found: {launch_file_path}"
+            f'Launch file not found: {launch_file_path}'
         )
 
-        # Try to load the launch description
         try:
             source = PythonLaunchDescriptionSource(launch_file_path)
             ld = LaunchDescription([
                 IncludeLaunchDescription(source)
             ])
             self.assertIsNotNone(ld)
-        except Exception as e:
-            self.fail(f"Failed to load launch file {launch_file_name}: {str(e)}")
+        except Exception as e:  # noqa: B902
+            self.fail(
+                f'Failed to load launch file {launch_file_name}: {str(e)}'
+            )
 
     def test_launch_files_exist(self):
         """Test that all ROS 2 launch files exist."""
@@ -49,7 +54,7 @@ class TestLaunchFiles(unittest.TestCase):
             full_path = os.path.join(launch_dir, launch_file)
             self.assertTrue(
                 os.path.exists(full_path),
-                f"Launch file {launch_file} does not exist at {full_path}"
+                f'Launch file {launch_file} does not exist at {full_path}'
             )
 
     def test_launch_files_are_valid_python(self):
@@ -65,7 +70,9 @@ class TestLaunchFiles(unittest.TestCase):
                 try:
                     compile(code, full_path, 'exec')
                 except SyntaxError as e:
-                    self.fail(f"Launch file {filename} has syntax error: {str(e)}")
+                    self.fail(
+                        f'Launch file {filename} has syntax error: {str(e)}'
+                    )
 
     def test_launch_files_have_generate_function(self):
         """Test that all .launch.py files have generate_launch_description."""
@@ -80,7 +87,7 @@ class TestLaunchFiles(unittest.TestCase):
                 self.assertIn(
                     'generate_launch_description',
                     code,
-                    f"Launch file {filename} missing generate_launch_description function"
+                    f'Launch file {filename} missing generate_launch_description'
                 )
 
     def test_graphslam_launch(self):
@@ -99,7 +106,7 @@ class TestLaunchFiles(unittest.TestCase):
         )
         self.assertTrue(
             os.path.exists(mr_config),
-            f"MR config file does not exist: {mr_config}"
+            f'MR config file does not exist: {mr_config}'
         )
 
     def test_config_files_exist(self):
@@ -114,7 +121,7 @@ class TestLaunchFiles(unittest.TestCase):
         for config_file in config_files:
             self.assertTrue(
                 os.path.exists(config_file),
-                f"Config file does not exist: {config_file}"
+                f'Config file does not exist: {config_file}'
             )
 
     def test_rviz_config_exists(self):
@@ -123,7 +130,7 @@ class TestLaunchFiles(unittest.TestCase):
         rviz_config = os.path.join(pkg_dir, 'rviz', 'sr_graphslam.rviz')
         self.assertTrue(
             os.path.exists(rviz_config),
-            f"RViz config not found: {rviz_config}"
+            f'RViz config not found: {rviz_config}'
         )
 
 

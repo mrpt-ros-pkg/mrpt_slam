@@ -1,14 +1,16 @@
-"""Test parameter handling.
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
 
-Copyright (C) 2024-2026 Jose Luis Blanco-Claraco
-Licensed under BSD-3-Clause
-"""
+"""Test parameter handling."""
 
 import unittest
-import pytest
+
 import rclpy
 from rclpy.node import Node
-from rcl_interfaces.msg import Parameter, ParameterType, ParameterValue
+from rclpy.parameter import Parameter
 
 
 class TestParameters(unittest.TestCase):
@@ -26,10 +28,8 @@ class TestParameters(unittest.TestCase):
 
     def test_parameter_defaults(self):
         """Test that default parameters are reasonable."""
-        # Create a simple node to test parameter types
         node = Node('test_params')
 
-        # Test parameter type declarations that the SLAM node would use
         test_params = {
             'rawlog_play_delay': 0.1,
             'global_frame_id': 'map',
@@ -44,7 +44,6 @@ class TestParameters(unittest.TestCase):
             node.declare_parameter(param_name, default_value)
             param = node.get_parameter(param_name)
 
-            # Check types are correct
             if isinstance(default_value, str):
                 self.assertEqual(param.type_, Parameter.Type.STRING)
             elif isinstance(default_value, float):

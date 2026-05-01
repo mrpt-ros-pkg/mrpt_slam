@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 // TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
@@ -10,23 +16,24 @@
 
 #pragma once
 
-namespace mrpt { namespace graphslam { namespace optimizers {
+namespace mrpt
+{namespace graphslam
+{namespace optimizers
+{
 
 /**\brief Interface for implementing graphSLAM optimizer classes specific to
  * the Condensed Measurements MR-SLAM case
  */
-class CGraphSlamOptimizer_MR : 
-	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<GRAPH_T>
-	public virtual CGraphSlamOptimizer<GRAPH_T>
+class CGraphSlamOptimizer_MR
+  : public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<GRAPH_T>
+  public virtual CGraphSlamOptimizer<GRAPH_T>
 {
-	public:
-	CGraphSlamOptimizer_MR ();
-	~CGraphSlamOptimizer_MR ();
+public:
+  CGraphSlamOptimizer_MR();
+  ~CGraphSlamOptimizer_MR();
 
-	private:
-
-
-} } } // end of namespaces
+private:
 
 
-
+}
+}}    // end of namespaces

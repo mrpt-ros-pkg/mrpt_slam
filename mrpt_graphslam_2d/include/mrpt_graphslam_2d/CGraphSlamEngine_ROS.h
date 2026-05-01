@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /* +---------------------------------------------------------------------------+
 	 |                     Mobile Robot Programming Toolkit (MRPT)               |
 	 |                          http://www.mrpt.org/                             |
@@ -14,78 +20,81 @@
 #include <mrpt/graphslam/CGraphSlamEngine.h>
 #include <rclcpp/rclcpp.hpp>
 
-namespace mrpt { namespace graphslam {
+namespace mrpt
+{namespace graphslam
+{
 
 /**\brief Class template that provides a wrapper around the MRPT
  * CGraphSlamEngine class template and implements methods for interacting with
  * ROS 2.
  */
-template<class GRAPH_t=typename mrpt::graphs::CNetworkOfPoses2DInf>
+template<class GRAPH_t = typename mrpt::graphs::CNetworkOfPoses2DInf>
 class CGraphSlamEngine_ROS : public CGraphSlamEngine<GRAPH_t>
 {
 public:
-	typedef CGraphSlamEngine<GRAPH_t> parent;
+  typedef CGraphSlamEngine<GRAPH_t> parent;
 
-	CGraphSlamEngine_ROS(
-			rclcpp::Node* node,
-			const std::string& config_file,
-			const std::string& rawlog_fname="",
-			const std::string& fname_GT="",
-			mrpt::graphslam::CWindowManager* win_manager=NULL,
-			mrpt::graphslam::deciders::CNodeRegistrationDecider<GRAPH_t>* node_reg=NULL,
-			mrpt::graphslam::deciders::CEdgeRegistrationDecider<GRAPH_t>* edge_reg=NULL,
-			mrpt::graphslam::optimizers::CGraphSlamOptimizer<GRAPH_t>* optimizer=NULL
-			);
-	virtual ~CGraphSlamEngine_ROS();
-	/**\brief Wrapper method around the protected setup* class methods.
-	 *
-	 * Handy for setting up publishers, subscribers, services
-	 * all at once.
-	 */
-	void setupComm();
+  CGraphSlamEngine_ROS(
+    rclcpp::Node * node,
+    const std::string & config_file,
+    const std::string & rawlog_fname = "",
+    const std::string & fname_GT = "",
+    mrpt::graphslam::CWindowManager * win_manager = NULL,
+    mrpt::graphslam::deciders::CNodeRegistrationDecider<GRAPH_t> * node_reg = NULL,
+    mrpt::graphslam::deciders::CEdgeRegistrationDecider<GRAPH_t> * edge_reg = NULL,
+    mrpt::graphslam::optimizers::CGraphSlamOptimizer<GRAPH_t> * optimizer = NULL
+  );
+  virtual ~CGraphSlamEngine_ROS();
+        /**\brief Wrapper method around the protected setup* class methods.
+         *
+         * Handy for setting up publishers, subscribers, services
+         * all at once.
+         */
+  void setupComm();
 
-	/**\brief Initialize object instance. */
-	void initClass();
-	rclcpp::Node* m_node;
+        /**\brief Initialize object instance. */
+  void initClass();
+  rclcpp::Node * m_node;
+
 protected:
-	/**\brief Read the problem configuration parameters
-	 *
-	 * \sa readROSParameters, CGraphSlamEngine::loadParams
-	 */
-	void readParams();
-	/**\brief Provide feedback about the SLAM operation
-	 *
-	 * Method makes the necessary calls to all the publishers of the class and
-	 * broadcaster instances
-	 */
-	virtual void usePublishersBroadcasters();
-	/**\brief Read configuration parameters from the ROS 2 parameter server.
-	 *
-	 * \note Method is automatically called on object construction.
-	 * \sa readParams, initClass
-	 */
-	void readROSParameters();
-	virtual bool _execGraphSlamStep(
-			mrpt::obs::CActionCollection::Ptr& action,
-			mrpt::obs::CSensoryFrame::Ptr& observations,
-			mrpt::obs::CObservation::Ptr& observation,
-			size_t& rawlog_entry);
+        /**\brief Read the problem configuration parameters
+         *
+         * \sa readROSParameters, CGraphSlamEngine::loadParams
+         */
+  void readParams();
+        /**\brief Provide feedback about the SLAM operation
+         *
+         * Method makes the necessary calls to all the publishers of the class and
+         * broadcaster instances
+         */
+  virtual void usePublishersBroadcasters();
+        /**\brief Read configuration parameters from the ROS 2 parameter server.
+         *
+         * \note Method is automatically called on object construction.
+         * \sa readParams, initClass
+         */
+  void readROSParameters();
+  virtual bool _execGraphSlamStep(
+    mrpt::obs::CActionCollection::Ptr & action,
+    mrpt::obs::CSensoryFrame::Ptr & observations,
+    mrpt::obs::CObservation::Ptr & observation,
+    size_t & rawlog_entry);
 
-	/**\name setup* ROS-related methods
-	 *\brief Methods for setting up topic subscribers, publishers, and
-	 * corresponding services
-	 *
-	 * \sa setupComm
-	 */
-	/**\{*/
-	virtual void setupSubs();
-	virtual void setupPubs();
-	virtual void setupSrvs();
-	/**\}*/
+        /**\name setup* ROS-related methods
+         *\brief Methods for setting up topic subscribers, publishers, and
+         * corresponding services
+         *
+         * \sa setupComm
+         */
+        /**\{*/
+  virtual void setupSubs();
+  virtual void setupPubs();
+  virtual void setupSrvs();
+        /**\}*/
 
-	int m_queue_size;
+  int m_queue_size;
 };
 
-} } // end of namespaces
+}}  // end of namespaces
 
 #include "mrpt_graphslam_2d/CGraphSlamEngine_ROS_impl.h"

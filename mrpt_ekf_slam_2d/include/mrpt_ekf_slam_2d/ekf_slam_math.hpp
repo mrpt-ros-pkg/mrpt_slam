@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /*
  * File: ekf_slam_math.hpp
  *
@@ -22,10 +28,10 @@ namespace mrpt_ekf_slam_2d
  * @param name  path to the file
  * @return true if the file can be opened for reading
  */
-inline bool is_file_exists(const std::string& name)
+inline bool is_file_exists(const std::string & name)
 {
-	std::ifstream f(name.c_str());
-	return f.good();
+  std::ifstream f(name.c_str());
+  return f.good();
 }
 
 /**
@@ -40,31 +46,28 @@ inline bool is_file_exists(const std::string& name)
  * @param eigenvalues   corresponding eigenvalue vector  (modified in-place)
  */
 inline void makeRightHanded(
-	Eigen::Matrix2d& eigenvectors, Eigen::Vector2d& eigenvalues)
+  Eigen::Matrix2d & eigenvectors, Eigen::Vector2d & eigenvalues)
 {
-	// Embed the 2-D columns into 3-D so that the cross product can determine
-	// handedness.
-	Eigen::Vector3d c0;
-	c0.setZero();
-	c0.head<2>() = eigenvectors.col(0);
-	c0.normalize();
-	Eigen::Vector3d c1;
-	c1.setZero();
-	c1.head<2>() = eigenvectors.col(1);
-	c1.normalize();
-	Eigen::Vector3d cc = c0.cross(c1);
-	if (cc[2] < 0)
-	{
-		// Left-handed — swap columns and the matching eigenvalues.
-		eigenvectors << c1.head<2>(), c0.head<2>();
-		double e = eigenvalues[0];
-		eigenvalues[0] = eigenvalues[1];
-		eigenvalues[1] = e;
-	}
-	else
-	{
-		eigenvectors << c0.head<2>(), c1.head<2>();
-	}
+        // Embed the 2-D columns into 3-D so that the cross product can determine
+        // handedness.
+  Eigen::Vector3d c0;
+  c0.setZero();
+  c0.head<2>() = eigenvectors.col(0);
+  c0.normalize();
+  Eigen::Vector3d c1;
+  c1.setZero();
+  c1.head<2>() = eigenvectors.col(1);
+  c1.normalize();
+  Eigen::Vector3d cc = c0.cross(c1);
+  if (cc[2] < 0) {
+                // Left-handed — swap columns and the matching eigenvalues.
+    eigenvectors << c1.head<2>(), c0.head<2>();
+    double e = eigenvalues[0];
+    eigenvalues[0] = eigenvalues[1];
+    eigenvalues[1] = e;
+  } else {
+    eigenvectors << c0.head<2>(), c1.head<2>();
+  }
 }
 
 /**
@@ -81,17 +84,17 @@ inline void makeRightHanded(
  * @param cov      2×2 covariance matrix
  */
 inline void computeEllipseOrientationScale2D(
-	double& scale_x, double& scale_y, double& angle,
-	const mrpt::math::CMatrixDouble22& cov)
+  double & scale_x, double & scale_y, double & angle,
+  const mrpt::math::CMatrixDouble22 & cov)
 {
-	Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> solver(cov.asEigen());
-	// SelfAdjointEigenSolver returns eigenvalues in ascending order.
-	// Index 0 → smallest, index 1 → largest.
-	scale_y = solver.eigenvalues()[0];
-	scale_x = solver.eigenvalues()[1];
-	// Orientation: angle of the major eigenvector (column 1).
-	angle = std::atan2(
-		solver.eigenvectors()(1, 1), solver.eigenvectors()(0, 1));
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> solver(cov.asEigen());
+        // SelfAdjointEigenSolver returns eigenvalues in ascending order.
+        // Index 0 → smallest, index 1 → largest.
+  scale_y = solver.eigenvalues()[0];
+  scale_x = solver.eigenvalues()[1];
+        // Orientation: angle of the major eigenvector (column 1).
+  angle = std::atan2(
+                solver.eigenvectors()(1, 1), solver.eigenvectors()(0, 1));
 }
 
 }  // namespace mrpt_ekf_slam_2d

@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -28,42 +34,42 @@ namespace deciders
  *
  * \note Multi-robot-related classes are suffixed with _MR.
  */
-template <class GRAPH_T>
+template<class GRAPH_T>
 class CLoopCloserERD_MR : public virtual CLoopCloserERD<GRAPH_T>,
-						  public virtual CEdgeRegistrationDecider_MR<GRAPH_T>
+  public virtual CEdgeRegistrationDecider_MR<GRAPH_T>
 {
-   public:
-	/**\brief Handy typedefs */
-	/**\{*/
-	/**\brief type of graph constraints */
-	typedef CLoopCloserERD<GRAPH_T> lc_parent_t; /**< parent class */
-	typedef CEdgeRegistrationDecider_MR<GRAPH_T>
-		mr_parent_t; /**< parent class */
-	typedef CLoopCloserERD_MR<GRAPH_T> decider_t; /**< handy self type */
-	typedef typename lc_parent_t::constraint_t constraint_t;
-	typedef typename lc_parent_t::pose_t pose_t;
-	typedef typename lc_parent_t::range_ops_t range_ops_t;
-	typedef typename lc_parent_t::partitions_t partitions_t;
-	typedef typename lc_parent_t::nodes_to_scans2D_t nodes_to_scans2D_t;
-	typedef mrpt::graphslam::CGraphSlamEngine_MR<GRAPH_T> engine_t;
-	typedef typename GRAPH_T::global_pose_t global_pose_t;
-	/**\}*/
+public:
+        /**\brief Handy typedefs */
+        /**\{*/
+        /**\brief type of graph constraints */
+  typedef CLoopCloserERD<GRAPH_T> lc_parent_t;       /**< parent class */
+  typedef CEdgeRegistrationDecider_MR<GRAPH_T>
+    mr_parent_t;             /**< parent class */
+  typedef CLoopCloserERD_MR<GRAPH_T> decider_t;       /**< handy self type */
+  typedef typename lc_parent_t::constraint_t constraint_t;
+  typedef typename lc_parent_t::pose_t pose_t;
+  typedef typename lc_parent_t::range_ops_t range_ops_t;
+  typedef typename lc_parent_t::partitions_t partitions_t;
+  typedef typename lc_parent_t::nodes_to_scans2D_t nodes_to_scans2D_t;
+  typedef mrpt::graphslam::CGraphSlamEngine_MR<GRAPH_T> engine_t;
+  typedef typename GRAPH_T::global_pose_t global_pose_t;
+        /**\}*/
 
-	CLoopCloserERD_MR();
+  CLoopCloserERD_MR();
 
-	// member implementations
-	bool updateState(
-		mrpt::obs::CActionCollection::Ptr action,
-		mrpt::obs::CSensoryFrame::Ptr observations,
-		mrpt::obs::CObservation::Ptr observation);
-	void addBatchOfNodeIDsAndScans(
-		const std::map<TNodeID, mrpt::obs::CObservation2DRangeScan::Ptr>&
-			nodeIDs_to_scans2D);
-	void addScanMatchingEdges(TNodeID curr_nodeID);
-	void fetchNodeIDsForScanMatching(
-		const TNodeID& curr_nodeID, std::set<TNodeID>* nodes_set);
+        // member implementations
+  bool updateState(
+    mrpt::obs::CActionCollection::Ptr action,
+    mrpt::obs::CSensoryFrame::Ptr observations,
+    mrpt::obs::CObservation::Ptr observation);
+  void addBatchOfNodeIDsAndScans(
+    const std::map<TNodeID, mrpt::obs::CObservation2DRangeScan::Ptr> &
+    nodeIDs_to_scans2D);
+  void addScanMatchingEdges(TNodeID curr_nodeID);
+  void fetchNodeIDsForScanMatching(
+    const TNodeID & curr_nodeID, std::set<TNodeID> * nodes_set);
 
-   protected:
+protected:
 };
 
 }  // namespace deciders

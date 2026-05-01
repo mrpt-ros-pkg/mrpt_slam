@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 // TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
@@ -14,7 +20,10 @@
 #include <mrpt/graphslam/interfaces/CNodeRegistrationDecider.h>
 #include <mrpt/graphs/CNetworkOfPoses.h>
 
-namespace mrpt { namespace graphslam { namespace deciders {
+namespace mrpt
+{namespace graphslam
+{namespace deciders
+{
 
 /**\brief Node Registration Decider Interface Class.
  *
@@ -33,25 +42,26 @@ namespace mrpt { namespace graphslam { namespace deciders {
  * J.A. Castellanos, G. Grisetti
  */
 template<class GRAPH_T>
-class CNodeRegistrationDecider_MR :
-	public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<GRAPH_T>,
-	public virtual CNodeRegistrationDecider<GRAPH_T>
+class CNodeRegistrationDecider_MR
+  : public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<GRAPH_T>,
+  public virtual CNodeRegistrationDecider<GRAPH_T>
 {
 public:
-	typedef typename GRAPH_T::global_pose_t global_pose_t;
+  typedef typename GRAPH_T::global_pose_t global_pose_t;
 
-	CNodeRegistrationDecider_MR ();
-	~CNodeRegistrationDecider_MR ();
+  CNodeRegistrationDecider_MR();
+  ~CNodeRegistrationDecider_MR();
+
 protected:
-	/**\brief Decorate a pose according to the TMRSlamNodeAnnotation fields
-	 *
-	 * \note Do this only for the nodes that are initially registered in the graph by
-	 * the current CGraphSlamEngine_t class. Nodes of other graphSLAM-agents that
-	 * are to be integrated must have already filled these fields.
-	 */
-	void addNodeAnnotsToPose(global_pose_t* pose) const;
+        /**\brief Decorate a pose according to the TMRSlamNodeAnnotation fields
+         *
+         * \note Do this only for the nodes that are initially registered in the graph by
+         * the current CGraphSlamEngine_t class. Nodes of other graphSLAM-agents that
+         * are to be integrated must have already filled these fields.
+         */
+  void addNodeAnnotsToPose(global_pose_t * pose) const;
 };
 
-} } } // end of namespaces
+}}}   // end of namespaces
 
 #include "CNodeRegistrationDecider_MR_impl.h"

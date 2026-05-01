@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -39,21 +45,21 @@ namespace deciders
  * SLAM using Condensed Measurements</a> - M.T. Lazaro, L.M. Paz, P. Pinies,
  * J.A. Castellanos, G. Grisetti
  */
-template <class GRAPH_T>
+template<class GRAPH_T>
 class CEdgeRegistrationDecider_MR
-	: public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<
-		  GRAPH_T>,
-	  public virtual mrpt::graphslam::deciders::
-		  CRangeScanEdgeRegistrationDecider<GRAPH_T>
+  : public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<
+    GRAPH_T>,
+  public virtual mrpt::graphslam::deciders::
+  CRangeScanEdgeRegistrationDecider<GRAPH_T>
 {
-   public:
-	CEdgeRegistrationDecider_MR();
-	~CEdgeRegistrationDecider_MR();
-	virtual void addBatchOfNodeIDsAndScans(
-		const std::map<TNodeID, mrpt::obs::CObservation2DRangeScan::Ptr>&
-			nodeIDs_to_scans2D);
+public:
+  CEdgeRegistrationDecider_MR();
+  ~CEdgeRegistrationDecider_MR();
+  virtual void addBatchOfNodeIDsAndScans(
+    const std::map<TNodeID, mrpt::obs::CObservation2DRangeScan::Ptr> &
+    nodeIDs_to_scans2D);
 
-   protected:
+protected:
 };
 
 }  // namespace deciders

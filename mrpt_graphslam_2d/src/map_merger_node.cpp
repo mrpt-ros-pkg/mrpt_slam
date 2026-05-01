@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -23,31 +29,29 @@ using namespace std;
  * present the user with a final version of all the independent maps after
  * merging.
  */
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
-	rclcpp::init(argc, argv);
+  rclcpp::init(argc, argv);
 
-	auto node = rclcpp::Node::make_shared("map_merger");
+  auto node = rclcpp::Node::make_shared("map_merger");
 
-	COutputLogger logger;
-	logger.setLoggerName("map_merger");
-	logger.setMinLoggingLevel(LVL_DEBUG);
-	logger.logFmt(LVL_WARN, "Initialized map_merger node...\n");
+  COutputLogger logger;
+  logger.setLoggerName("map_merger");
+  logger.setMinLoggingLevel(LVL_DEBUG);
+  logger.logFmt(LVL_WARN, "Initialized map_merger node...\n");
 
-	CMapMerger map_merger(&logger, node.get());
+  CMapMerger map_merger(&logger, node.get());
 
-	rclcpp::Rate loop_rate(10);
-	while (rclcpp::ok())
-	{
-		bool continue_exec = map_merger.updateState();
-		if (!continue_exec)
-		{
-			break;
-		}
-		rclcpp::spin_some(node);
-		loop_rate.sleep();
-	}
+  rclcpp::Rate loop_rate(10);
+  while (rclcpp::ok()) {
+    bool continue_exec = map_merger.updateState();
+    if (!continue_exec) {
+      break;
+    }
+    rclcpp::spin_some(node);
+    loop_rate.sleep();
+  }
 
-	rclcpp::shutdown();
-	return 0;
+  rclcpp::shutdown();
+  return 0;
 }

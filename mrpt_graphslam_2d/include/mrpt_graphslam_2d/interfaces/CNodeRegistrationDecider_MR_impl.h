@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 // TODO TICKET-004: Multi-robot file — not yet ported to ROS 2.
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
@@ -17,33 +23,33 @@ namespace graphslam
 {
 namespace deciders
 {
-template <class GRAPH_T>
+template<class GRAPH_T>
 CNodeRegistrationDecider_MR<GRAPH_T>::CNodeRegistrationDecider_MR()
 {
 }
 
-template <class GRAPH_T>
+template<class GRAPH_T>
 CNodeRegistrationDecider_MR<GRAPH_T>::~CNodeRegistrationDecider_MR()
 {
 }
 
-template <class GRAPH_T>
+template<class GRAPH_T>
 void CNodeRegistrationDecider_MR<GRAPH_T>::addNodeAnnotsToPose(
-	global_pose_t* pose) const
+  global_pose_t * pose) const
 {
 }
 
-template <>
-void CNodeRegistrationDecider_MR<mrpt::graphs::CNetworkOfPoses2DInf_NA>::
-	addNodeAnnotsToPose(global_pose_t* pose) const
+template<>
+void CNodeRegistrationDecider_MR<mrpt::graphs::CNetworkOfPoses2DInf_NA>::addNodeAnnotsToPose(
+  global_pose_t * pose) const
 {
-	ASSERT_(pose);
+  ASSERT_(pose);
 
-	pose->agent_ID_str = this->own_ns;
-	// ASSUMPTION: addNodeAnnotsToPose is going to be called right before the
-	// actual registration.
-	// Mark it with the nodeID that is up-next
-	pose->nodeID_loc = this->m_graph->nodeCount();
+  pose->agent_ID_str = this->own_ns;
+        // ASSUMPTION: addNodeAnnotsToPose is going to be called right before the
+        // actual registration.
+        // Mark it with the nodeID that is up-next
+  pose->nodeID_loc = this->m_graph->nodeCount();
 }
 
 }  // namespace deciders

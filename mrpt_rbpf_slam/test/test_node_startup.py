@@ -1,6 +1,13 @@
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
+
 """Smoke tests for MRPT RBPF SLAM node startup."""
 
 import unittest
+
 import rclpy
 from rclpy.node import Node
 
@@ -29,8 +36,8 @@ class TestNodeStartup(unittest.TestCase):
             self.assertIsNotNone(test_node)
             self.assertEqual(test_node.get_name(), 'test_node')
             test_node.destroy_node()
-        except Exception as e:
-            self.fail(f"Failed to create test node: {str(e)}")
+        except Exception as e:  # noqa: B902
+            self.fail(f'Failed to create test node: {str(e)}')
 
     def test_node_namespace(self):
         """Test node namespace handling."""

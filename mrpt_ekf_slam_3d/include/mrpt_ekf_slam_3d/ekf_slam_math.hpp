@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /*
  * File: ekf_slam_math.hpp
  *
@@ -21,10 +27,10 @@ namespace mrpt_ekf_slam_3d
  * @param name  path to the file
  * @return true if the file can be opened for reading
  */
-inline bool is_file_exists(const std::string& name)
+inline bool is_file_exists(const std::string & name)
 {
-	std::ifstream f(name.c_str());
-	return f.good();
+  std::ifstream f(name.c_str());
+  return f.good();
 }
 
 /**
@@ -39,27 +45,24 @@ inline bool is_file_exists(const std::string& name)
  * @param eigenvalues   corresponding eigenvalue vector  (modified in-place)
  */
 inline void makeRightHanded(
-	Eigen::Matrix3d& eigenvectors, Eigen::Vector3d& eigenvalues)
+  Eigen::Matrix3d & eigenvectors, Eigen::Vector3d & eigenvalues)
 {
-	Eigen::Vector3d c0 = eigenvectors.block<3, 1>(0, 0);
-	c0.normalize();
-	Eigen::Vector3d c1 = eigenvectors.block<3, 1>(0, 1);
-	c1.normalize();
-	Eigen::Vector3d c2 = eigenvectors.block<3, 1>(0, 2);
-	c2.normalize();
-	Eigen::Vector3d cc = c0.cross(c1);
-	if (cc.dot(c2) < 0)
-	{
-		// Left-handed — swap the first two columns and their eigenvalues.
-		eigenvectors << c1, c0, c2;
-		double e = eigenvalues[0];
-		eigenvalues[0] = eigenvalues[1];
-		eigenvalues[1] = e;
-	}
-	else
-	{
-		eigenvectors << c0, c1, c2;
-	}
+  Eigen::Vector3d c0 = eigenvectors.block<3, 1>(0, 0);
+  c0.normalize();
+  Eigen::Vector3d c1 = eigenvectors.block<3, 1>(0, 1);
+  c1.normalize();
+  Eigen::Vector3d c2 = eigenvectors.block<3, 1>(0, 2);
+  c2.normalize();
+  Eigen::Vector3d cc = c0.cross(c1);
+  if (cc.dot(c2) < 0) {
+                // Left-handed — swap the first two columns and their eigenvalues.
+    eigenvectors << c1, c0, c2;
+    double e = eigenvalues[0];
+    eigenvalues[0] = eigenvalues[1];
+    eigenvalues[1] = e;
+  } else {
+    eigenvectors << c0, c1, c2;
+  }
 }
 
 /**
@@ -73,14 +76,14 @@ inline void makeRightHanded(
  * @param cov      3×3 covariance matrix
  */
 inline void computeEllipseOrientationScale3D(
-	double& scale_x, double& scale_y, double& scale_z,
-	const mrpt::math::CMatrixDouble33& cov)
+  double & scale_x, double & scale_y, double & scale_z,
+  const mrpt::math::CMatrixDouble33 & cov)
 {
-	Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(cov.asEigen());
-	// SelfAdjointEigenSolver returns eigenvalues in ascending order.
-	scale_z = solver.eigenvalues()[0];
-	scale_y = solver.eigenvalues()[1];
-	scale_x = solver.eigenvalues()[2];
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(cov.asEigen());
+        // SelfAdjointEigenSolver returns eigenvalues in ascending order.
+  scale_z = solver.eigenvalues()[0];
+  scale_y = solver.eigenvalues()[1];
+  scale_x = solver.eigenvalues()[2];
 }
 
 }  // namespace mrpt_ekf_slam_3d

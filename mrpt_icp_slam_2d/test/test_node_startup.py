@@ -1,14 +1,15 @@
-"""Test node can start without errors.
+# Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+#
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file or at
+# https://developers.google.com/open-source/licenses/bsd
 
-Copyright (C) 2024-2026 Jose Luis Blanco-Claraco
-Licensed under BSD-3-Clause
-"""
+"""Test node can start without errors."""
 
+import subprocess
 import unittest
-import pytest
+
 import rclpy
-from rclpy.node import Node
-import time
 
 
 class TestNodeStartup(unittest.TestCase):
@@ -26,10 +27,6 @@ class TestNodeStartup(unittest.TestCase):
 
     def test_node_exists(self):
         """Test that the node executable exists and can be found."""
-        # This is a basic smoke test
-        # A more complete test would actually launch the node
-        # but that requires launch_testing framework
-        import subprocess
         result = subprocess.run(
             ['ros2', 'pkg', 'executables', 'mrpt_icp_slam_2d'],
             capture_output=True,

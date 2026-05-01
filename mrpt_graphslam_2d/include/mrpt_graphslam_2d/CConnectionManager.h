@@ -1,3 +1,9 @@
+// Copyright (c) 2024-2026, Jose Luis Blanco-Claraco.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
+
 /* +---------------------------------------------------------------------------+
    |                     Mobile Robot Programming Toolkit (MRPT)               |
    |                          http://www.mrpt.org/                             |
@@ -44,100 +50,100 @@ namespace detail
  */
 class CConnectionManager
 {
-   public:
-	typedef mrpt_msgs::msg::GraphSlamAgents::_list_type::iterator agents_it;
-	typedef mrpt_msgs::msg::GraphSlamAgents::_list_type::const_iterator
-		agents_cit;
+public:
+  typedef mrpt_msgs::msg::GraphSlamAgents::_list_type::iterator agents_it;
+  typedef mrpt_msgs::msg::GraphSlamAgents::_list_type::const_iterator
+    agents_cit;
 
-	/**\brief Constructor */
-	CConnectionManager(
-		mrpt::system::COutputLogger* logger, rclcpp::Node* node);
-	/**\brief Destructor */
-	~CConnectionManager();
-	/**\brief Fill the given vector with the SLAM Agents that the current
-	 * manager can see and communicate with
-	 *
-	 * \param[in] ignore_self If true the GraphSlamAgent instance that is under
-	 * the same  namespace as the CConnectionManager is not going to be inserted
-	 * in the agents_vec
-	 *
-	 * \sa updateNearbySlamAgents
-	 */
-	void getNearbySlamAgents(
-		mrpt_msgs::msg::GraphSlamAgents* agents_vec, bool ignore_self = true);
-	/**\brief Read-only method for accessing list of nearby agents
-	 */
-	const mrpt_msgs::msg::GraphSlamAgents& getNearbySlamAgents();
-	/**\brief Read-only method for accessing list of nearby agents.
-	 * This <b>doesn't update</b> the internal list of GraphSlamAgents but just
-	 * the returns its latest cached version
-	 */
-	const mrpt_msgs::msg::GraphSlamAgents& getNearbySlamAgentsCached() const;
+        /**\brief Constructor */
+  CConnectionManager(
+    mrpt::system::COutputLogger * logger, rclcpp::Node * node);
+        /**\brief Destructor */
+  ~CConnectionManager();
+        /**\brief Fill the given vector with the SLAM Agents that the current
+         * manager can see and communicate with
+         *
+         * \param[in] ignore_self If true the GraphSlamAgent instance that is under
+         * the same  namespace as the CConnectionManager is not going to be inserted
+         * in the agents_vec
+         *
+         * \sa updateNearbySlamAgents
+         */
+  void getNearbySlamAgents(
+    mrpt_msgs::msg::GraphSlamAgents * agents_vec, bool ignore_self = true);
+        /**\brief Read-only method for accessing list of nearby agents
+         */
+  const mrpt_msgs::msg::GraphSlamAgents & getNearbySlamAgents();
+        /**\brief Read-only method for accessing list of nearby agents.
+         * This <b>doesn't update</b> the internal list of GraphSlamAgents but just
+         * the returns its latest cached version
+         */
+  const mrpt_msgs::msg::GraphSlamAgents & getNearbySlamAgentsCached() const;
 
-	/**\brief Wrapper method around the private setup* class methods.
-	 *
-	 * Handy for setting up publishers, subscribers, services, TF-related stuff
-	 * all at once from the user application
-	 *
-	 */
-	void setupComm();
-	/**\brief Get the agent ROS namespace */
-	const std::string& getTrimmedNs() const;
+        /**\brief Wrapper method around the private setup* class methods.
+         *
+         * Handy for setting up publishers, subscribers, services, TF-related stuff
+         * all at once from the user application
+         *
+         */
+  void setupComm();
+        /**\brief Get the agent ROS namespace */
+  const std::string & getTrimmedNs() const;
 
-   private:
-	/**\brief Namespace under which we are running. Corresponds to the
-	 * agent_ID_str with which the nodes are going to be registered in the graph
-	 */
-	std::string own_ns;
-	/**\brief Update the internal list of nearby SLAM agents from cached data.
-	 *
-	 * \sa getNearbySlamAgents
-	 */
-	void updateNearbySlamAgents();
-	/**\brief Heartbeat callback: called when another agent publishes its info */
-	void onAgentHeartbeat(
-		const mrpt_msgs::msg::GraphSlamAgent::SharedPtr agent_msg);
-	/**\brief Prune agents that have not sent heartbeats recently */
-	void pruneStaleAgents();
-	/**\name setup* ROS-related methods
-	 *\brief Methods for setting up topic subscribers, publishers, and
-	 * corresponding services
-	 *
-	 * \sa setupComm
-	 */
-	/**\{*/
-	void setupSubs();
-	void setupPubs();
-	void setupSrvs();
-	/**\}*/
+private:
+        /**\brief Namespace under which we are running. Corresponds to the
+         * agent_ID_str with which the nodes are going to be registered in the graph
+         */
+  std::string own_ns;
+        /**\brief Update the internal list of nearby SLAM agents from cached data.
+         *
+         * \sa getNearbySlamAgents
+         */
+  void updateNearbySlamAgents();
+        /**\brief Heartbeat callback: called when another agent publishes its info */
+  void onAgentHeartbeat(
+    const mrpt_msgs::msg::GraphSlamAgent::SharedPtr agent_msg);
+        /**\brief Prune agents that have not sent heartbeats recently */
+  void pruneStaleAgents();
+        /**\name setup* ROS-related methods
+         *\brief Methods for setting up topic subscribers, publishers, and
+         * corresponding services
+         *
+         * \sa setupComm
+         */
+        /**\{*/
+  void setupSubs();
+  void setupPubs();
+  void setupSrvs();
+        /**\}*/
 
-	/**\brief Pointer to the logging instance */
-	mrpt::system::COutputLogger* m_logger;
-	/**\brief Pointer to the ROS 2 node */
-	rclcpp::Node* m_node;
+        /**\brief Pointer to the logging instance */
+  mrpt::system::COutputLogger * m_logger;
+        /**\brief Pointer to the ROS 2 node */
+  rclcpp::Node * m_node;
 
-	/**\brief Heartbeat publisher — publishes own agent info */
-	rclcpp::Publisher<mrpt_msgs::msg::GraphSlamAgent>::SharedPtr m_agent_pub;
-	/**\brief Heartbeat subscriber — receives other agents' info */
-	rclcpp::Subscription<mrpt_msgs::msg::GraphSlamAgent>::SharedPtr m_agent_sub;
-	/**\brief Timer for periodic heartbeat publishing */
-	rclcpp::TimerBase::SharedPtr m_heartbeat_timer;
-	/**\brief Timer for pruning stale agents */
-	rclcpp::TimerBase::SharedPtr m_prune_timer;
+        /**\brief Heartbeat publisher — publishes own agent info */
+  rclcpp::Publisher<mrpt_msgs::msg::GraphSlamAgent>::SharedPtr m_agent_pub;
+        /**\brief Heartbeat subscriber — receives other agents' info */
+  rclcpp::Subscription<mrpt_msgs::msg::GraphSlamAgent>::SharedPtr m_agent_sub;
+        /**\brief Timer for periodic heartbeat publishing */
+  rclcpp::TimerBase::SharedPtr m_heartbeat_timer;
+        /**\brief Timer for pruning stale agents */
+  rclcpp::TimerBase::SharedPtr m_prune_timer;
 
-	/**\brief Track last-seen time for each agent (by topic_namespace) */
-	std::map<std::string, rclcpp::Time> m_agent_last_seen;
-	/**\brief Mutex protecting m_nearby_slam_agents and m_agent_last_seen */
-	mutable std::mutex m_agents_mutex;
+        /**\brief Track last-seen time for each agent (by topic_namespace) */
+  std::map<std::string, rclcpp::Time> m_agent_last_seen;
+        /**\brief Mutex protecting m_nearby_slam_agents and m_agent_last_seen */
+  mutable std::mutex m_agents_mutex;
 
-	/**\brief List of slam agents in the current agent's neighborhood
-	 *
-	 * \note vector includes the GraphSlamAgent that is at the same namespace as
-	 * the current CConnectionManager instance
-	 */
-	mrpt_msgs::msg::GraphSlamAgents m_nearby_slam_agents;
+        /**\brief List of slam agents in the current agent's neighborhood
+         *
+         * \note vector includes the GraphSlamAgent that is at the same namespace as
+         * the current CConnectionManager instance
+         */
+  mrpt_msgs::msg::GraphSlamAgents m_nearby_slam_agents;
 
-	bool has_setup_comm;
+  bool has_setup_comm;
 };
 
 }  // namespace detail
@@ -148,5 +154,5 @@ class CConnectionManager
  * ROS2 messages already provide operator== and operator!= as members.
  */
 bool operator<(
-	const mrpt_msgs::msg::GraphSlamAgent& agent1,
-	const mrpt_msgs::msg::GraphSlamAgent& agent2);
+  const mrpt_msgs::msg::GraphSlamAgent & agent1,
+  const mrpt_msgs::msg::GraphSlamAgent & agent2);

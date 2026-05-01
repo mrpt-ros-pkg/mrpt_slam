@@ -5,7 +5,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Find ROS 2 packages
+# Pure ROS 2 / ament packages — safe to load before ament_target_dependencies.
+# MRPT packages are loaded AFTER all ament_target_dependencies calls because
+# their cmake configs corrupt ament cmake macros via transitive system MRPT
+# cmake files (mrpt_libros_bridge → mrpt-maps → system mrpt cmake).
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(ament_index_cpp REQUIRED)
@@ -18,22 +21,6 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(mrpt_msgs REQUIRED)
-find_package(mrpt_msgs_bridge REQUIRED)
-
-# Find MRPT packages
-# mrpt-graphslam is only available from the system PPA.  Its headers
-# transitively need mrpt-io, which must come from the same installation.
-# Prepend the system cmake prefix so that the correct mrpt-io (with
-# CCompressedInputStream.h) is found before the ROS-packaged version.
-list(PREPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
-find_package(mrpt-gui REQUIRED)
-find_package(mrpt-graphslam REQUIRED)
-find_package(mrpt_libros_bridge REQUIRED)
-
-# TODO TICKET-004: fkie_multimaster_msgs removed — no ROS 2 equivalent
-# find_package(fkie_multimaster_msgs REQUIRED)
-
-message(STATUS "MRPT_VERSION: ${mrpt-graphslam_VERSION}")
 
 if(CMAKE_COMPILER_IS_GNUCXX)
   add_compile_options(-Wall -Wno-long-long -Wno-variadic-macros)
@@ -46,15 +33,7 @@ if(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   add_compile_options(-O3)
 endif()
 
-# Include directories
 include_directories(include)
-
-# Shared MR sources (used by both MR node and map_merger node)
-set(MR_SOURCES
-    src/CConnectionManager.cpp
-    src/CMapMerger.cpp
-    src/TNeighborAgentMapProps.cpp
-)
 
 # Single-robot node
 add_executable(mrpt_graphslam_2d_node
@@ -74,13 +53,6 @@ ament_target_dependencies(mrpt_graphslam_2d_node
     geometry_msgs
     visualization_msgs
     mrpt_msgs
-    mrpt_msgs_bridge
-)
-
-target_link_libraries(mrpt_graphslam_2d_node
-    mrpt::graphslam
-    mrpt::gui
-    mrpt_libros_bridge::mrpt_libros_bridge
 )
 
 # Multi-robot node (TICKET-004)
@@ -102,13 +74,6 @@ ament_target_dependencies(mrpt_graphslam_2d_mr_node
     geometry_msgs
     visualization_msgs
     mrpt_msgs
-    mrpt_msgs_bridge
-)
-
-target_link_libraries(mrpt_graphslam_2d_mr_node
-    mrpt::graphslam
-    mrpt::gui
-    mrpt_libros_bridge::mrpt_libros_bridge
 )
 
 # Map merger node — standalone map-merging utility (TICKET-004)
@@ -126,13 +91,41 @@ ament_target_dependencies(map_merger_node
     mrpt_msgs
 )
 
-target_link_libraries(map_merger_node
+# Load MRPT packages after all ament_target_dependencies calls.
+# mrpt-graphslam is only available from the system PPA; prepend system cmake
+# prefix so the correct mrpt-io (with CCompressedInputStream.h) is found first.
+list(PREPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
+find_package(mrpt_libros_bridge REQUIRED)
+find_package(mrpt_msgs_bridge REQUIRED)
+find_package(mrpt-gui REQUIRED)
+find_package(mrpt-graphslam REQUIRED)
+
+message(STATUS "MRPT_VERSION: ${mrpt-graphslam_VERSION}")
+
+target_link_libraries(mrpt_graphslam_2d_node
+    mrpt_msgs_bridge::mrpt_msgs_bridge
     mrpt::graphslam
     mrpt::gui
     mrpt_libros_bridge::mrpt_libros_bridge
 )
 
-# Install
+target_link_libraries(mrpt_graphslam_2d_mr_node
+    mrpt_msgs_bridge::mrpt_msgs_bridge
+    mrpt::graphslam
+    mrpt::gui
+    mrpt_libros_bridge::mrpt_libros_bridge
+)
+
+target_link_libraries(map_merger_node
+    mrpt_msgs_bridge::mrpt_msgs_bridge
+    mrpt::graphslam
+    mrpt::gui
+    mrpt_libros_bridge::mrpt_libros_bridge
+)
+
+# TODO TICKET-004: fkie_multimaster_msgs removed — no ROS 2 equivalent
+# find_package(fkie_multimaster_msgs REQUIRED)
+
 install(TARGETS mrpt_graphslam_2d_node mrpt_graphslam_2d_mr_node map_merger_node
     DESTINATION lib/${PROJECT_NAME}
 )
@@ -142,7 +135,6 @@ install(DIRECTORY
     DESTINATION share/${PROJECT_NAME}
 )
 
-# Testing
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()

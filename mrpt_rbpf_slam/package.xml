@@ -9,10 +9,11 @@
   <maintainer email="joseluisblancoc@gmail.com">Jose Luis Blanco-Claraco</maintainer>
   <maintainer email="shravansomashekara.rai@gmail.com">Shravan Somashekara Rai</maintainer>
 
-  <author>Vladislav Tananaev</author>
   <license>BSD</license>
 
   <url type="website">http://www.mrpt.org/</url>
+
+  <author>Vladislav Tananaev</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
