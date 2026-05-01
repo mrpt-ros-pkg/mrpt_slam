@@ -130,4 +130,18 @@ if(BUILD_TESTING)
   target_link_libraries(test_ekf_slam_core mrpt::slam)
 endif()
 
+# Integration tests — gated behind an opt-in flag (slow, require a running
+# ROS 2 environment).  Enable with:
+#   colcon build --packages-select mrpt_ekf_slam_2d \
+#       --cmake-args -DENABLE_INTEGRATION_TESTS=ON
+option(ENABLE_INTEGRATION_TESTS "Build and register integration tests (slow, ~90 s)" OFF)
+
+if(BUILD_TESTING AND ENABLE_INTEGRATION_TESTS)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_integration_rawlog
+    test/test_integration_rawlog.py
+    TIMEOUT 120
+  )
+endif()
+
 ament_package()
