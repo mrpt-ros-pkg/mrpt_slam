@@ -45,6 +45,12 @@ jobs:
           rosdep update
           rosdep install --from-paths . --ignore-src -r -y
 
+      - name: Install MRPT ROS packages (rosdep gap workaround)
+        run: |
+          apt-get install -y \
+            ros-${{ matrix.ros_distribution }}-mrpt-msgs \
+            ros-${{ matrix.ros_distribution }}-mrpt-msgs-bridge || true
+
       - name: Build with colcon
         run: |
           . /opt/ros/*/setup.sh
