@@ -1,6 +1,7 @@
 *~
 build*
 install*
+!.github/**
 
 *.DS_Store
 .Spotlight-V100
