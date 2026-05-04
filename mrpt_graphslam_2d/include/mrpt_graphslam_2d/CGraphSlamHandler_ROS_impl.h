@@ -26,13 +26,17 @@ namespace graphslam
 {
 namespace apps
 {
-// From:
-// https://answers.ros.org/question/364561/tfcreatequaternionfromyaw-equivalent-in-ros2/
-static inline auto createQuaternionMsgFromYaw(double yaw)
+// tf2/LinearMath/Quaternion.h was removed in Rolling tf2 0.45+.
+// Compute yaw-only quaternion directly (roll=0, pitch=0):
+//   x=0, y=0, z=sin(yaw/2), w=cos(yaw/2)
+static inline geometry_msgs::msg::Quaternion createQuaternionMsgFromYaw(double yaw)
 {
-  tf2::Quaternion q;
-  q.setRPY(0, 0, yaw);
-  return tf2::toMsg(q);
+  geometry_msgs::msg::Quaternion q;
+  q.x = 0.0;
+  q.y = 0.0;
+  q.z = std::sin(yaw * 0.5);
+  q.w = std::cos(yaw * 0.5);
+  return q;
 }
 
 // static member variables
