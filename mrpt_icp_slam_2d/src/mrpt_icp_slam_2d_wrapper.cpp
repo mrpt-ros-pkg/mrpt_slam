@@ -51,7 +51,7 @@ ICPslamWrapper::~ICPslamWrapper()
     std::string sOutMap = "mrpt_icpslam_";
     mrpt::system::TTimeParts parts;
     mrpt::system::timestampToParts(mrpt::Clock::now(), parts, true);
-    sOutMap += format(
+    sOutMap += mrpt::format(
                         "%04u-%02u-%02u_%02uh%02um%02us", (unsigned int)parts.year,
       (unsigned int)parts.month, (unsigned int)parts.day,
       (unsigned int)parts.hour, (unsigned int)parts.minute,

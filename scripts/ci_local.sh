@@ -39,6 +39,7 @@ echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros
   > /etc/apt/sources.list.d/ros2.list
 apt-get update -qq
 apt-get install -y -qq \
+  build-essential \
   ros-$DISTRO-ros-base \
   python3-colcon-common-extensions \
   python3-rosdep

@@ -406,7 +406,7 @@ void CMapMerger::mergeMaps()
 
                         // each map in the fused display will have a different name - based
                         // on the topic namespace
-      first_map_obj->setName(format(
+      first_map_obj->setName(mrpt::format(
                                 "map_%s", mrpt_gridmaps.begin()
           ->first->agent.topic_namespace.data.c_str()));
       fused_scene->insert(first_map_obj);
@@ -511,7 +511,7 @@ void CMapMerger::mergeMaps()
         CSetOfObjects::Ptr curr_map_obj =
           curr_gridmap->getVisualization();
 
-        curr_map_obj->setName(format(
+        curr_map_obj->setName(mrpt::format(
                                         "map_%s",
                                         curr_neighbor->agent.topic_namespace.data.c_str()));
         curr_map_obj->setPose(pose_out + CPose3D(0, 0, off_z, 0, 0, 0));
@@ -555,7 +555,7 @@ void CMapMerger::mergeMaps()
 
       curr_traj->setColor(traj_color_mngr.getNextTColorf());
       curr_traj->setPose(rel_pose);
-      curr_traj->setName(format(
+      curr_traj->setName(mrpt::format(
                                 "traj_%s", curr_neighbor->agent.topic_namespace.data.c_str()));
       {                    // save 3D Scene
         COpenGLScene::Ptr fused_scene =

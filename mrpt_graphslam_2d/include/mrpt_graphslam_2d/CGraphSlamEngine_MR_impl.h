@@ -929,7 +929,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::setupSrvs()
       mrpt_msgs::srv::GetCMGraph::Response::SharedPtr res) {
       this->getCMGraph(req, res);
                         },
-                        rclcpp::ServicesQoS().get_rmw_qos_profile(), cb_group);
+                        rclcpp::ServicesQoS(), cb_group);
 }
 
 template<class GRAPH_T>
@@ -1101,7 +1101,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::setupSrvs()
   cm_graph_srvclient =
     nh->template create_client<mrpt_msgs::srv::GetCMGraph>(
                         cm_graph_service,
-                        rclcpp::ServicesQoS().get_rmw_qos_profile(),
+                        rclcpp::ServicesQoS(),
                         cm_graph_cb_group);
 }
 

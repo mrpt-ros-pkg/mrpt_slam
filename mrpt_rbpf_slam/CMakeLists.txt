@@ -87,6 +87,9 @@ if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_pytest REQUIRED)
 
+  # uncrustify 0.78 (ament_cmake 2.8+/Rolling) crashes with exit code 70 on
+  # the heavy-template headers in this package.
+  list(APPEND AMENT_LINT_AUTO_EXCLUDE ament_cmake_uncrustify)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_pytest_test(test_launch_files test/test_launch_files.py
