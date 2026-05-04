@@ -5,10 +5,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Pure ROS 2 / ament packages — safe to load before ament_target_dependencies.
-# MRPT packages are loaded AFTER all ament_target_dependencies calls because
-# their cmake configs corrupt ament cmake macros via transitive system MRPT
-# cmake files (mrpt_libros_bridge → mrpt-maps → system mrpt cmake).
+# ROS 2 / ament packages are loaded first.
+# MRPT packages are loaded AFTER the main target_link_libraries() calls.
+# Their cmake configs can interfere with ament macros via transitive MRPT cmake
+# files (mrpt_libros_bridge → mrpt-maps → system mrpt cmake).
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(ament_index_cpp REQUIRED)
@@ -41,18 +41,20 @@ add_executable(mrpt_graphslam_2d_node
     src/common.cpp
 )
 
-ament_target_dependencies(mrpt_graphslam_2d_node
-    rclcpp
-    ament_index_cpp
-    tf2
-    tf2_ros
-    tf2_geometry_msgs
-    std_msgs
-    nav_msgs
-    sensor_msgs
-    geometry_msgs
-    visualization_msgs
-    mrpt_msgs
+# ament_target_dependencies() was removed in ament_cmake 2.8.5 (Rolling).
+# Use target_link_libraries() with modern cmake targets instead.
+target_link_libraries(mrpt_graphslam_2d_node PRIVATE
+    rclcpp::rclcpp
+    ament_index_cpp::ament_index_cpp
+    tf2::tf2
+    tf2_ros::tf2_ros
+    ${tf2_geometry_msgs_TARGETS}
+    ${std_msgs_TARGETS}
+    ${nav_msgs_TARGETS}
+    ${sensor_msgs_TARGETS}
+    ${geometry_msgs_TARGETS}
+    ${visualization_msgs_TARGETS}
+    ${mrpt_msgs_TARGETS}
 )
 
 # Multi-robot node (TICKET-004)
@@ -62,18 +64,18 @@ add_executable(mrpt_graphslam_2d_mr_node
     src/CConnectionManager.cpp
 )
 
-ament_target_dependencies(mrpt_graphslam_2d_mr_node
-    rclcpp
-    ament_index_cpp
-    tf2
-    tf2_ros
-    tf2_geometry_msgs
-    std_msgs
-    nav_msgs
-    sensor_msgs
-    geometry_msgs
-    visualization_msgs
-    mrpt_msgs
+target_link_libraries(mrpt_graphslam_2d_mr_node PRIVATE
+    rclcpp::rclcpp
+    ament_index_cpp::ament_index_cpp
+    tf2::tf2
+    tf2_ros::tf2_ros
+    ${tf2_geometry_msgs_TARGETS}
+    ${std_msgs_TARGETS}
+    ${nav_msgs_TARGETS}
+    ${sensor_msgs_TARGETS}
+    ${geometry_msgs_TARGETS}
+    ${visualization_msgs_TARGETS}
+    ${mrpt_msgs_TARGETS}
 )
 
 # Map merger node — standalone map-merging utility (TICKET-004)
@@ -85,13 +87,13 @@ add_executable(map_merger_node
     src/TNeighborAgentMapProps.cpp
 )
 
-ament_target_dependencies(map_merger_node
-    rclcpp
-    nav_msgs
-    mrpt_msgs
+target_link_libraries(map_merger_node PRIVATE
+    rclcpp::rclcpp
+    ${nav_msgs_TARGETS}
+    ${mrpt_msgs_TARGETS}
 )
 
-# Load MRPT packages after all ament_target_dependencies calls.
+# Load MRPT packages after all target_link_libraries() calls.
 # mrpt-graphslam is only available from the system PPA; prepend system cmake
 # prefix so the correct mrpt-io (with CCompressedInputStream.h) is found first.
 list(PREPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
@@ -102,21 +104,21 @@ find_package(mrpt-graphslam REQUIRED)
 
 message(STATUS "MRPT_VERSION: ${mrpt-graphslam_VERSION}")
 
-target_link_libraries(mrpt_graphslam_2d_node
+target_link_libraries(mrpt_graphslam_2d_node PRIVATE
     mrpt_msgs_bridge::mrpt_msgs_bridge
     mrpt::graphslam
     mrpt::gui
     mrpt_libros_bridge::mrpt_libros_bridge
 )
 
-target_link_libraries(mrpt_graphslam_2d_mr_node
+target_link_libraries(mrpt_graphslam_2d_mr_node PRIVATE
     mrpt_msgs_bridge::mrpt_msgs_bridge
     mrpt::graphslam
     mrpt::gui
     mrpt_libros_bridge::mrpt_libros_bridge
 )
 
-target_link_libraries(map_merger_node
+target_link_libraries(map_merger_node PRIVATE
     mrpt_msgs_bridge::mrpt_msgs_bridge
     mrpt::graphslam
     mrpt::gui

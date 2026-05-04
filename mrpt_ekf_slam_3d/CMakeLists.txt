@@ -5,9 +5,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Pure ROS 2 / ament packages — safe to load before ament_target_dependencies.
-# MRPT bridge packages are loaded AFTER ament_target_dependencies; see ekf_slam_2d
-# for the reason (system MRPT cmake configs corrupt ament cmake macros).
+# ROS 2 / ament packages are loaded first.
+# MRPT bridge packages are loaded AFTER the main target_link_libraries() call.
+# See mrpt_ekf_slam_2d: system MRPT cmake configs can interfere with ament macros.
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -41,19 +41,21 @@ add_executable(mrpt_ekf_slam_3d
   src/mrpt_ekf_slam_3d_app.cpp
 )
 
-ament_target_dependencies(mrpt_ekf_slam_3d
-  rclcpp
-  rclcpp_components
-  ament_index_cpp
-  tf2
-  tf2_ros
-  tf2_geometry_msgs
-  std_msgs
-  nav_msgs
-  sensor_msgs
-  geometry_msgs
-  visualization_msgs
-  mrpt_msgs
+# ament_target_dependencies() was removed in ament_cmake 2.8.5 (Rolling).
+# Use target_link_libraries() with modern cmake targets instead.
+target_link_libraries(mrpt_ekf_slam_3d PRIVATE
+  rclcpp::rclcpp
+  ${rclcpp_components_TARGETS}
+  ament_index_cpp::ament_index_cpp
+  tf2::tf2
+  tf2_ros::tf2_ros
+  ${tf2_geometry_msgs_TARGETS}
+  ${std_msgs_TARGETS}
+  ${nav_msgs_TARGETS}
+  ${sensor_msgs_TARGETS}
+  ${geometry_msgs_TARGETS}
+  ${visualization_msgs_TARGETS}
+  ${mrpt_msgs_TARGETS}
 )
 
 find_package(mrpt_libros_bridge REQUIRED)
@@ -61,7 +63,7 @@ find_package(mrpt_msgs_bridge REQUIRED)
 find_package(mrpt-gui REQUIRED)
 find_package(mrpt-slam REQUIRED)
 
-target_link_libraries(mrpt_ekf_slam_3d
+target_link_libraries(mrpt_ekf_slam_3d PRIVATE
   mrpt_msgs_bridge::mrpt_msgs_bridge
   mrpt::slam
   mrpt::gui
