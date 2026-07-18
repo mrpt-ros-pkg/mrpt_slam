@@ -4,11 +4,10 @@
 # license that can be found in the LICENSE file or at
 # https://developers.google.com/open-source/licenses/bsd
 
-"""Launch file for RO-SLAM (Range-Only SLAM) with rawlog playback."""
+"""Launch file for RO-SLAM using the package-bundled rawlog."""
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import SetEnvironmentVariable
 from launch.substitutions import PathJoinSubstitution
 
 from launch_ros.actions import Node
@@ -17,21 +16,13 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     """Generate launch description for RO-SLAM."""
-    # Get package directories
+    # Get package directory
     mrpt_rbpf_slam_share = FindPackageShare('mrpt_rbpf_slam')
-    mrpt_rawlog_share = FindPackageShare('mrpt_rawlog')
 
     # Set ROS console configuration
     set_rosconsole_config = SetEnvironmentVariable(
         name='ROSCONSOLE_CONFIG_FILE',
         value=PathJoinSubstitution([mrpt_rbpf_slam_share, 'config', 'rosconsole.config'])
-    )
-
-    # Include demo rawlog player launch file
-    include_demo_rawlog = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([mrpt_rawlog_share, 'launch', 'demo_play_ro.launch.py'])
-        ])
     )
 
     # RViz node
@@ -53,6 +44,10 @@ def generate_launch_description():
         output='screen',
         parameters=[
             {
+                'rawlog_play_delay': 0.2,
+                'rawlog_filename': PathJoinSubstitution([
+                    mrpt_rbpf_slam_share, 'tutorial', 'RO-SLAM_demo.rawlog'
+                ]),
                 'ini_filename': PathJoinSubstitution([
                     mrpt_rbpf_slam_share, 'tutorial', 'RO-SLAM_demo.ini'
                 ]),
@@ -67,7 +62,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         set_rosconsole_config,
-        include_demo_rawlog,
         rviz_node,
         slam_node,
     ])

@@ -22,9 +22,8 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     """Generate launch description for EKF SLAM 3D."""
-    # Get package directories
+    # Get package directory
     mrpt_ekf_slam_3d_share = FindPackageShare('mrpt_ekf_slam_3d')
-    mrpt_rawlog_share = FindPackageShare('mrpt_rawlog')
 
     # Declare launch arguments
     use_sim_time_arg = DeclareLaunchArgument(
@@ -90,7 +89,7 @@ def generate_launch_description():
 
     include_demo_rosbag_arg = DeclareLaunchArgument(
         'include_demo_rosbag',
-        default_value='true',
+        default_value='false',
         description='Include demo rosbag launch file'
     )
 
@@ -118,7 +117,9 @@ def generate_launch_description():
     include_demo_rosbag_action = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
-                mrpt_rawlog_share, 'launch', 'demo_play_ekf.launch.py'
+                FindPackageShare('mrpt_rawlog'),
+                'launch',
+                'demo_play_ekf.launch.py'
             ])
         ]),
         condition=IfCondition(include_demo_rosbag)

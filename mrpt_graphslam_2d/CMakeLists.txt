@@ -93,16 +93,73 @@ target_link_libraries(map_merger_node PRIVATE
     ${mrpt_msgs_TARGETS}
 )
 
-# Load MRPT packages after all target_link_libraries() calls.
-# mrpt-graphslam is only available from the system PPA; prepend system cmake
-# prefix so the correct mrpt-io (with CCompressedInputStream.h) is found first.
-list(PREPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
-find_package(mrpt_libros_bridge REQUIRED)
-find_package(mrpt_msgs_bridge REQUIRED)
-find_package(mrpt-gui REQUIRED)
-find_package(mrpt-graphslam REQUIRED)
+# Load MRPT packages after all target_link_libraries() calls. Keep every MRPT
+# component in the ROS Jazzy installation: mixing the Ubuntu/PPA MRPT libraries
+# in /usr with the Jazzy libraries gives the dynamic linker two ABI-compatible
+# SONAMEs backed by different patch releases.
+set(
+  MRPT_JAZZY_PREFIX "/opt/ros/jazzy"
+  CACHE PATH "Prefix containing the ROS Jazzy MRPT installation"
+)
+list(PREPEND CMAKE_PREFIX_PATH "${MRPT_JAZZY_PREFIX}")
 
-message(STATUS "MRPT_VERSION: ${mrpt-graphslam_VERSION}")
+if(NOT EXISTS
+    "${MRPT_JAZZY_PREFIX}/lib/cmake/mrpt-graphslam/mrpt-graphslam-config.cmake"
+)
+  message(FATAL_ERROR
+    "The Jazzy MRPT GraphSLAM component is missing from ${MRPT_JAZZY_PREFIX}. "
+    "Install it with: sudo apt install ros-jazzy-mrpt-libapps"
+  )
+endif()
+
+find_package(
+  mrpt_libros_bridge REQUIRED CONFIG
+  PATHS "${MRPT_JAZZY_PREFIX}"
+  NO_DEFAULT_PATH
+)
+find_package(mrpt_msgs_bridge REQUIRED)
+find_package(
+  mrpt-gui REQUIRED CONFIG
+  PATHS "${MRPT_JAZZY_PREFIX}"
+  NO_DEFAULT_PATH
+)
+find_package(
+  mrpt-graphslam REQUIRED CONFIG
+  PATHS "${MRPT_JAZZY_PREFIX}"
+  NO_DEFAULT_PATH
+)
+
+if(NOT "${mrpt-gui_VERSION}" VERSION_EQUAL "${mrpt-graphslam_VERSION}")
+  message(FATAL_ERROR
+    "Jazzy MRPT component version mismatch: mrpt-gui=${mrpt-gui_VERSION}, "
+    "mrpt-graphslam=${mrpt-graphslam_VERSION}"
+  )
+endif()
+
+# Guard against a transitive find_dependency() silently importing a second
+# MRPT installation. Header-only targets have no location and are skipped.
+get_property(_mrpt_imported_targets DIRECTORY PROPERTY IMPORTED_TARGETS)
+foreach(_target IN LISTS _mrpt_imported_targets)
+  if(NOT _target MATCHES "^mrpt::")
+    continue()
+  endif()
+
+  get_target_property(_location "${_target}" IMPORTED_LOCATION)
+  if(NOT _location)
+    get_target_property(_location "${_target}" IMPORTED_LOCATION_NONE)
+  endif()
+
+  if(_location AND NOT _location MATCHES "^${MRPT_JAZZY_PREFIX}/")
+    message(FATAL_ERROR
+      "MRPT target ${_target} resolved outside the Jazzy installation: "
+      "${_location}"
+    )
+  endif()
+endforeach()
+
+message(STATUS
+  "MRPT GraphSLAM: ${mrpt-graphslam_VERSION} from ${mrpt-graphslam_DIR}"
+)
 
 target_link_libraries(mrpt_graphslam_2d_node PRIVATE
     mrpt_msgs_bridge::mrpt_msgs_bridge

@@ -46,7 +46,6 @@
 
   <!-- Exec dependencies -->
   <exec_depend>rviz2</exec_depend>
-  <exec_depend>mrpt_rawlog</exec_depend>
   <exec_depend>mvsim</exec_depend>
 
   <export>

@@ -4,7 +4,7 @@
 # license that can be found in the LICENSE file or at
 # https://developers.google.com/open-source/licenses/bsd
 
-"""Launch file for ICP SLAM with rosbag playback."""
+"""Launch file for ICP SLAM with optional demo rosbag playback."""
 
 from launch import LaunchDescription
 from launch.actions import (
@@ -22,9 +22,8 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     """Generate launch description for ICP SLAM."""
-    # Get package directories
+    # Get package directory
     mrpt_icp_slam_2d_share = FindPackageShare('mrpt_icp_slam_2d')
-    mrpt_rawlog_share = FindPackageShare('mrpt_rawlog')
 
     # Declare launch arguments
     use_sim_time_arg = DeclareLaunchArgument(
@@ -96,7 +95,7 @@ def generate_launch_description():
 
     include_demo_rosbag_arg = DeclareLaunchArgument(
         'include_demo_rosbag',
-        default_value='true',
+        default_value='false',
         description='Include demo rosbag launch file'
     )
 
@@ -129,7 +128,11 @@ def generate_launch_description():
     # Include demo rosbag launch file (conditional)
     include_demo_rosbag_action = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            PathJoinSubstitution([mrpt_rawlog_share, 'launch', 'demo_rosbag.launch.py'])
+            PathJoinSubstitution([
+                FindPackageShare('mrpt_rawlog'),
+                'launch',
+                'demo_rosbag.launch.py'
+            ])
         ]),
         condition=IfCondition(include_demo_rosbag)
     )
