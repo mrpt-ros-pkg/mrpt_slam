@@ -93,8 +93,16 @@ def generate_launch_description():
 
     mvsim_world_arg = DeclareLaunchArgument(
         'mvsim_world',
-        default_value='demo_2robots.world.xml',
-        description='MVSim world file name'
+        default_value=PathJoinSubstitution([
+            mvsim_share, 'mvsim_tutorial', 'demo_2robots.world.xml'
+        ]),
+        description='Full path to the MVSim world file'
+    )
+
+    mvsim_headless_arg = DeclareLaunchArgument(
+        'mvsim_headless',
+        default_value='false',
+        description='Run MVSim without its graphical window'
     )
 
     # Get launch configurations
@@ -109,6 +117,7 @@ def generate_launch_description():
     launch_rviz = LaunchConfiguration('launch_rviz')
     rviz_config = LaunchConfiguration('rviz_config')
     mvsim_world = LaunchConfiguration('mvsim_world')
+    mvsim_headless = LaunchConfiguration('mvsim_headless')
 
     # Set ROS console configuration
     set_rosconsole_config = SetEnvironmentVariable(
@@ -116,15 +125,20 @@ def generate_launch_description():
         value=PathJoinSubstitution([mrpt_icp_slam_2d_share, 'config', 'rosconsole.config'])
     )
 
-    # Include MVSim launch file
-    # Note: Adjust the launch file name based on actual mvsim package structure
+    # Include the generic MVSim Jazzy launch file. RViz is managed below so the
+    # simulator's own RViz process remains disabled.
     include_mvsim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            PathJoinSubstitution([mvsim_share, 'launch', 'mvsim.launch.py'])
+            PathJoinSubstitution([mvsim_share, 'launch', 'launch_world.launch.py'])
         ]),
         launch_arguments={
             'world_file': mvsim_world,
-            'use_sim_time': use_sim_time,
+            'headless': mvsim_headless,
+            'do_fake_localization': 'false',
+            'publish_tf_odom2baselink': 'true',
+            'force_publish_vehicle_namespace': 'true',
+            'publish_log_topics': 'false',
+            'use_rviz': 'false',
         }.items()
     )
 
@@ -172,6 +186,7 @@ def generate_launch_description():
         launch_rviz_arg,
         rviz_config_arg,
         mvsim_world_arg,
+        mvsim_headless_arg,
         # Actions
         set_rosconsole_config,
         include_mvsim,

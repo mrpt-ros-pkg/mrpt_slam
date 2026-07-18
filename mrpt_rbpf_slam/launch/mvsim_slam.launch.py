@@ -8,6 +8,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
@@ -24,9 +25,21 @@ def generate_launch_description():
     world_file_arg = DeclareLaunchArgument(
         'world_file',
         default_value=PathJoinSubstitution([
-            mvsim_share, 'mvsim_tutorial', 'mvsim_slam.xml'
+            mvsim_share, 'mvsim_tutorial', 'mvsim_slam.world.xml'
         ]),
         description='Path to the MVSim world file'
+    )
+
+    mvsim_headless_arg = DeclareLaunchArgument(
+        'mvsim_headless',
+        default_value='false',
+        description='Run MVSim without its graphical window'
+    )
+
+    launch_rviz_arg = DeclareLaunchArgument(
+        'launch_rviz',
+        default_value='true',
+        description='Launch RViz2 for visualization'
     )
 
     # MVSim simulator node
@@ -37,7 +50,10 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'world_file': LaunchConfiguration('world_file'),
+            'headless': LaunchConfiguration('mvsim_headless'),
             'do_fake_localization': False,  # Needed to run an external localization / SLAM system
+            'publish_tf_odom2baselink': True,
+            'force_publish_vehicle_namespace': False,
         }]
     )
 
@@ -48,7 +64,8 @@ def generate_launch_description():
         name='rviz',
         arguments=['-d', PathJoinSubstitution([
             mvsim_share, 'mvsim_tutorial', 'mvsim_slam.rviz'
-        ])]
+        ])],
+        condition=IfCondition(LaunchConfiguration('launch_rviz'))
     )
 
     # Set ROS console configuration
@@ -79,6 +96,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         world_file_arg,
+        mvsim_headless_arg,
+        launch_rviz_arg,
         mvsim_node,
         rviz_node,
         set_rosconsole_config,

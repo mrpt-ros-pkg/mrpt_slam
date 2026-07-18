@@ -80,6 +80,7 @@ install(DIRECTORY
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_pytest REQUIRED)
+  find_package(launch_testing_ament_cmake REQUIRED)
 
   # uncrustify 0.78 (ament_cmake 2.8+/Rolling) crashes with exit code 70 on
   # the heavy-template headers in this package.
@@ -96,6 +97,10 @@ if(BUILD_TESTING)
 
   ament_add_pytest_test(test_parameters test/test_parameters.py
     TIMEOUT 30
+  )
+
+  add_launch_test(test/test_mvsim_integration.launch.py
+    TIMEOUT 60
   )
 endif()
 
