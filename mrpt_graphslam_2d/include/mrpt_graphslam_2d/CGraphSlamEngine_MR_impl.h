@@ -21,6 +21,7 @@
 #include <mrpt_msgs/srv/get_cm_graph.hpp>
 #include <mrpt_msgs_bridge/network_of_poses.hpp>
 #include <mrpt/ros2bridge/pose.h>
+#include <rclcpp/version.h>
 
 #include <mrpt/math/CMatrixFixed.h>
 namespace mrpt::math
@@ -921,6 +922,11 @@ void CGraphSlamEngine_MR<GRAPH_T>::setupSrvs()
         // concurrently with the main executor thread.
   auto cb_group = this->m_node->create_callback_group(
                 rclcpp::CallbackGroupType::Reentrant);
+#if RCLCPP_VERSION_MAJOR >= 31
+  const auto service_qos = rclcpp::ServicesQoS();
+#else
+  const auto & service_qos = rmw_qos_profile_services_default;
+#endif
   m_cm_graph_srvserver =
     this->m_node->template create_service<mrpt_msgs::srv::GetCMGraph>(
                         m_cm_graph_service,
@@ -929,7 +935,7 @@ void CGraphSlamEngine_MR<GRAPH_T>::setupSrvs()
       mrpt_msgs::srv::GetCMGraph::Response::SharedPtr res) {
       this->getCMGraph(req, res);
                         },
-                        rmw_qos_profile_services_default, cb_group);
+                        service_qos, cb_group);
 }
 
 template<class GRAPH_T>
@@ -1098,10 +1104,15 @@ void CGraphSlamEngine_MR<GRAPH_T>::TNeighborAgentProps::setupSrvs()
 {
   cm_graph_cb_group = nh->create_callback_group(
                 rclcpp::CallbackGroupType::MutuallyExclusive);
+#if RCLCPP_VERSION_MAJOR >= 31
+  const auto service_qos = rclcpp::ServicesQoS();
+#else
+  const auto & service_qos = rmw_qos_profile_services_default;
+#endif
   cm_graph_srvclient =
     nh->template create_client<mrpt_msgs::srv::GetCMGraph>(
                         cm_graph_service,
-                        rmw_qos_profile_services_default,
+                        service_qos,
                         cm_graph_cb_group);
 }
 
