@@ -10,3 +10,5 @@ Session.vim
 # Ignore qtcreator files:
 CMakeLists.txt.user*
 .vscode
+CLAUDE.md
+*.pyc

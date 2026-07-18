@@ -9,6 +9,7 @@ jobs:
     env:
       DEBIAN_FRONTEND: noninteractive
     strategy:
+      fail-fast: false
       matrix:
         include:
           # Humble Hawksbill (May 2022 - May 2027)
@@ -73,3 +74,13 @@ jobs:
               mrpt_icp_slam_2d mrpt_rbpf_slam mrpt_graphslam_2d \
             --event-handlers console_direct+
           colcon test-result --verbose
+
+      - name: Archive install tree
+        run: |
+          tar -czf mrpt-slam-${{ matrix.ros_distribution }}.tar.gz install
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mrpt-slam-${{ matrix.ros_distribution }}
+          path: mrpt-slam-${{ matrix.ros_distribution }}.tar.gz
