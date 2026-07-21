@@ -58,21 +58,39 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /map
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /map
       Value: true
     - Arrow Length: 0.3
       Class: rviz_default_plugins/PoseArray
       Color: 255; 25; 0
       Enabled: true
       Name: PoseArray
-      Topic: /particlecloud
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /particlecloud
       Value: true
     - Arrow Length: 0.3
       Class: rviz_default_plugins/PoseArray
       Color: 0; 255; 0
       Enabled: true
       Name: PoseArray
-      Topic: /particlecloud_beacons
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /particlecloud_beacons
       Value: true
     - Class: rviz_default_plugins/TF
       Enabled: true
@@ -102,7 +120,12 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Marker Topic: /beacons_viz
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /beacons_viz
       Name: MarkerArray
       Namespaces:
         {}
@@ -122,12 +145,27 @@ Visualization Manager:
     - Class: rviz_default_plugins/FocusCamera
     - Class: rviz_default_plugins/Measure
     - Class: rviz_default_plugins/SetInitialPose
-      Topic: /initialpose
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /initialpose
     - Class: rviz_default_plugins/SetGoal
-      Topic: /move_base_simple/goal
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /goal_pose
     - Class: rviz_default_plugins/PublishPoint
       Single click: true
-      Topic: /clicked_point
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /clicked_point
   Value: true
   Views:
     Current:

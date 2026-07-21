@@ -1,5 +1,5 @@
 Panels:
-  - Class: rviz/Displays
+  - Class: rviz_common/Displays
     Help Height: 78
     Name: Displays
     Property Tree Widget:
@@ -10,21 +10,21 @@ Panels:
         - /PointCloud1
       Splitter Ratio: 0.5
     Tree Height: 358
-  - Class: rviz/Selection
+  - Class: rviz_common/Selection
     Name: Selection
-  - Class: rviz/Tool Properties
+  - Class: rviz_common/Tool Properties
     Expanded:
       - /2D Pose Estimate1
       - /2D Nav Goal1
       - /Publish Point1
     Name: Tool Properties
     Splitter Ratio: 0.588679
-  - Class: rviz/Views
+  - Class: rviz_common/Views
     Expanded:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
-  - Class: rviz/Time
+  - Class: rviz_common/Time
     Experimental: false
     Name: Time
     SyncMode: 0
@@ -33,17 +33,23 @@ Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.7
-      Class: rviz/Map
+      Class: rviz_default_plugins/Map
       Color Scheme: map
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /map
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /map
       Value: true
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
-      Class: rviz/Pose
+      Class: rviz_default_plugins/Pose
       Color: 255; 25; 0
       Enabled: true
       Head Length: 0.3
@@ -52,7 +58,13 @@ Visualization Manager:
       Shaft Length: 0.3
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /robot_pose
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot_pose
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -62,7 +74,7 @@ Visualization Manager:
         Value: true
       Axis: Z
       Channel Name: intensity
-      Class: rviz/PointCloud
+      Class: rviz_default_plugins/PointCloud
       Color: 85; 0; 255
       Color Transformer: FlatColor
       Decay Time: 0
@@ -79,11 +91,17 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.02
       Style: Flat Squares
-      Topic: /PointCloudMap
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /PointCloudMap
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Class: rviz/TF
+    - Class: rviz_default_plugins/TF
       Enabled: true
       Frame Timeout: 15
       Frames:
@@ -133,7 +151,7 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 25; 255; 0
       Enabled: true
       Head Diameter: 0.300000012
@@ -151,8 +169,13 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /trajectory
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /trajectory
       Value: true
   Enabled: true
   Global Options:
@@ -161,23 +184,38 @@ Visualization Manager:
     Frame Rate: 30
   Name: root
   Tools:
-    - Class: rviz/Interact
+    - Class: rviz_default_plugins/Interact
       Hide Inactive Objects: true
-    - Class: rviz/MoveCamera
-    - Class: rviz/Select
-    - Class: rviz/FocusCamera
-    - Class: rviz/Measure
-    - Class: rviz/SetInitialPose
-      Topic: /initialpose
-    - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
-    - Class: rviz/PublishPoint
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /goal_pose
+    - Class: rviz_default_plugins/PublishPoint
       Single click: true
-      Topic: /clicked_point
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /clicked_point
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
+      Class: rviz_default_plugins/Orbit
       Distance: 17.316
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
@@ -192,7 +230,7 @@ Visualization Manager:
       Near Clip Distance: 0.01
       Pitch: 0.8748
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
+      Value: Orbit (rviz_default_plugins)
       Yaw: 5.20356
     Saved: ~
 Window Geometry:

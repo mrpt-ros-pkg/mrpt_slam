@@ -1,5 +1,5 @@
 Panels:
-  - Class: rviz/Displays
+  - Class: rviz_common/Displays
     Help Height: 0
     Name: Displays
     Property Tree Widget:
@@ -18,21 +18,21 @@ Panels:
         - /estim_traj_11
       Splitter Ratio: 0.5
     Tree Height: 327
-  - Class: rviz/Selection
+  - Class: rviz_common/Selection
     Name: Selection
-  - Class: rviz/Tool Properties
+  - Class: rviz_common/Tool Properties
     Expanded:
       - /2D Pose Estimate1
       - /2D Nav Goal1
       - /Publish Point1
     Name: Tool Properties
     Splitter Ratio: 0.588679
-  - Class: rviz/Views
+  - Class: rviz_common/Views
     Expanded:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
-  - Class: rviz/Time
+  - Class: rviz_common/Time
     Experimental: false
     Name: Time
     SyncMode: 0
@@ -42,7 +42,7 @@ Visualization Manager:
   Displays:
     - Alpha: 0.5
       Cell Size: 1
-      Class: rviz/Grid
+      Class: rviz_default_plugins/Grid
       Color: 160; 160; 164
       Enabled: true
       Line Style:
@@ -58,30 +58,35 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Class: rviz/Axes
+    - Class: rviz_default_plugins/Axes
       Enabled: true
       Length: 1
       Name: origin_axes
       Radius: 0.1
       Reference Frame: <Fixed Frame>
       Value: true
-    - Class: rviz/Axes
+    - Class: rviz_default_plugins/Axes
       Enabled: true
       Length: 1
       Name: anchor_frame_1
       Radius: 0.1
       Reference Frame: mf1_anchor
       Value: true
-    - Class: rviz/Axes
+    - Class: rviz_default_plugins/Axes
       Enabled: true
       Length: 1
       Name: anchor_frame_2
       Radius: 0.1
       Reference Frame: mf3_anchor
       Value: true
-    - Class: rviz/Image
+    - Class: rviz_default_plugins/Image
       Enabled: true
-      Image Topic: /{HOSTNAME_PLACEHOLDER}/onboard_camera/image_raw
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER/onboard_camera/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -89,11 +94,15 @@ Visualization Manager:
       Normalize Range: true
       Queue Size: 2
       Transport Hint: compressed
-      Unreliable: false
       Value: true
-    - Class: rviz/Image
+    - Class: rviz_default_plugins/Image
       Enabled: true
-      Image Topic: /{HOSTNAME_PLACEHOLDER}_11312/onboard_camera/image_raw
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER_11312/onboard_camera/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -101,10 +110,9 @@ Visualization Manager:
       Normalize Range: true
       Queue Size: 2
       Transport Hint: compressed
-      Unreliable: false
       Value: true
     - Alpha: 1
-      Class: rviz/RobotModel
+      Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
       Enabled: true
       Links:
@@ -114,13 +122,20 @@ Visualization Manager:
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
       Name: robot_model_1
-      Robot Description: robot_description
-      TF Prefix: {HOSTNAME_PLACEHOLDER}
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: robot_description
+      TF Prefix: HOSTNAME_PLACEHOLDER
       Update Interval: 0
       Value: true
       Visual Enabled: true
     - Alpha: 1
-      Class: rviz/RobotModel
+      Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
       Enabled: true
       Links:
@@ -130,8 +145,15 @@ Visualization Manager:
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
       Name: robot_model_2
-      Robot Description: robot_description
-      TF Prefix: {HOSTNAME_PLACEHOLDER}_11312
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: robot_description
+      TF Prefix: HOSTNAME_PLACEHOLDER_11312
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -143,7 +165,7 @@ Visualization Manager:
         Value: true
       Axis: Z
       Channel Name: intensity
-      Class: rviz/LaserScan
+      Class: rviz_default_plugins/LaserScan
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
@@ -160,8 +182,13 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /{HOSTNAME_PLACEHOLDER}/input/laser_scan
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER/input/laser_scan
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -173,7 +200,7 @@ Visualization Manager:
         Value: true
       Axis: Z
       Channel Name: intensity
-      Class: rviz/LaserScan
+      Class: rviz_default_plugins/LaserScan
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
@@ -190,43 +217,65 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /{HOSTNAME_PLACEHOLDER}_11312/input/laser_scan
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER_11312/input/laser_scan
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
     - Angle Tolerance: 0.1
-      Class: rviz/Odometry
+      Class: rviz_default_plugins/Odometry
       Color: 255; 25; 0
       Enabled: false
       Keep: 100
       Length: 1
       Name: odom_1
       Position Tolerance: 0.1
-      Topic: /{HOSTNAME_PLACEHOLDER}/input/odom
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER/input/odom
       Value: false
     - Angle Tolerance: 0.1
-      Class: rviz/Odometry
+      Class: rviz_default_plugins/Odometry
       Color: 255; 25; 0
       Enabled: false
       Keep: 100
       Length: 1
       Name: odom_2
       Position Tolerance: 0.1
-      Topic: /{HOSTNAME_PLACEHOLDER}_11312/input/odom
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER_11312/input/odom
       Value: false
     - Alpha: 0.7
-      Class: rviz/Map
+      Class: rviz_default_plugins/Map
       Color Scheme: map
       Draw Behind: false
       Enabled: true
       Name: map_2
-      Topic: /{HOSTNAME_PLACEHOLDER}_11312/feedback/gridmap
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER_11312/feedback/gridmap
       Value: true
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 0; 0; 255
       Enabled: true
       Head Diameter: 0.3
@@ -243,13 +292,18 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /{HOSTNAME_PLACEHOLDER}_11312/feedback/odom_trajectory
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER_11312/feedback/odom_trajectory
       Value: true
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
-      Class: rviz/Pose
+      Class: rviz_default_plugins/Pose
       Color: 255; 25; 0
       Enabled: true
       Head Length: 0.3
@@ -258,12 +312,17 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /{HOSTNAME_PLACEHOLDER}_11312/feedback/robot_position
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER_11312/feedback/robot_position
       Value: true
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 255; 85; 0
       Enabled: true
       Head Diameter: 0.3
@@ -280,21 +339,31 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /{HOSTNAME_PLACEHOLDER}_11312/feedback/robot_trajectory
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER_11312/feedback/robot_trajectory
       Value: true
     - Alpha: 0.7
-      Class: rviz/Map
+      Class: rviz_default_plugins/Map
       Color Scheme: map
       Draw Behind: false
       Enabled: true
       Name: map_1
-      Topic: /{HOSTNAME_PLACEHOLDER}/feedback/gridmap
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER/feedback/gridmap
       Value: true
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 0; 0; 255
       Enabled: true
       Head Diameter: 0.3
@@ -311,13 +380,18 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /{HOSTNAME_PLACEHOLDER}/feedback/odom_trajectory
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER/feedback/odom_trajectory
       Value: true
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
-      Class: rviz/Pose
+      Class: rviz_default_plugins/Pose
       Color: 255; 25; 0
       Enabled: true
       Head Length: 0.3
@@ -326,12 +400,17 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /{HOSTNAME_PLACEHOLDER}/feedback/robot_position
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER/feedback/robot_position
       Value: true
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 255; 85; 0
       Enabled: true
       Head Diameter: 0.3
@@ -348,33 +427,53 @@ Visualization Manager:
       Radius: 0.03
       Shaft Diameter: 0.1
       Shaft Length: 0.1
-      Topic: /{HOSTNAME_PLACEHOLDER}/feedback/robot_trajectory
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /HOSTNAME_PLACEHOLDER/feedback/robot_trajectory
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: {HOSTNAME_PLACEHOLDER}/anchor
+    Fixed Frame: HOSTNAME_PLACEHOLDER/anchor
     Frame Rate: 30
   Name: root
   Tools:
-    - Class: rviz/Interact
+    - Class: rviz_default_plugins/Interact
       Hide Inactive Objects: true
-    - Class: rviz/MoveCamera
-    - Class: rviz/Select
-    - Class: rviz/FocusCamera
-    - Class: rviz/Measure
-    - Class: rviz/SetInitialPose
-      Topic: /initialpose
-    - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
-    - Class: rviz/PublishPoint
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /goal_pose
+    - Class: rviz_default_plugins/PublishPoint
       Single click: true
-      Topic: /clicked_point
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /clicked_point
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
+      Class: rviz_default_plugins/Orbit
       Distance: 20.7017
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
@@ -389,7 +488,7 @@ Visualization Manager:
       Near Clip Distance: 0.01
       Pitch: 0.9848
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
+      Value: Orbit (rviz_default_plugins)
       Yaw: 2.5954
     Saved: ~
 Window Geometry:

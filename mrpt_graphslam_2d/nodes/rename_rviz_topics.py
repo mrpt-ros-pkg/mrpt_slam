@@ -47,9 +47,10 @@ def rename_topics_in_rviz_file(templ_file, replace_dict):
         actual_file = os.path.join(os.path.dirname(head), tail)
         logger.info('Writing file: %s' % os.path.abspath(actual_file))
         with open(actual_file, 'w') as f:
-            f.writelines([
-                line.format(**replace_dict) for line in templ_lines
-            ])
+            for line in templ_lines:
+                for placeholder, value in replace_dict.items():
+                    line = line.replace(placeholder, value)
+                f.write(line)
 
 
 def validate_args():
@@ -84,7 +85,9 @@ def main():
                 os.linesep.join([os.path.abspath(f)
                                  for f in rviz_templ_files]))
 
-    logger.info('Replacing: %s ==> %s' % replace_dict.items()[0])
+    logger.info(
+        'Replacing: %s',
+        ', '.join('%s ==> %s' % item for item in replace_dict.items()))
 
     for templ_file in rviz_templ_files:
         rename_topics_in_rviz_file(templ_file, replace_dict)

@@ -1,5 +1,5 @@
 Panels:
-  - Class: rviz/Displays
+  - Class: rviz_common/Displays
     Help Height: 81
     Name: Displays
     Property Tree Widget:
@@ -14,26 +14,26 @@ Panels:
         - /GT Trajectory1
       Splitter Ratio: 0.5
     Tree Height: 404
-  - Class: rviz/Selection
+  - Class: rviz_common/Selection
     Name: Selection
-  - Class: rviz/Tool Properties
+  - Class: rviz_common/Tool Properties
     Expanded:
       - /2D Pose Estimate1
       - /2D Nav Goal1
       - /Publish Point1
     Name: Tool Properties
     Splitter Ratio: 0.588679
-  - Class: rviz/Views
+  - Class: rviz_common/Views
     Expanded:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
-  - Class: rviz/Time
+  - Class: rviz_common/Time
     Experimental: false
     Name: Time
     SyncMode: 0
     SyncSource: img_top_left
-  - Class: rviz/Tool Properties
+  - Class: rviz_common/Tool Properties
     Expanded: ~
     Name: Tool Properties
     Splitter Ratio: 0.5
@@ -42,7 +42,7 @@ Visualization Manager:
   Displays:
     - Alpha: 0.5
       Cell Size: 1
-      Class: rviz/Grid
+      Class: rviz_default_plugins/Grid
       Color: 160; 160; 164
       Enabled: true
       Line Style:
@@ -58,7 +58,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Class: rviz/TF
+    - Class: rviz_default_plugins/TF
       Enabled: true
       Frame Timeout: 15
       Frames:
@@ -103,9 +103,14 @@ Visualization Manager:
           {}
       Update Interval: 0
       Value: true
-    - Class: rviz/Image
+    - Class: rviz_default_plugins/Image
       Enabled: true
-      Image Topic: /ar_multi_boards_top_left/result
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /ar_multi_boards_top_left/result
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -113,11 +118,15 @@ Visualization Manager:
       Normalize Range: true
       Queue Size: 2
       Transport Hint: compressed
-      Unreliable: false
       Value: true
-    - Class: rviz/Image
+    - Class: rviz_default_plugins/Image
       Enabled: true
-      Image Topic: /ar_multi_boards_top_right/result
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /ar_multi_boards_top_right/result
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -125,20 +134,24 @@ Visualization Manager:
       Normalize Range: true
       Queue Size: 2
       Transport Hint: compressed
-      Unreliable: false
       Value: true
     - Alpha: 0.7
-      Class: rviz/Map
+      Class: rviz_default_plugins/Map
       Color Scheme: map
       Draw Behind: false
       Enabled: true
       Name: map
-      Topic: /youbot_15/feedback/gridmap
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /youbot_15/feedback/gridmap
       Value: true
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 0; 0; 255
       Enabled: true
       Line Style: Lines
@@ -148,12 +161,17 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
-      Topic: /youbot_15/feedback/odom_trajectory
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /youbot_15/feedback/odom_trajectory
       Value: true
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 255; 85; 0
       Enabled: true
       Line Style: Lines
@@ -163,21 +181,31 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
-      Topic: /youbot_15/feedback/robot_trajectory
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /youbot_15/feedback/robot_trajectory
       Value: true
     - Arrow Length: 0.1
-      Class: rviz/PoseArray
+      Class: rviz_default_plugins/PoseArray
       Color: 255; 25; 0
       Enabled: false
       Name: SLAM Poses
-      Topic: /youbot_15/feedback/robot_tr_poses
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /youbot_15/feedback/robot_tr_poses
       Value: false
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
-      Class: rviz/Pose
+      Class: rviz_default_plugins/Pose
       Color: 255; 25; 0
       Enabled: true
       Head Length: 0.1
@@ -186,8 +214,13 @@ Visualization Manager:
       Shaft Length: 0.2
       Shaft Radius: 0.05
       Shape: Arrow
-      Topic: /youbot_15/feedback/robot_position
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /youbot_15/feedback/robot_position
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -197,7 +230,7 @@ Visualization Manager:
         Value: true
       Axis: Z
       Channel Name: intensity
-      Class: rviz/LaserScan
+      Class: rviz_default_plugins/LaserScan
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
@@ -214,14 +247,19 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /youbot_15/input/laser_scan
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /youbot_15/input/laser_scan
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 25; 255; 0
       Enabled: true
       Line Style: Lines
@@ -231,8 +269,13 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
-      Topic: /ground_truth/marker_mf1
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /ground_truth/marker_mf1
       Value: true
   Enabled: true
   Global Options:
@@ -241,23 +284,38 @@ Visualization Manager:
     Frame Rate: 30
   Name: root
   Tools:
-    - Class: rviz/Interact
+    - Class: rviz_default_plugins/Interact
       Hide Inactive Objects: true
-    - Class: rviz/MoveCamera
-    - Class: rviz/Select
-    - Class: rviz/FocusCamera
-    - Class: rviz/Measure
-    - Class: rviz/SetInitialPose
-      Topic: /initialpose
-    - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
-    - Class: rviz/PublishPoint
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /goal_pose
+    - Class: rviz_default_plugins/PublishPoint
       Single click: true
-      Topic: /clicked_point
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /clicked_point
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
+      Class: rviz_default_plugins/Orbit
       Distance: 4.91671
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
@@ -272,7 +330,7 @@ Visualization Manager:
       Near Clip Distance: 0.01
       Pitch: 1.5048
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
+      Value: Orbit (rviz_default_plugins)
       Yaw: 1.63359
     Saved: ~
 Window Geometry:
