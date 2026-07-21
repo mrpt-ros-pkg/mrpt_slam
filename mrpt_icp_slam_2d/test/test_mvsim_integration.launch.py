@@ -12,7 +12,7 @@ import tempfile
 import time
 import unittest
 
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, TimerAction
@@ -48,6 +48,11 @@ def _make_headless_ini(package_share):
 @pytest.mark.launch_test
 def generate_test_description():
     """Start the real MVSim integration launch without graphical processes."""
+    try:
+        get_package_share_directory('mvsim')
+    except (PackageNotFoundError, KeyError):
+        pytest.skip('mvsim package not installed; skipping MVSim integration test')
+
     package_share = get_package_share_directory('mrpt_icp_slam_2d')
     mvsim_share = get_package_share_directory('mvsim')
     launch_file = os.path.join(
