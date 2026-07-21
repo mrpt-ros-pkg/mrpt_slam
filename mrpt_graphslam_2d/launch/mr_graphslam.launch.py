@@ -82,6 +82,15 @@ def generate_launch_description():
         description='Logging verbosity level (0=DEBUG, 1=INFO, 2=WARN, 3=ERROR)'
     )
 
+    output_directory_arg = DeclareLaunchArgument(
+        'output_directory',
+        default_value='',
+        description=(
+            'Directory for SLAM result files. Overrides the ini output_dir_fname '
+            'setting. Must not be empty if set. Leave empty to use the ini default.'
+        )
+    )
+
     launch_rviz_arg = DeclareLaunchArgument(
         'launch_rviz',
         default_value='false',
@@ -114,6 +123,7 @@ def generate_launch_description():
             'GSO': LaunchConfiguration('GSO'),
             'disable_MRPT_visuals': LaunchConfiguration('disable_MRPT_visuals'),
             'verbosity': LaunchConfiguration('verbosity'),
+            'output_directory': LaunchConfiguration('output_directory'),
         }],
     )
 
@@ -138,6 +148,7 @@ def generate_launch_description():
         gso_arg,
         disable_visuals_arg,
         verbosity_arg,
+        output_directory_arg,
         launch_rviz_arg,
         rviz_config_arg,
         graphslam_mr_node,

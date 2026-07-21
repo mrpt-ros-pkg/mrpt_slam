@@ -20,10 +20,11 @@
 #include <mrpt/graphslam/apps_related/TUserOptionsChecker.h>
 #include <mrpt/graphs/CNetworkOfPoses.h>
 
-// TODO TICKET-004: MR deciders not yet ported to ROS 2
-// #include "mrpt_graphslam_2d/NRD/CFixedIntervalsNRD_MR.h"
-// #include "mrpt_graphslam_2d/NRD/CICPCriteriaNRD_MR.h"
-// #include "mrpt_graphslam_2d/ERD/CLoopCloserERD_MR.h"
+#ifdef MRPT_GRAPHSLAM_MR_DECIDERS
+#include "mrpt_graphslam_2d/NRD/CFixedIntervalsNRD_MR.h"
+#include "mrpt_graphslam_2d/NRD/CICPCriteriaNRD_MR.h"
+#include "mrpt_graphslam_2d/ERD/CLoopCloserERD_MR.h"
+#endif  // MRPT_GRAPHSLAM_MR_DECIDERS
 
 namespace mrpt
 {namespace graphslam

@@ -82,6 +82,13 @@ CGraphSlamHandler_ROS<GRAPH_T>::CGraphSlamHandler_ROS(
 template<class GRAPH_T>
 CGraphSlamHandler_ROS<GRAPH_T>::~CGraphSlamHandler_ROS()
 {
+  // If initialisation never completed (readParams or initEngine threw before
+  // m_engine was assigned), prevent the parent destructor from trying to save
+  // results to an uninitialised or empty output path, which would itself throw
+  // and call std::terminate.
+  if (!this->m_engine) {
+    this->m_do_save_results = false;
+  }
 }
 
 template<class GRAPH_T>
@@ -91,6 +98,30 @@ void CGraphSlamHandler_ROS<GRAPH_T>::readParams()
 
   ASSERT_(!this->m_ini_fname.empty());
   parent_t::readConfigFname(this->m_ini_fname);
+
+  // Force non-interactive mode in all ROS/headless scenarios.
+  // The base class reads user_decides_about_output_dir from the ini file, but
+  // any interactive stdin prompt would block a headless ROS node indefinitely.
+  this->m_user_decides_about_output_dir = false;
+
+  // Apply the ROS output_directory override (declared in readROSParameters).
+  // This lets operators specify a safe, absolute output path via ROS params
+  // without needing to edit the ini file.
+  const std::string ros_out_dir =
+    this->get_parameter("output_directory").as_string();
+  if (!ros_out_dir.empty()) {
+    this->m_output_dir_fname = ros_out_dir;
+  }
+
+  // Reject an empty output directory.  An empty path causes initOutputDir()
+  // in the parent destructor to create or manipulate a directory at "",
+  // which is undefined behaviour on most file systems.
+  ASSERTMSG_(
+    !this->m_output_dir_fname.empty(),
+    "output_directory must not be empty. "
+    "Set the 'output_directory' ROS parameter or set 'output_dir_fname' "
+    "to a non-empty path in the [GeneralConfiguration] section of the "
+    "ini file.");
 }
 
 template<class GRAPH_T>
@@ -143,6 +174,11 @@ void CGraphSlamHandler_ROS<GRAPH_T>::readROSParameters()
     m_odom_frame_id = this->get_parameter("odom_frame_id").as_string();
   }
 
+        // output directory override (applied in readParams after ini is read)
+  {
+    this->declare_parameter<std::string>("output_directory", "");
+  }
+
         // ASSERT that the given user options are valid
         // Fill the TuserOptionsChecker related structures
   this->m_options_checker->createDeciderOptimizerMappings();
@@ -167,31 +203,54 @@ void CGraphSlamHandler_ROS<GRAPH_T>::readStaticTFs()
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_ROS()
 {
+  // Use at() rather than operator[] so that an unregistered decider name
+  // throws std::out_of_range with a clear message instead of silently
+  // inserting a null function pointer and causing undefined behaviour.
+  // verifyUserInput() has already validated the names, but this is a second
+  // safety net in case the two code paths diverge in future.
+  auto nrd_fn = this->m_options_checker->node_regs_map.at(m_node_reg);
+  auto erd_fn = this->m_options_checker->edge_regs_map.at(m_edge_reg);
+  auto gso_fn = this->m_options_checker->optimizers_map.at(m_optimizer);
+
   this->m_logger->logFmt(
-                mrpt::system::LVL_WARN, "Initializing CGraphSlamEngine_ROS instance...");
+    mrpt::system::LVL_WARN, "Initializing CGraphSlamEngine_ROS instance...");
+  // Note: passing rawlog_fname="" is intentional – sensor data arrives via ROS
+  // topics.  The MRPT 2.15 engine unconditionally calls
+  //   m_info_params.setRawlogFile("") → info_fname = "rawlog__info.txt"
+  // then tries to parse it.  The ASSERT inside parseFile() throws, is caught
+  // by the engine's own try/catch, and logged at INFO with the full MRPT
+  // exception text (stack trace).  To prevent this alarming-but-harmless
+  // output we raise the engine's minimum log level to WARN before construction
+  // so the caught exception is never printed, then restore the user-requested
+  // level immediately afterwards.
   this->m_engine = new CGraphSlamEngine_ROS<GRAPH_T>(
-                this, this->m_ini_fname,
-                /*rawlog_fname=*/"", this->m_gt_fname, this->m_win_manager,
-                this->m_options_checker->node_regs_map[m_node_reg](),
-                this->m_options_checker->edge_regs_map[m_edge_reg](),
-                this->m_options_checker->optimizers_map[m_optimizer]());
+    this, this->m_ini_fname,
+    /*rawlog_fname=*/ "", this->m_gt_fname, this->m_win_manager,
+    nrd_fn(), erd_fn(), gso_fn());
+  // Mirror the user-requested verbosity onto the engine's own logger
+  // so that ROS verbosity:= parameter is respected uniformly.
+  this->m_engine->setMinLoggingLevel(m_min_logging_level);
   this->m_logger->logFmt(
-                mrpt::system::LVL_WARN, "Successfully initialized CGraphSlamEngine_ROS instance.");
+    mrpt::system::LVL_WARN, "Successfully initialized CGraphSlamEngine_ROS instance.");
 }
 
 template<class GRAPH_T>
 void CGraphSlamHandler_ROS<GRAPH_T>::initEngine_MR()
 {
+  // Use at() rather than operator[] – see initEngine_ROS() for rationale.
+  auto nrd_fn = this->m_options_checker->node_regs_map.at(m_node_reg);
+  auto erd_fn = this->m_options_checker->edge_regs_map.at(m_edge_reg);
+  auto gso_fn = this->m_options_checker->optimizers_map.at(m_optimizer);
+
   this->m_logger->logFmt(
-                mrpt::system::LVL_WARN, "Initializing CGraphSlamEngine_MR instance...");
+    mrpt::system::LVL_WARN, "Initializing CGraphSlamEngine_MR instance...");
   this->m_engine = new CGraphSlamEngine_MR<GRAPH_T>(
-                this, this->m_ini_fname,
-                /*rawlog_fname=*/"", this->m_gt_fname, this->m_win_manager,
-                this->m_options_checker->node_regs_map[m_node_reg](),
-                this->m_options_checker->edge_regs_map[m_edge_reg](),
-                this->m_options_checker->optimizers_map[m_optimizer]());
+    this, this->m_ini_fname,
+    /*rawlog_fname=*/ "", this->m_gt_fname, this->m_win_manager,
+    nrd_fn(), erd_fn(), gso_fn());
+  this->m_engine->setMinLoggingLevel(m_min_logging_level);
   this->m_logger->logFmt(
-                mrpt::system::LVL_WARN, "Successfully initialized CGraphSlamEngine_MR instance.");
+    mrpt::system::LVL_WARN, "Successfully initialized CGraphSlamEngine_MR instance.");
 }
 
 template<class GRAPH_T>

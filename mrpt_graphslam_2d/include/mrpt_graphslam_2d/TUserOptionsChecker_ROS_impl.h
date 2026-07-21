@@ -38,13 +38,15 @@ void TUserOptionsChecker_ROS<GRAPH_T>::createDeciderOptimizerMappings()
   using namespace mrpt::graphslam::deciders;
   parent::createDeciderOptimizerMappings();
 
-        // TODO TICKET-004: MR node/edge registration deciders not yet ported to ROS 2
-        // this->node_regs_map["CICPCriteriaNRD_MR"] =
-        //     parent::template createNodeRegistrationDecider<CICPCriteriaNRD_MR<GRAPH_T>>;
-        // this->node_regs_map["CFixedIntervalsNRD_MR"] =
-        //     parent::template createNodeRegistrationDecider<CFixedIntervalsNRD_MR<GRAPH_T>>;
-        // this->edge_regs_map["CLoopCloserERD_MR"] =
-        //     parent::template createEdgeRegistrationDecider<CLoopCloserERD_MR<GRAPH_T>>;
+#ifdef MRPT_GRAPHSLAM_MR_DECIDERS
+  // MR node/edge registration deciders
+  this->node_regs_map["CICPCriteriaNRD_MR"] =
+    parent::template createNodeRegistrationDecider<CICPCriteriaNRD_MR<GRAPH_T>>;
+  this->node_regs_map["CFixedIntervalsNRD_MR"] =
+    parent::template createNodeRegistrationDecider<CFixedIntervalsNRD_MR<GRAPH_T>>;
+  this->edge_regs_map["CLoopCloserERD_MR"] =
+    parent::template createEdgeRegistrationDecider<CLoopCloserERD_MR<GRAPH_T>>;
+#endif  // MRPT_GRAPHSLAM_MR_DECIDERS
 
 } // end of createDeciderOptimizerMappings
 
@@ -56,8 +58,45 @@ void TUserOptionsChecker_ROS<GRAPH_T>::populateDeciderOptimizerProperties()
 
   parent::populateDeciderOptimizerProperties();
 
-        // TODO TICKET-004: MR decider/optimizer properties not yet ported to ROS 2
-        // CICPCriteriaNRD_MR, CFixedIntervalsNRD_MR, CLoopCloserERD_MR descriptions
+#ifdef MRPT_GRAPHSLAM_MR_DECIDERS
+  // Populate properties for MR deciders so they appear in dumpRegistrarsToConsole output
+  {
+    auto * dec = new TRegistrationDeciderProps;
+    dec->name = "CICPCriteriaNRD_MR";
+    dec->description =
+      "Multi-robot variant of CICPCriteriaNRD: registers nodes using ICP "
+      "and coordinates with peer agents";
+    dec->type = "Node";
+    dec->rawlog_format = "#2 - Observation-only";
+    dec->is_mr_slam_class = true;
+    dec->is_slam_2d = true;
+    this->regs_descriptions.push_back(dec);
+  }
+  {
+    auto * dec = new TRegistrationDeciderProps;
+    dec->name = "CFixedIntervalsNRD_MR";
+    dec->description =
+      "Multi-robot variant of CFixedIntervalsNRD: registers nodes at "
+      "fixed distance intervals and coordinates with peer agents";
+    dec->type = "Node";
+    dec->rawlog_format = "Both";
+    dec->is_mr_slam_class = true;
+    dec->is_slam_2d = true;
+    this->regs_descriptions.push_back(dec);
+  }
+  {
+    auto * dec = new TRegistrationDeciderProps;
+    dec->name = "CLoopCloserERD_MR";
+    dec->description =
+      "Multi-robot loop-closer edge registration decider: performs "
+      "scan-matching across peer robot graphs";
+    dec->type = "Edge";
+    dec->rawlog_format = "Both";
+    dec->is_mr_slam_class = true;
+    dec->is_slam_2d = true;
+    this->regs_descriptions.push_back(dec);
+  }
+#endif  // MRPT_GRAPHSLAM_MR_DECIDERS
 }
 
 }}}   //end namespaces

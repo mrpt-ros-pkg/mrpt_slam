@@ -39,6 +39,7 @@ include_directories(include)
 add_executable(mrpt_graphslam_2d_node
     src/mrpt_graphslam_2d_node.cpp
     src/common.cpp
+    src/mrpt_pause_shim.cpp
 )
 
 # ament_target_dependencies() was removed in ament_cmake 2.8.5 (Rolling).
@@ -62,6 +63,16 @@ add_executable(mrpt_graphslam_2d_mr_node
     src/mrpt_graphslam_2d_mr_node.cpp
     src/common.cpp
     src/CConnectionManager.cpp
+    src/mrpt_pause_shim.cpp
+)
+
+# Enable registration of MR-specific deciders (CFixedIntervalsNRD_MR,
+# CLoopCloserERD_MR, etc.) only for the MR node.  The SR node must NOT pull in
+# these deciders because (a) they require CConnectionManager symbols that are
+# only linked into the MR and map-merger executables, and (b) using an MR
+# decider with the SR engine would cause undefined behaviour at runtime.
+target_compile_definitions(mrpt_graphslam_2d_mr_node PRIVATE
+    MRPT_GRAPHSLAM_MR_DECIDERS
 )
 
 target_link_libraries(mrpt_graphslam_2d_mr_node PRIVATE
@@ -85,6 +96,7 @@ add_executable(map_merger_node
     src/CConnectionManager.cpp
     src/CMapMerger.cpp
     src/TNeighborAgentMapProps.cpp
+    src/mrpt_pause_shim.cpp
 )
 
 target_link_libraries(map_merger_node PRIVATE
