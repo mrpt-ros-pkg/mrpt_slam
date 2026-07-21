@@ -106,44 +106,53 @@ target_link_libraries(map_merger_node PRIVATE
 )
 
 # Load MRPT packages after all target_link_libraries() calls. Keep every MRPT
-# component in the ROS Jazzy installation: mixing the Ubuntu/PPA MRPT libraries
-# in /usr with the Jazzy libraries gives the dynamic linker two ABI-compatible
-# SONAMEs backed by different patch releases.
+# component in the same ROS installation: mixing the Ubuntu/PPA MRPT libraries
+# in /usr with the ROS-bundled libraries gives the dynamic linker two
+# ABI-compatible SONAMEs backed by different patch releases.
+#
+# Derive the prefix from the already-found rclcpp package rather than
+# hard-coding a distro name.  rclcpp_DIR is set by find_package(rclcpp) to
+# <prefix>/share/rclcpp/cmake; walking up three directories gives the root
+# (e.g. /opt/ros/jazzy, /opt/ros/rolling, or a custom install space).
+get_filename_component(_mrpt_ros_prefix "${rclcpp_DIR}" DIRECTORY)  # .../share/rclcpp
+get_filename_component(_mrpt_ros_prefix "${_mrpt_ros_prefix}" DIRECTORY)  # .../share
+get_filename_component(_mrpt_ros_prefix "${_mrpt_ros_prefix}" DIRECTORY)  # prefix root
+
 set(
-  MRPT_JAZZY_PREFIX "/opt/ros/jazzy"
-  CACHE PATH "Prefix containing the ROS Jazzy MRPT installation"
+  MRPT_ROS_PREFIX "${_mrpt_ros_prefix}"
+  CACHE PATH "Prefix containing the ROS MRPT installation (auto-derived from rclcpp)"
 )
-list(PREPEND CMAKE_PREFIX_PATH "${MRPT_JAZZY_PREFIX}")
+list(PREPEND CMAKE_PREFIX_PATH "${MRPT_ROS_PREFIX}")
 
 if(NOT EXISTS
-    "${MRPT_JAZZY_PREFIX}/lib/cmake/mrpt-graphslam/mrpt-graphslam-config.cmake"
+    "${MRPT_ROS_PREFIX}/lib/cmake/mrpt-graphslam/mrpt-graphslam-config.cmake"
 )
   message(FATAL_ERROR
-    "The Jazzy MRPT GraphSLAM component is missing from ${MRPT_JAZZY_PREFIX}. "
-    "Install it with: sudo apt install ros-jazzy-mrpt-libapps"
+    "The ROS MRPT GraphSLAM component is missing from ${MRPT_ROS_PREFIX}. "
+    "Install it with: sudo apt install ros-$ENV{ROS_DISTRO}-mrpt-libapps"
   )
 endif()
 
 find_package(
   mrpt_libros_bridge REQUIRED CONFIG
-  PATHS "${MRPT_JAZZY_PREFIX}"
+  PATHS "${MRPT_ROS_PREFIX}"
   NO_DEFAULT_PATH
 )
 find_package(mrpt_msgs_bridge REQUIRED)
 find_package(
   mrpt-gui REQUIRED CONFIG
-  PATHS "${MRPT_JAZZY_PREFIX}"
+  PATHS "${MRPT_ROS_PREFIX}"
   NO_DEFAULT_PATH
 )
 find_package(
   mrpt-graphslam REQUIRED CONFIG
-  PATHS "${MRPT_JAZZY_PREFIX}"
+  PATHS "${MRPT_ROS_PREFIX}"
   NO_DEFAULT_PATH
 )
 
 if(NOT "${mrpt-gui_VERSION}" VERSION_EQUAL "${mrpt-graphslam_VERSION}")
   message(FATAL_ERROR
-    "Jazzy MRPT component version mismatch: mrpt-gui=${mrpt-gui_VERSION}, "
+    "MRPT component version mismatch: mrpt-gui=${mrpt-gui_VERSION}, "
     "mrpt-graphslam=${mrpt-graphslam_VERSION}"
   )
 endif()
@@ -161,7 +170,7 @@ foreach(_target IN LISTS _mrpt_imported_targets)
     get_target_property(_location "${_target}" IMPORTED_LOCATION_NONE)
   endif()
 
-  if(_location AND NOT _location MATCHES "^${MRPT_JAZZY_PREFIX}/")
+  if(_location AND NOT _location MATCHES "^${MRPT_ROS_PREFIX}/")
     message(FATAL_ERROR
       "MRPT target ${_target} resolved outside the Jazzy installation: "
       "${_location}"
