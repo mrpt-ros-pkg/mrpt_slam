@@ -8,11 +8,12 @@
 
 import atexit
 import os
+import re
 import tempfile
 import time
 import unittest
 
-from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
+from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, TimerAction
@@ -20,7 +21,6 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 import launch_testing
 import launch_testing.actions
-import pytest
 import rclpy
 
 
@@ -30,29 +30,31 @@ def _make_headless_ini(package_share):
     with open(ini_path, encoding='utf-8') as ini_file:
         ini_contents = ini_file.read()
 
-    gui_setting = 'SHOW_PROGRESS_3D_REAL_TIME=1'
-    if gui_setting not in ini_contents:
-        raise RuntimeError(f'Missing expected GUI setting in {ini_path}')
+    gui_setting = re.compile(
+        r'^(?P<prefix>\s*SHOW_PROGRESS_3D_REAL_TIME\s*=\s*)'
+        r'(?:0|1|false|true)(?P<suffix>\s*(?://.*)?)$',
+        flags=re.IGNORECASE | re.MULTILINE,
+    )
+    headless_contents, replacements = gui_setting.subn(
+        r'\g<prefix>0\g<suffix>', ini_contents
+    )
+    if replacements != 1:
+        raise RuntimeError(
+            f'Expected exactly one SHOW_PROGRESS_3D_REAL_TIME setting in '
+            f'{ini_path}, found {replacements}'
+        )
 
     with tempfile.NamedTemporaryFile(
         mode='w', prefix='icp_slam_headless_', suffix='.ini', delete=False
     ) as temporary_ini:
-        temporary_ini.write(ini_contents.replace(
-            gui_setting, 'SHOW_PROGRESS_3D_REAL_TIME=0', 1
-        ))
+        temporary_ini.write(headless_contents)
 
     atexit.register(os.unlink, temporary_ini.name)
     return temporary_ini.name
 
 
-@pytest.mark.launch_test
 def generate_test_description():
     """Start the real MVSim integration launch without graphical processes."""
-    try:
-        get_package_share_directory('mvsim')
-    except (PackageNotFoundError, KeyError):
-        pytest.skip('mvsim package not installed; skipping MVSim integration test')
-
     package_share = get_package_share_directory('mrpt_icp_slam_2d')
     mvsim_share = get_package_share_directory('mvsim')
     launch_file = os.path.join(

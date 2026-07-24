@@ -105,9 +105,14 @@ if(BUILD_TESTING)
     TIMEOUT 30
   )
 
-  add_launch_test(test/test_mvsim_integration.launch.py
-    TIMEOUT 60
-  )
+  find_package(mvsim QUIET)
+  if(mvsim_FOUND)
+    add_launch_test(test/test_mvsim_integration.launch.py
+      TIMEOUT 60
+    )
+  else()
+    message(STATUS "mvsim not found; skipping the RBPF SLAM integration test")
+  endif()
 endif()
 
 ament_package()
