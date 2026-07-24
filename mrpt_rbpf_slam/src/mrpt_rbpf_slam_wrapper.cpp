@@ -418,8 +418,7 @@ bool PFslamWrapper::rawlogPlay()
   if (rawlog_play_ == false) {
     return false;
   } else {
-    for (unsigned int i = 0; i < data_.size(); i++) {
-      if (rclcpp::ok()) {
+    for (unsigned int i = 0; i < data_.size() && rclcpp::ok(); i++) {
         tictac_.Tic();
         mapBuilder_.processActionObservation(
                                         data_[i].first, data_[i].second);
@@ -490,8 +489,15 @@ bool PFslamWrapper::rawlogPlay()
         }
 
         pub_particles_->publish(poseArray);
+      // SIGINT can arrive while processing an entry. Do not create an
+      // executor after rclcpp has invalidated its context.
+      if (!rclcpp::ok()) {
+        break;
       }
       rclcpp::spin_some(this->shared_from_this());
+      if (!rclcpp::ok()) {
+        break;
+      }
       run3Dwindow();
     }
   }

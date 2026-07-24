@@ -113,18 +113,22 @@ def generate_launch_description():
         name='mrpt_graphslam_2d_mr',
         namespace=LaunchConfiguration('namespace'),
         output='screen',
-        parameters=[{
-            'config_file': LaunchConfiguration('config_file'),
-            'anchor_frame_id': LaunchConfiguration('anchor_frame_id'),
-            'base_link_frame_id': LaunchConfiguration('base_link_frame_id'),
-            'odom_frame_id': LaunchConfiguration('odom_frame_id'),
-            'NRD': LaunchConfiguration('NRD'),
-            'ERD': LaunchConfiguration('ERD'),
-            'GSO': LaunchConfiguration('GSO'),
-            'disable_MRPT_visuals': LaunchConfiguration('disable_MRPT_visuals'),
-            'verbosity': LaunchConfiguration('verbosity'),
-            'output_directory': LaunchConfiguration('output_directory'),
-        }],
+        arguments=[
+            '--ros-args',
+            '-p', ['config_file:=', LaunchConfiguration('config_file')],
+            '-p', ['anchor_frame_id:=', LaunchConfiguration('anchor_frame_id')],
+            '-p', ['base_link_frame_id:=', LaunchConfiguration('base_link_frame_id')],
+            '-p', ['odom_frame_id:=', LaunchConfiguration('odom_frame_id')],
+            '-p', ['NRD:=', LaunchConfiguration('NRD')],
+            '-p', ['ERD:=', LaunchConfiguration('ERD')],
+            '-p', ['GSO:=', LaunchConfiguration('GSO')],
+            '-p', [
+                'disable_MRPT_visuals:=',
+                LaunchConfiguration('disable_MRPT_visuals')
+            ],
+            '-p', ['verbosity:=', LaunchConfiguration('verbosity')],
+            '-p', ['output_directory:=', LaunchConfiguration('output_directory')],
+        ],
     )
 
     # RViz node (conditional)

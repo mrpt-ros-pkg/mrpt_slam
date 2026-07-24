@@ -48,16 +48,14 @@ namespace deciders
 template<class GRAPH_T>
 class CEdgeRegistrationDecider_MR
   : public virtual mrpt::graphslam::CRegistrationDeciderOrOptimizer_MR<
-    GRAPH_T>,
-  public virtual mrpt::graphslam::deciders::
-  CRangeScanEdgeRegistrationDecider<GRAPH_T>
+    GRAPH_T>
 {
 public:
-  CEdgeRegistrationDecider_MR();
-  ~CEdgeRegistrationDecider_MR();
+  CEdgeRegistrationDecider_MR() = default;
+  virtual ~CEdgeRegistrationDecider_MR() = default;
   virtual void addBatchOfNodeIDsAndScans(
     const std::map<TNodeID, mrpt::obs::CObservation2DRangeScan::Ptr> &
-    nodeIDs_to_scans2D);
+    nodeIDs_to_scans2D) = 0;
 
 protected:
 };
@@ -65,5 +63,3 @@ protected:
 }  // namespace deciders
 }  // namespace graphslam
 }  // namespace mrpt
-
-#include "CEdgeRegistrationDecider_MR_impl.h"

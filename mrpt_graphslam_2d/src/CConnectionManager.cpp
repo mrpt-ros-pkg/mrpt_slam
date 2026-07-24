@@ -105,6 +105,12 @@ void CConnectionManager::onAgentHeartbeat(
 
   const std::string & ns = agent_msg->topic_namespace.data;
 
+  // The heartbeat publisher also reaches this node. Self is never a neighbor,
+  // so do not add it to the shared agent list.
+  if (ns == own_ns) {
+    return;
+  }
+
         // Update last-seen timestamp
   m_agent_last_seen[ns] = m_node->now();
 

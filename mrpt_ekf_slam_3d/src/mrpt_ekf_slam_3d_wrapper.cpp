@@ -256,28 +256,26 @@ bool EKFslamWrapper::rawlogPlay()
     mrpt::obs::CActionCollection::Ptr action;
     mrpt::obs::CSensoryFrame::Ptr observations;
 
-    for (;; ) {
-      if (rclcpp::ok()) {
-        if (!mrpt::obs::CRawlog::readActionObservationPair(
+    while (rclcpp::ok()) {
+      if (!mrpt::obs::CRawlog::readActionObservationPair(
                                                 rawlogFile, action, observations, rawlogEntry))
-        {
-          break;                                // file EOF
-        }
-        tictac_.Tic();
-        mapping.processActionObservation(action, observations);
-        t_exec_ = tictac_.Tac();
-        RCLCPP_INFO(
+      {
+        break;                                // file EOF
+      }
+      tictac_.Tic();
+      mapping.processActionObservation(action, observations);
+      t_exec_ = tictac_.Tac();
+      RCLCPP_INFO(
                                         this->get_logger(),
                                         "Map building executed in %.03fms", 1000.0f * t_exec_);
-        rclcpp::sleep_for(std::chrono::nanoseconds(
+      rclcpp::sleep_for(std::chrono::nanoseconds(
                                         static_cast<int64_t>(rawlog_play_delay_ * 1e9)));
-        mapping.getCurrentState(
+      mapping.getCurrentState(
                                         robotPose_, LMs_, LM_IDs_, fullState_, fullCov_);
 
-        viz_state();
-        viz_dataAssociation();
-        run3Dwindow();
-      }
+      viz_state();
+      viz_dataAssociation();
+      run3Dwindow();
     }
     if (win3d) {
       std::cout << "\n Close the 3D window to quit the application.\n";
