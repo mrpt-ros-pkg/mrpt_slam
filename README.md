@@ -18,7 +18,7 @@ MRPT-based SLAM packages
 -------------------------
 
 ROS 2 wrappers for SLAM algorithms in the [Mobile Robot Programming Toolkit (MRPT)](https://github.com/MRPT/mrpt/).
-Refer to https://wiki.ros.org/mrpt_slam for further documentation.
+For further details, see the README of each package (where available) and the [MRPT documentation](https://docs.mrpt.org/).
 
 Active branches:
   * `ros2`: Main development branch, for ROS 2 distributions.
