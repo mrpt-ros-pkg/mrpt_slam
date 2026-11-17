@@ -9,11 +9,9 @@
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
-    IncludeLaunchDescription,
     SetEnvironmentVariable,
 )
 from launch.conditions import IfCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
@@ -87,12 +85,6 @@ def generate_launch_description():
         description='Full path to the RViz configuration file'
     )
 
-    include_demo_rosbag_arg = DeclareLaunchArgument(
-        'include_demo_rosbag',
-        default_value='false',
-        description='Include demo rosbag launch file'
-    )
-
     # Get launch configurations
     use_sim_time = LaunchConfiguration('use_sim_time')
     ini_filename = LaunchConfiguration('ini_filename')
@@ -103,7 +95,6 @@ def generate_launch_description():
     sensor_source = LaunchConfiguration('sensor_source')
     launch_rviz = LaunchConfiguration('launch_rviz')
     rviz_config = LaunchConfiguration('rviz_config')
-    include_demo_rosbag = LaunchConfiguration('include_demo_rosbag')
 
     # Set ROS console configuration
     set_rosconsole_config = SetEnvironmentVariable(
@@ -111,18 +102,6 @@ def generate_launch_description():
         value=PathJoinSubstitution([
             mrpt_ekf_slam_3d_share, 'config', 'rosconsole.config'
         ])
-    )
-
-    # Include demo rosbag launch file (conditional)
-    include_demo_rosbag_action = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('mrpt_rawlog'),
-                'launch',
-                'demo_play_ekf.launch.py'
-            ])
-        ]),
-        condition=IfCondition(include_demo_rosbag)
     )
 
     # RViz node (conditional)
@@ -166,10 +145,8 @@ def generate_launch_description():
         sensor_source_arg,
         launch_rviz_arg,
         rviz_config_arg,
-        include_demo_rosbag_arg,
         # Actions
         set_rosconsole_config,
-        include_demo_rosbag_action,
         rviz_node,
         slam_node,
     ])

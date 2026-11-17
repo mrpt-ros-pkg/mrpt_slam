@@ -71,7 +71,7 @@ Launch arguments of `ekf_slam_2d.launch.py`: `ini_filename`, `ellipse_scale`,
 | `ini_filename` | string | `""` | Path to the MRPT INI file with the SLAM settings. See `tutorial/kf-slam_demo_2d.ini`. |
 | `rawlog_filename` | string | `""` | Path to a `.rawlog` file. If the file exists, SLAM runs offline from it; otherwise, the node runs online from ROS topics. |
 | `rawlog_play_delay` | double | `0.1` | Delay [s] between steps while replaying a rawlog file. |
-| `sensor_source` | string | `"scan"` | Comma- or space-separated list of input topics. Only topics whose name contains `landmark` are used, so this must be set (the launch files use `landmark`). |
+| `sensor_source` | string | `"landmark"` | Comma- or space-separated list of input topics. Only topics whose name contains `landmark` are used. |
 | `global_frame_id` | string | `"map"` | Frame attached to the map. |
 | `odom_frame_id` | string | `"odom"` | Frame attached to the odometry system. |
 | `base_frame_id` | string | `"base_link"` | Frame attached to the mobile base. |

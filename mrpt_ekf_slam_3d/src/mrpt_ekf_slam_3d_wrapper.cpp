@@ -68,7 +68,7 @@ void EKFslamWrapper::get_param()
   RCLCPP_INFO(
                 this->get_logger(), "base_frame_id: %s", base_frame_id_.c_str());
 
-  this->declare_parameter<std::string>("sensor_source", "scan");
+  this->declare_parameter<std::string>("sensor_source", "landmark");
   sensor_source_ = this->get_parameter("sensor_source").as_string();
   RCLCPP_INFO(
                 this->get_logger(), "sensor_source: %s", sensor_source_.c_str());

@@ -9,11 +9,8 @@
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
-    IncludeLaunchDescription,
     SetEnvironmentVariable,
 )
-from launch.conditions import IfCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
@@ -76,12 +73,6 @@ def generate_launch_description():
         description='Trajectory publish rate (Hz)'
     )
 
-    include_demo_rosbag_arg = DeclareLaunchArgument(
-        'include_demo_rosbag',
-        default_value='false',
-        description='Include demo rosbag launch file'
-    )
-
     # Get launch configurations
     use_sim_time = LaunchConfiguration('use_sim_time')
     ini_filename = LaunchConfiguration('ini_filename')
@@ -91,24 +82,11 @@ def generate_launch_description():
     sensor_source = LaunchConfiguration('sensor_source')
     trajectory_update_rate = LaunchConfiguration('trajectory_update_rate')
     trajectory_publish_rate = LaunchConfiguration('trajectory_publish_rate')
-    include_demo_rosbag = LaunchConfiguration('include_demo_rosbag')
 
     # Set ROS console configuration
     set_rosconsole_config = SetEnvironmentVariable(
         name='ROSCONSOLE_CONFIG_FILE',
         value=PathJoinSubstitution([mrpt_icp_slam_2d_share, 'config', 'rosconsole.config'])
-    )
-
-    # Include demo rosbag launch file (conditional)
-    include_demo_rosbag_action = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('mrpt_rawlog'),
-                'launch',
-                'demo_rosbag.launch.py'
-            ])
-        ]),
-        condition=IfCondition(include_demo_rosbag)
     )
 
     # MRPT ICP SLAM node (no RViz)
@@ -141,9 +119,7 @@ def generate_launch_description():
         sensor_source_arg,
         trajectory_update_rate_arg,
         trajectory_publish_rate_arg,
-        include_demo_rosbag_arg,
         # Actions
         set_rosconsole_config,
-        include_demo_rosbag_action,
         slam_node,
     ])

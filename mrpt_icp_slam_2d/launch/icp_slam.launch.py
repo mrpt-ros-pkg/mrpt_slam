@@ -4,16 +4,14 @@
 # license that can be found in the LICENSE file or at
 # https://developers.google.com/open-source/licenses/bsd
 
-"""Launch file for ICP SLAM with optional demo rosbag playback."""
+"""Launch file for ICP SLAM with live sensor data."""
 
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
-    IncludeLaunchDescription,
     SetEnvironmentVariable,
 )
 from launch.conditions import IfCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
@@ -93,12 +91,6 @@ def generate_launch_description():
         description='Full path to the RViz configuration file'
     )
 
-    include_demo_rosbag_arg = DeclareLaunchArgument(
-        'include_demo_rosbag',
-        default_value='false',
-        description='Include demo rosbag launch file'
-    )
-
     node_namespace_arg = DeclareLaunchArgument(
         'node_namespace',
         default_value='',
@@ -116,25 +108,12 @@ def generate_launch_description():
     trajectory_publish_rate = LaunchConfiguration('trajectory_publish_rate')
     launch_rviz = LaunchConfiguration('launch_rviz')
     rviz_config = LaunchConfiguration('rviz_config')
-    include_demo_rosbag = LaunchConfiguration('include_demo_rosbag')
     node_namespace = LaunchConfiguration('node_namespace')
 
     # Set ROS console configuration
     set_rosconsole_config = SetEnvironmentVariable(
         name='ROSCONSOLE_CONFIG_FILE',
         value=PathJoinSubstitution([mrpt_icp_slam_2d_share, 'config', 'rosconsole.config'])
-    )
-
-    # Include demo rosbag launch file (conditional)
-    include_demo_rosbag_action = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('mrpt_rawlog'),
-                'launch',
-                'demo_rosbag.launch.py'
-            ])
-        ]),
-        condition=IfCondition(include_demo_rosbag)
     )
 
     # RViz node (conditional)
@@ -185,11 +164,9 @@ def generate_launch_description():
         trajectory_publish_rate_arg,
         launch_rviz_arg,
         rviz_config_arg,
-        include_demo_rosbag_arg,
         node_namespace_arg,
         # Actions
         set_rosconsole_config,
-        include_demo_rosbag_action,
         rviz_node,
         slam_node,
     ])
