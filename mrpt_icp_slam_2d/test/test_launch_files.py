@@ -33,7 +33,6 @@ def test_icp_slam_launch(package_share_dir):
     include = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(launch_file),
         launch_arguments={
-            'include_demo_rosbag': 'false',
             'launch_rviz': 'false'
         }.items()
     )
@@ -68,10 +67,7 @@ def test_icp_slam_gui_launch(package_share_dir):
     assert os.path.exists(launch_file), f'Launch file not found: {launch_file}'
 
     include = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(launch_file),
-        launch_arguments={
-            'include_demo_rosbag': 'false'
-        }.items()
+        PythonLaunchDescriptionSource(launch_file)
     )
 
     ld = LaunchDescription([include])
