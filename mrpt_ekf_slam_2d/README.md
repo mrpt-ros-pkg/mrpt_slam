@@ -1,110 +1,87 @@
-## Description
+# mrpt_ekf_slam_2d
 
-The sections below describe the API of this package for 2D (x,y,phi)
-EKF-based SLAM. This method takes input measurements to landmarks in the
-form of range-bearing observations.
+EKF-based 2D SLAM for a robot pose (x, y, phi) and 2D point landmarks,
+using range-bearing observations.
 
-## Further documentation
+The ROS node `mrpt_ekf_slam_2d` is a wrapper for the C++ class
+[mrpt::slam::CRangeBearingKFSLAM2D](https://docs.mrpt.org/reference/latest/class_mrpt_slam_CRangeBearingKFSLAM2D.html),
+part of [MRPT](https://github.com/MRPT/mrpt/). Check out the documentation
+of that class for further details on the algorithm and its INI options.
 
-The ROS node mrpt_ekf_slam_2d is a wrapper for the C++
-class[mrpt::slam::CRangeBearingKFSLAM2D](http://mrpt.ual.es/reference/devel/classmrpt_1_1slam_1_1_c_range_bearing_k_f_s_l_a_m2_d.html)
-****, part of MRPT. Thus, check out the documentation of that class for
-further details.
+Coordinate frames follow
+[REP 105: "Coordinate Frames for Mobile Platforms"](https://www.ros.org/reps/rep-0105.html).
 
-For the convention on coordinate frames see
-[ROS REP 105: "Coordinate Frames for Mobile Platforms"](http://ros.org/reps/rep-0105.html).
+## Installation
 
-## Usage
+Binary packages:
 
-In order to use mrpt_ekf_slam_2d package it is necessary to install the
-last [MRPT](http://www.mrpt.org/) build and
-the[mrpt_navigation](http://wiki.ros.org/mrpt_navigation) (see also the
-[tutorial](http://wiki.ros.org/mrpt_navigation/Tutorials/Installing)) .
-
-## Example
-
-The following video represents the EKF 2D SLAM in Rviz and MRPT GUI:
-
-[Youtube](https://www.youtube.com/watch?v=tGMmi6Y6bL8)
-
-The example of usage EKF 2D SLAM in online regime:
-
-
-
-```
-roslaunch mrpt_ekf_slam_2d ekf_slam_2d.launch
+```bash
+sudo apt install ros-noetic-mrpt-ekf-slam-2d
 ```
 
- The example of usage EKF 2D SLAM from .rawlog
-file:
+Or build from sources by cloning this repository into a catkin workspace.
 
+## Demos
 
+The following video shows EKF 2D SLAM in RViz and the MRPT GUI:
+[YouTube](https://www.youtube.com/watch?v=tGMmi6Y6bL8)
 
-```
+Run EKF SLAM offline, from the `.rawlog` dataset bundled with the package:
+
+```bash
 roslaunch mrpt_ekf_slam_2d ekf_slam_2d_rawlog.launch
 ```
 
+Run EKF SLAM online, subscribing to landmark observations published by the
+`mrpt_rawlog` package while it plays back the demo dataset:
 
+```bash
+roslaunch mrpt_ekf_slam_2d ekf_slam_2d.launch
+```
 
-## Nodes
+## Node: mrpt_ekf_slam_2d
 
-### mrpt_ekf_slam_2d
+### Subscribed topics
 
-The `mrpt_ekf_slam_2d` node takes in mrpt_msgs/ObservationRangeBearing
-messages and builds a map with landmarks and robot pose. The map can be
-retrieved via a ROS [topic](Topics).
+- `<sensor_source>`
+  ([mrpt_msgs/ObservationRangeBearing](https://index.ros.org/p/mrpt_msgs)):
+  Range-bearing landmark observations. One subscription per topic in
+  `sensor_source`.
+- `/tf`, `/tf_static`: Transforms relating the sensor, base, and odometry
+  frames (see below).
 
-#### Subscribed Topics
+### Published topics
 
-- `tf`
-  ([tf/msg/tfMessage](https://docs.ros.org/en/rolling/p/tf/msg/tfMessage.html)):
-  Transforms necessary to relate frames for laser, base, and odometry
-  (see below)
-- `landmark`
-  ([mrpt_msgs/msg/ObservationRangeBearing](https://docs.ros.org/en/rolling/p/mrpt_msgs/msg/ObservationRangeBearing.html)):
-  Landmarks to create the map
+- `/state_viz`
+  ([visualization_msgs/MarkerArray](http://docs.ros.org/en/noetic/api/visualization_msgs/html/msg/MarkerArray.html)):
+  Visualization of the current EKF state (robot pose and landmarks, with
+  covariance ellipses).
+- `/data_association_viz`
+  ([visualization_msgs/MarkerArray](http://docs.ros.org/en/noetic/api/visualization_msgs/html/msg/MarkerArray.html)):
+  Visualization of the landmarks currently observed by the robot.
 
-#### Published Topics
+### Parameters
 
-- `state_viz`
-  ([visualization_msgs/msg/MarkerArray](https://docs.ros.org/en/rolling/p/visualization_msgs/msg/MarkerArray.html)):
-  Visualization of the current state of the EKF
-- `data_association_viz`
-  ([visualization_msgs/msg/MarkerArray](https://docs.ros.org/en/rolling/p/visualization_msgs/msg/MarkerArray.html)):
-  Visualization of the currently observed landmarks by robot
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ini_filename` | string | `""` | Path to the MRPT INI file with the SLAM settings. See `tutorial/kf-slam_demo_2d.ini`. |
+| `rawlog_filename` | string | `""` | Path to a `.rawlog` file. If the file exists, SLAM runs offline from it; otherwise, the node runs online from ROS topics. |
+| `rawlog_play_delay` | double | `0.1` | Delay [s] between steps while replaying a rawlog file. |
+| `sensor_source` | string | `"scan"` | Comma- or space-separated list of input topics. Only topics whose name contains `landmark` are used, so this must be set (the launch files use `landmark`). |
+| `global_frame_id` | string | `"map"` | Frame attached to the map. |
+| `odom_frame_id` | string | `"odom"` | Frame attached to the odometry system. |
+| `base_frame_id` | string | `"base_link"` | Frame attached to the mobile base. |
+| `ellipse_scale` | double | `1.0` | Scale factor for the covariance ellipses in the visualization. |
 
-#### Parameters
+### Required tf transforms
 
-- `~global_frame_id` (`string`, default: `"map"`): the frame
-  attached to the map
-- `~base_frame_id` (`string`, default: `"base_link"`): The frame
-  attached to the mobile base
-- `~odom_frame_id` (`string`, default: `"odom"`): The frame attached
-  to the odometry system
-- `~sensor_source` (`string`, default: `"scan"`): The name of topics
-  with 2d laser scans or beacons (the name of topic should contain word
-  `"scan"` or `"beacon"`)
-- `~ini_filename` (`string`, default: `None`): The path to the ini file
-  with MRPT settings for SLAM (see tutorial folder)
-- `~rawlog_filename` (`string`, default: `None`): The path to rawlog
-  file(if the rawlog file is not exists the SLAM starts in online
-  regime)
-- `~rawlog_play_delay` (`float`, default: `0.1`): Delay for replay SLAM
-  from rawlog file.
-- `~ellipse_scale` (`float`, default: `1`): The parameter for rescaling
-  covariance ellipses visualization.
+- `<sensor frame>` → `base_link`: Relative pose of the sensor w.r.t. the
+  robot. Usually fixed, published by
+  [robot_state_publisher](https://index.ros.org/p/robot_state_publisher) or a
+  `tf` `static_transform_publisher`.
+- `odom` → `base_link`: Robot odometry, provided by the odometry system
+  (e.g., the driver of the mobile base).
 
-#### Required tf Transforms
+### Provided tf transforms
 
-- `<the frame attached to incoming scans>` → `base_link`: The relative
-  pose of the laser sensor w.r.t. the robot. Usually a fixed value,
-  broadcast periodically by a
-  [robot_state_publisher](https://index.ros.org/p/robot_state_publisher),
-  or a `tf` [static_transform_publisher](https://index.ros.org/p/tf).
-- `base_link` → `odom`: The robot odometry, provided by the odometry
-  system (e.g., the driver for the mobile base)
-
-#### Provided tf Transforms
-
-- `map` → `odom`: The current estimate of the robot's pose within the
-  map frame
+- `map` → `odom`: Current estimate of the robot pose within the map frame.
