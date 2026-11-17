@@ -1,206 +1,148 @@
-## Description
+# mrpt_rbpf_slam
 
-The sections below describe the API of the package. The interface is
-similar to gmapping (<http://wiki.ros.org/gmapping>) but the package
-supports different particle filter algorithms, range-only SLAM and can
-work with several grid maps simultaneously.
+Rao-Blackwellized Particle Filter (RBPF) SLAM. The interface is similar to
+[slam_gmapping](https://index.ros.org/p/slam_gmapping), but this package
+supports different particle filter algorithms, range-only (beacon) SLAM, and
+several simultaneous grid maps.
 
-This package supports the following Particle Filter SLAM algorithms
-(more details at
-<http://www.mrpt.org/tutorials/slam-algorithms/rbpf-slam_algorithms/>):
+Supported particle filter algorithms:
 
-- Sequential Importance Resampling -- SIR with the "standard" proposal
-  distribution (enum value: pfStandardProposal)
-- Auxiliary Particle Filter -- APF with the "standard" proposal
-  distribution (enum value: pfAuxiliaryPFStandard)
-- Optimal proposal distribution (enum value: pfOptimalProposal)
-- Approximate Optimal Sampling -- A rejection sampling-based
-  approximation to the optimal proposal when a closed-form expression is
-  not available (enum value: pfAuxiliaryPFOptimal)
-
-These algorithms allow building **grid map or range-only map**.
-
-## Further documentation
+- Sequential Importance Resampling (SIR) with the "standard" proposal
+  distribution (`pfStandardProposal`).
+- Auxiliary Particle Filter (APF) with the "standard" proposal distribution
+  (`pfAuxiliaryPFStandard`).
+- Optimal proposal distribution (`pfOptimalProposal`).
+- Approximate optimal sampling: a rejection sampling-based approximation to
+  the optimal proposal, when no closed-form expression is available
+  (`pfAuxiliaryPFOptimal`).
 
 The ROS node `mrpt_rbpf_slam` is a wrapper for the C++ class
-****[mrpt::slam::CMetricMapBuilderRBPF](http://reference.mrpt.org/devel/classmrpt_1_1slam_1_1_c_metric_map_builder_r_b_p_f.html),
-part of MRPT. Check out the documentation of this class for further
-details.
+[mrpt::slam::CMetricMapBuilderRBPF](https://docs.mrpt.org/reference/latest/class_mrpt_slam_CMetricMapBuilderRBPF.html),
+part of [MRPT](https://github.com/MRPT/mrpt/). The algorithm, the particle
+filter, and the map types are configured in an MRPT INI file (see the
+`tutorial/*.ini` examples).
 
-This node has been designed to provide an interface similar to that of
-[slam_gmapping](https://index.ros.org/p/slam_gmapping) for the
-convenience of users who already know this package.
+Coordinate frames follow
+[REP 105: "Coordinate Frames for Mobile Platforms"](https://www.ros.org/reps/rep-0105.html).
 
-The coordinate frames are implemented according to the convention
-[ROS REP 105: "Coordinate Frames for Mobile Platforms"](http://ros.org/reps/rep-0105.html).
+## Installation
 
-## Usage
+Binary packages:
 
-In order to use mrpt_rbpf_slam package it is necessary to install the
-latest [MRPT](http://www.mrpt.org/) build and the
-[mrpt_navigation](http://wiki.ros.org/mrpt_navigation) (see also the
-[tutorial](http://wiki.ros.org/mrpt_navigation/Tutorials/Installing)).
-Additionally, it is possible to install
-[mvsim](http://wiki.ros.org/mvsim) simulator which allows to make
-simulations with RBPF SLAM.
-
-## Example
-
-The following video demonstrates the work of the gridmap RBPF-based SLAM
-using Rviz and MRPT GUI:
-
-[Youtube](https://www.youtube.com/watch?v=KLMrDmq3G5E&feature)
-
-To run the example of the gridmap RBPF SLAM in online mode, use the
-following command:
-
-
-
-```
-roslaunch mrpt_rbpf_slam rbpf_slam.launch
+```bash
+sudo apt install ros-noetic-mrpt-rbpf-slam
 ```
 
+Or build from sources by cloning this repository into a catkin workspace.
+Optionally, install the [mvsim](https://index.ros.org/p/mvsim) simulator to
+run the simulation demo.
 
+## Demos
 
-To run the example of the gridmap RBPF SLAM from \*.rawlog file, use the
-following command:
+Grid map RBPF SLAM in RViz and the MRPT GUI:
+[YouTube](https://www.youtube.com/watch?v=KLMrDmq3G5E)
 
+Grid map RBPF SLAM offline, from the `.rawlog` datasets bundled with the
+package:
 
-
-```
+```bash
 roslaunch mrpt_rbpf_slam rbpf_slam_rawlog.launch
-```
-
-
-
-another example is available by running
-
-
-
-```
+# Another dataset:
 roslaunch mrpt_rbpf_slam rbpf_slam_rawlog.launch example:=2
 ```
 
+Grid map RBPF SLAM online, subscribing to laser scans from a demo dataset
+played back by the `mrpt_rawlog` package:
 
-
-Another possibility is to use the RBPF SLAM package for the range-only
-SLAM. The following video demonstrates work of the range only RBPF-based
-SLAM using Rviz and MRPT GUI:
-
-[Youtube](https://www.youtube.com/watch?v=ydKxWQh6_qU)
-
-The example usage of the range only RBPF SLAM in online mode:
-
-
-
-```
-roslaunch mrpt_rbpf_slam ro_slam.launch
+```bash
+roslaunch mrpt_rbpf_slam rbpf_slam.launch
 ```
 
+A TurtleBot3 example is available in `rbpf_slam_turtlebot3.launch`.
 
+Range-only SLAM with radio beacons:
+[YouTube](https://www.youtube.com/watch?v=ydKxWQh6_qU)
 
-The example usage of the range only RBPF SLAM from .rawlog file:
-
-
-
-```
+```bash
 roslaunch mrpt_rbpf_slam ro_slam_rawlog.launch
 ```
 
+RBPF SLAM with the mvsim simulator:
+[YouTube](https://www.youtube.com/watch?v=vEjsDGCdkjw)
 
-
-The following video shows use of the mrpt_rbpf_slam package with mvsim
-simulator:
-
-[Youtube](https://www.youtube.com/watch?v=vEjsDGCdkjw)
-
-The example usage of the mrpt_rbpf_slam with mvsim simulator:
-
-
-
-```
+```bash
 roslaunch mrpt_rbpf_slam mvsim_slam.launch
 ```
 
+This package was originally developed and tested as part of a Google Summer
+of Code 2016 project. Final tests with a real robot:
+[YouTube](https://www.youtube.com/watch?v=HfkRK3lwEgg)
 
+## Node: mrpt_rbpf_slam
 
-The package was developed and tested as part of the Google Summer of
-Code 2016 project. The following video shows the final tests carried out
-with the robot:
+### Subscribed topics
 
-[Youtube](https://www.youtube.com/watch?v=HfkRK3lwEgg)
+- `<sensor_source>`
+  ([sensor_msgs/LaserScan](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/LaserScan.html)):
+  Laser scans to build the map from. One subscription per topic in
+  `sensor_source`. Range-only (beacon) observations are currently only
+  supported when replaying a rawlog file.
+- `/tf`, `/tf_static`: Transforms relating the sensor, base, and odometry
+  frames (see below).
 
-## Nodes
+### Published topics
 
-### mrpt_rbpf_slam
-
-The `mrpt_rbpf_slam` node takes in
-[sensor_msgs/msg/LaserScan](https://docs.ros.org/en/rolling/p/sensor_msgs/msg/LaserScan.html)
-messages and builds a gridmap
-([nav_msgs/msg/OccupancyGrid](https://docs.ros.org/en/rolling/p/nav_msgs/msg/OccupancyGrid.html))
-or range only map. The map can be retrieved via a ROS [topic](Topics).
-
-#### Subscribed Topics
-
-- `tf`
-  ([tf/msg/tfMessage](https://docs.ros.org/en/rolling/p/tf/msg/tfMessage.html)):
-  Transforms necessary to relate frames for laser, base, and odometry
-  (see below)
-- `scan`
-  ([sensor_msgs/msg/LaserScan](https://docs.ros.org/en/rolling/p/sensor_msgs/msg/LaserScan.html)):
-  Laser scans to create the map from
-- `beacon`
-  ([mrpt_msgs/msg/ObservationRangeBeacon](https://docs.ros.org/en/rolling/p/mrpt_msgs/msg/ObservationRangeBeacon.html)):
-  The beacons for range only map
-
-#### Published Topics
-
-- `particlecloud_beacons`
-  ([geometry_msgs/msg/PoseArray](https://docs.ros.org/en/rolling/p/geometry_msgs/msg/PoseArray.html)):
-  The particle cloud where each particle represents the possible
-  location of the beacon
 - `map`
-  ([nav_msgs/msg/OccupancyGrid](https://docs.ros.org/en/rolling/p/nav_msgs/msg/OccupancyGrid.html)):
-  Occupancy grid map topic
+  ([nav_msgs/OccupancyGrid](http://docs.ros.org/en/noetic/api/nav_msgs/html/msg/OccupancyGrid.html)):
+  Occupancy grid map.
+- `map_metadata`
+  ([nav_msgs/MapMetaData](http://docs.ros.org/en/noetic/api/nav_msgs/html/msg/MapMetaData.html)):
+  Grid map metadata.
 - `particlecloud`
-  ([geometry_msgs/msg/PoseArray](https://docs.ros.org/en/rolling/p/geometry_msgs/msg/PoseArray.html)):
-  Estimate of the robot's pose
-- `beacon_viz`
-  ([visualization_msgs/msg/MarkerArray](https://docs.ros.org/en/rolling/p/visualization_msgs/msg/MarkerArray.html)):
-  Visualization of the beacons with ID
+  ([geometry_msgs/PoseArray](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseArray.html)):
+  Robot pose particles.
+- `particlecloud_beacons`
+  ([geometry_msgs/PoseArray](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseArray.html)):
+  Particles representing the possible locations of beacons (range-only SLAM).
+- `/beacons_viz`
+  ([visualization_msgs/MarkerArray](http://docs.ros.org/en/noetic/api/visualization_msgs/html/msg/MarkerArray.html)):
+  Visualization of the beacons, with their IDs.
 
-#### Parameters
+### Parameters
 
-- `~global_frame_id` (`string`, default: `"map"`): The frame
-  attached to the map
-- `~base_frame_id` (`string`, default: `"base_link"`): The frame
-  attached to the mobile base
-- `~odom_frame_id` (`string`, default: `"odom"`): The frame attached
-  to the odometry system
-- `~sensor_source` (`string`, default: `"scan"`): The name of topics
-  with 2d laser scans or beacons (the name of topic should contain word
-  `"scan"` or `"beacon"`)
-- `~ini_filename` (`string`, default: `None`): The path to the ini file
-  with MRPT settings for SLAM (see tutorial folder)
-- `~rawlog_filename` (`string`, default: `None`): The path to rawlog
-  file (if the rawlog file does not exist, the SLAM starts in the online
-  mode)
-- `~rawlog_play_delay` (`float`, default: `0.1`): Delay for replaying
-  SLAM from the rawlog file
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `update_loop_frequency` | double | `100.0` | Rate [Hz] of the node main loop. |
+| `ini_filename` | string | `""` | Path to the MRPT INI file with the SLAM settings (see `tutorial/`). |
+| `rawlog_filename` | string | `""` | Path to a `.rawlog` file. If the file exists, SLAM runs offline from it; otherwise, the node runs online from ROS topics. |
+| `rawlog_play_delay` | double | `0.1` | Delay [s] between steps while replaying a rawlog file. |
+| `sensor_source` | string | `"scan"` | Comma- or space-separated list of laser scan topics. |
+| `global_frame_id` | string | `"map"` | Frame attached to the map. |
+| `odom_frame_id` | string | `"odom"` | Frame attached to the odometry system. |
+| `base_frame_id` | string | `"base_link"` | Frame attached to the mobile base. |
+| `update_sensor_pose` | bool | `true` | Whether to look up the sensor pose on `/tf` for each observation. |
+| `simplemap_save_folder` | string | (required) | Folder where the resulting `.simplemap` file is saved. |
+| `motion_model.type` | string | (required) | Odometry motion model: `thrun` or `gaussian`. |
+| `motion_model.thrun_motion_model_options.*` | double/int | (required) | Parameters of the Thrun motion model: `particle_count`, `alfa1_rot_rot`, `alfa2_rot_trans`, `alfa3_trans_trans`, `alfa4_trans_rot`, `additional_std_XY`, `additional_std_phi`. |
+| `motion_model.gaussian_motion_model_options.*` | double | (required) | Parameters of the Gaussian motion model: `a1`, `a2`, `a3`, `a4`, `minStdXY`, `minStdPHI`. |
+| `mrpt_visualization_options.show_window` | bool | (required) | Show the MRPT 3D GUI window. |
+| `mrpt_visualization_options.width`, `.height` | int | (required) | Size of the MRPT GUI window. |
+| `mrpt_visualization_options.window_update_delay` | int | (required) | Delay [ms] between GUI window updates. |
+| `mrpt_visualization_options.camera_follow_robot` | bool | (required) | Whether the GUI camera follows the robot. |
 
-#### Required tf Transforms
+Parameters marked as required have no built-in default: load
+[config/default.yaml](config/default.yaml) with `<rosparam>`, as the
+provided launch files do. `particle_count` defaults to `100`.
 
-- `<the frame attached to incoming scans>` → `base_link`: The relative
-  pose of the laser sensor w.r.t. the robot. Usually a fixed value,
-  broadcast periodically by a
-  [robot_state_publisher](https://index.ros.org/p/robot_state_publisher),
-  or a `tf` [static_transform_publisher](https://index.ros.org/p/tf).
-- `base_link` → `odom`: The robot odometry, provided by the odometry
-  system (e.g., the driver for the mobile base)
+### Required tf transforms
 
-#### Provided tf Transforms
+- `<sensor frame>` → `base_link`: Relative pose of the laser sensor w.r.t.
+  the robot. Usually fixed, published by
+  [robot_state_publisher](https://index.ros.org/p/robot_state_publisher) or a
+  `tf` `static_transform_publisher`.
+- `odom` → `base_link`: Robot odometry, provided by the odometry system
+  (e.g., the driver of the mobile base).
 
-- `map` → `odom`: The current estimate of the robot's pose within the
-  map frame
+### Provided tf transforms
 
-------------------------------------------------------------------------
+- `map` → `odom`: Current estimate of the robot pose within the map frame.
